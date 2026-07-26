@@ -11,7 +11,15 @@ interface UserDao {
     @Insert
     suspend fun insertUser(user: User): Long
 
-    // Get all users from the database
-    @Query("SELECT * FROM users WHERE username = :username LIMIT 1")
-    suspend fun getUserByUsername(username: String): User?
+    // Get a user by email or phone number
+    @Query("SELECT * FROM users WHERE email = :identifier OR phone = :identifier LIMIT 1")
+    suspend fun getUserByEmailOrPhone(identifier: String): User?
+
+    // Get a user by their email
+    @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
+    suspend fun getUserByEmail(email: String): User?
+
+    // Get a user by their phone number
+    @Query("SELECT * FROM users WHERE phone = :phone LIMIT 1")
+    suspend fun getUserByPhone(phone: String): User?
 }

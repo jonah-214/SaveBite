@@ -4,46 +4,40 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.savebite.data.dao.UserDao
-import com.example.savebite.model.User
+import com.example.savebite.repo.UserRepository
 import kotlinx.coroutines.launch
 
 // ViewModel for authentication
-class AuthViewModel(private val userDao: UserDao) : ViewModel() {
+class AuthViewModel(private val repository: UserRepository) : ViewModel() {
 
-    // State variables for login and signup errors
-    private val _authError = mutableStateOf<String?>(null)
-    val authError: State<String?> = _authError
+    // State variables
+    private val _errorMessage = mutableStateOf<String?>(null)
+    val errorMessage: State<String?> = _errorMessage
 
-    // Login function
-    fun login(username: String, password: String, onSuccess: () -> Unit) {
+    // Login user
+    fun login(identifier: String, password: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             // Check if user exists and password is correct
-            val user = userDao.getUserByUsername(username)
-            // Update state variables based on login result
+            val user = repository.login(identifier, password)
             if (user == null) {
-                _authError.value = "Username not found"
-            } else if (user.password != password) {
-                _authError.value = "Incorrect password"
+                _errorMessage.value = "Invalid email/phone or password"
             } else {
-                _authError.value = null
+                _errorMessage.value = null
                 onSuccess()
             }
         }
     }
 
-    // Signup function
-    fun signup(username: String, password: String, onSuccess: () -> Unit) {
+    // Signup user
+    fun signup(username: String, email: String, phone: String, password: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
-            // Check if username already exists
-            val existingUser = userDao.getUserByUsername(username)
-            // Update state variables based on signup result
-            if (existingUser != null) {
-                _authError.value = "Username already exists"
-            } else {
-                _authError.value = null
-                userDao.insertUser(User(username = username, password = password))
+            // Check if email or phone number is already registered
+            val result = repository.signup(username, email, phone, password)
+            result.onSuccess {
+                _errorMessage.value = null
                 onSuccess()
+            }.onFailure { e ->
+                _errorMessage.value = e.message
             }
         }
     }
