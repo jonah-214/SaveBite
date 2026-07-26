@@ -1,8 +1,7 @@
-package com.example.savebite.data.local.dao
+package com.example.savebite.data.dao
 
 import androidx.room.*
-import com.example.savebite.data.local.entity.User
-import kotlinx.coroutines.flow.Flow
+import com.example.savebite.model.User
 
 // Room database operations - User
 @Dao

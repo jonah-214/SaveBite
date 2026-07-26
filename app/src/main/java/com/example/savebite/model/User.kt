@@ -1,4 +1,4 @@
-package com.example.savebite.data.local.entity
+package com.example.savebite.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
