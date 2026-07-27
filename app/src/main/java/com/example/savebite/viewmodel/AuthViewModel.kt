@@ -5,17 +5,21 @@ import androidx.compose.runtime.State
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savebite.repo.UserRepository
+import com.example.savebite.utils.SessionManager
 import kotlinx.coroutines.launch
 
 // ViewModel for authentication
-class AuthViewModel(private val repository: UserRepository) : ViewModel() {
+class AuthViewModel(
+    private val repository: UserRepository,
+    private val sessionManager: SessionManager
+) : ViewModel() {
 
     // State variables
     private val _errorMessage = mutableStateOf<String?>(null)
     val errorMessage: State<String?> = _errorMessage
 
     // Login user
-    fun login(identifier: String, password: String, onSuccess: () -> Unit) {
+    fun login(identifier: String, password: String, rememberMe: Boolean, onSuccess: () -> Unit) {
         viewModelScope.launch {
             // Check if user exists and password is correct
             val user = repository.login(identifier, password)
@@ -23,6 +27,7 @@ class AuthViewModel(private val repository: UserRepository) : ViewModel() {
                 _errorMessage.value = "Invalid email/phone or password"
             } else {
                 _errorMessage.value = null
+                if (rememberMe) sessionManager.saveSession(user.id)
                 onSuccess()
             }
         }
