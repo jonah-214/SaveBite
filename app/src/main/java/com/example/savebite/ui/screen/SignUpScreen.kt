@@ -3,6 +3,7 @@ package com.example.savebite.ui.screen
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -170,12 +171,18 @@ fun SignUpScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("Already have an account?")
-        Text(
-            text = "Login",
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.clickable { onNavigateToLogin() }
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Already have an account? ")
+            Text(
+                text = "Login",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable { onNavigateToLogin() }
+            )
+        }
     }
 }
 

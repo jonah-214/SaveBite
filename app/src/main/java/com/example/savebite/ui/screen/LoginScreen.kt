@@ -118,6 +118,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
@@ -154,12 +155,18 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("Don't have an account?")
-        Text(
-            text = "Sign Up",
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.clickable { onNavigateToSignup() }
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Don't have an account? ")
+            Text(
+                text = "Sign Up",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable { onNavigateToSignup() }
+            )
+        }
     }
 }
 
