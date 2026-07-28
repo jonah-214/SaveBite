@@ -20,7 +20,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,12 +34,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.savebite.viewmodel.AuthViewModel
-import androidx.compose.ui.tooling.preview.Preview
+import com.example.savebite.ui.viewmodel.AuthViewModel
 import androidx.compose.ui.unit.sp
-import com.example.savebite.model.User
-import com.example.savebite.data.dao.UserDao
-import com.example.savebite.repo.UserRepository
 
 @Composable
 fun SignUpScreen(
@@ -184,24 +179,4 @@ fun SignUpScreen(
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SignUpScreenPreview() {
-    val mockUserDao = object : UserDao {
-        override suspend fun insertUser(user: User): Long = 0
-        override suspend fun getUserByEmailOrPhone(identifier: String): User? = null
-        override suspend fun getUserByEmail(email: String): User? = null
-        override suspend fun getUserByPhone(phone: String): User? = null
-    }
-    val repository = UserRepository(mockUserDao)
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val sessionManager = com.example.savebite.utils.SessionManager(context)
-    val mockViewModel = AuthViewModel(repository, sessionManager)
-    SignUpScreen(
-        viewModel = mockViewModel,
-        onSignUpSuccess = {},
-        onNavigateToLogin = {}
-    )
 }

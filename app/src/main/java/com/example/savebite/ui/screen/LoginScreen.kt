@@ -15,13 +15,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,12 +34,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.savebite.viewmodel.AuthViewModel
-import androidx.compose.ui.tooling.preview.Preview
+import com.example.savebite.ui.viewmodel.AuthViewModel
 import androidx.compose.ui.unit.sp
-import com.example.savebite.model.User
-import com.example.savebite.data.dao.UserDao
-import com.example.savebite.repo.UserRepository
 
 @Composable
 fun LoginScreen(
@@ -51,7 +45,6 @@ fun LoginScreen(
 ) {
     var identifier by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var rememberMe by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
     val error by viewModel.errorMessage
 
@@ -115,19 +108,6 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked = rememberMe,
-                onCheckedChange = { rememberMe = it }
-            )
-            Text(text = "Remember Me")
-        }
-
         if (error != null) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -140,7 +120,7 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                viewModel.login(identifier, password, rememberMe, onLoginSuccess)
+                viewModel.login(identifier, password, onLoginSuccess)
             },
             shape = RoundedCornerShape(50),
             modifier = Modifier
@@ -168,24 +148,4 @@ fun LoginScreen(
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    val mockUserDao = object : UserDao {
-        override suspend fun insertUser(user: User): Long = 0
-        override suspend fun getUserByEmailOrPhone(identifier: String): User? = null
-        override suspend fun getUserByEmail(email: String): User? = null
-        override suspend fun getUserByPhone(phone: String): User? = null
-    }
-    val repository = UserRepository(mockUserDao)
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val sessionManager = com.example.savebite.utils.SessionManager(context)
-    val mockViewModel = AuthViewModel(repository, sessionManager)
-    LoginScreen(
-        viewModel = mockViewModel,
-        onLoginSuccess = {},
-        onNavigateToSignup = {}
-    )
 }

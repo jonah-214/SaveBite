@@ -1,10 +1,10 @@
-package com.example.savebite.data.db
+package com.example.savebite.data.local
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.savebite.data.dao.UserDao
+import com.example.savebite.data.local.dao.UserDao
 import com.example.savebite.model.User
 
 // Room database
@@ -20,15 +20,14 @@ abstract class AppDatabase : RoomDatabase() {
         private var INSTANCE: AppDatabase? = null
 
         fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
+            if (INSTANCE == null) {
+                INSTANCE = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "savebite_database"
                 ).build()
-                INSTANCE = instance
-                instance
             }
+            return INSTANCE!!
         }
     }
 }

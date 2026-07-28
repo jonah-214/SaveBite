@@ -1,4 +1,4 @@
-package com.example.savebite.data.dao
+package com.example.savebite.data.local.dao
 
 import androidx.room.*
 import com.example.savebite.model.User
