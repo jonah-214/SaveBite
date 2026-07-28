@@ -78,6 +78,7 @@ fun SignUpScreen(
             value = username,
             onValueChange = { username = it },
             label = { Text("Username") },
+            placeholder = { Text("John Doe") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             keyboardOptions = KeyboardOptions(
@@ -93,6 +94,7 @@ fun SignUpScreen(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
+            placeholder = { Text("johndoe@example.com") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             keyboardOptions = KeyboardOptions(
@@ -108,6 +110,7 @@ fun SignUpScreen(
             value = phone,
             onValueChange = { phone = it },
             label = { Text("Phone Number") },
+            placeholder = { Text("012-3456789") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             keyboardOptions = KeyboardOptions(
@@ -123,6 +126,7 @@ fun SignUpScreen(
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
+            placeholder = { Text("Enter your password") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             keyboardOptions = KeyboardOptions(

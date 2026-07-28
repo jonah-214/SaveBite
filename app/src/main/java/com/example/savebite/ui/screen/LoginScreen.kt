@@ -76,6 +76,7 @@ fun LoginScreen(
             value = identifier,
             onValueChange = { identifier = it },
             label = { Text("Email/Phone Number") },
+            placeholder = { Text("Enter your email or phone number") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             keyboardOptions = KeyboardOptions(
@@ -91,6 +92,7 @@ fun LoginScreen(
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
+            placeholder = { Text("Enter your password") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
 
