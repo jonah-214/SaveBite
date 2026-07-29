@@ -37,12 +37,13 @@ fun AppNavigation(
         composable(AppRoutes.SPLASH) {
             SplashScreen(
                 sessionManager = sessionManager,
+                // If a session is found, navigate to the dashboard.
                 onSessionFound = {
                     navController.navigate(AppRoutes.DASHBOARD) {
-                        // Remove splash screen from back stack so back button doesn't return to it
                         popUpTo(AppRoutes.SPLASH) { inclusive = true }
                     }
                 },
+                // If no session is found, navigate to the login screen.
                 onNoSession = {
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(AppRoutes.SPLASH) { inclusive = true }
@@ -55,14 +56,19 @@ fun AppNavigation(
         composable(AppRoutes.LOGIN) {
             LoginScreen(
                 viewModel = viewModel,
+                // If login is successful, navigate to the dashboard.
                 onLoginSuccess = {
                     navController.navigate(AppRoutes.DASHBOARD) {
-                        // Clear Login off the back stack so back button doesn't return to it
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
                     }
                 },
                 onNavigateToSignup = {
-                    navController.navigate(AppRoutes.SIGNUP)
+                    // Replace Login with Signup instead of stacking on top of it.
+                    // Keeps the back stack at a single auth screen at any time.
+                    navController.navigate(AppRoutes.SIGNUP) {
+                        popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -71,14 +77,18 @@ fun AppNavigation(
         composable(AppRoutes.SIGNUP) {
             SignUpScreen(
                 viewModel = viewModel,
+                // If signup is successful, navigate to the dashboard.
                 onSignUpSuccess = {
                     navController.navigate(AppRoutes.DASHBOARD) {
-                        // Clear Signup + Login off the back stack so back button doesn't return to it
-                        popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                        popUpTo(AppRoutes.SIGNUP) { inclusive = true }
                     }
                 },
                 onNavigateToLogin = {
-                    navController.navigate(AppRoutes.LOGIN)
+                    // Replace Signup with Login instead of stacking on top of it.
+                    navController.navigate(AppRoutes.LOGIN) {
+                        popUpTo(AppRoutes.SIGNUP) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }

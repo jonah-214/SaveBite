@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,8 +49,17 @@ fun SignUpScreen(
     var phone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    val error by viewModel.errorMessage
-    
+
+    val usernameError by viewModel.usernameError
+    val emailError by viewModel.emailError
+    val phoneError by viewModel.phoneError
+    val passwordError by viewModel.passwordError
+
+    // Reset any leftover errors every time when this screen is entered
+    LaunchedEffect(Unit) {
+        viewModel.clearSignupErrors()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -73,14 +83,22 @@ fun SignUpScreen(
         )
 
         Spacer(modifier = Modifier.height(32.dp))
-        
+
+        // Username field
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
             label = { Text("Username") },
-            placeholder = { Text("John Doe") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
+            isError = usernameError != null,
+            supportingText = {
+                Text(
+                    text = usernameError ?: "3-20 characters. Letters, numbers and underscore only.",
+                    color = if (usernameError != null) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Next
@@ -88,15 +106,21 @@ fun SignUpScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
+        // Email field
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
-            placeholder = { Text("johndoe@example.com") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
+            isError = emailError != null,
+            supportingText = {
+                if (emailError != null) {
+                    Text(text = emailError!!, color = MaterialTheme.colorScheme.error)
+                }
+            },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
@@ -104,15 +128,23 @@ fun SignUpScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
+        // Phone field
         OutlinedTextField(
             value = phone,
             onValueChange = { phone = it },
             label = { Text("Phone Number") },
-            placeholder = { Text("012-3456789") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
+            isError = phoneError != null,
+            supportingText = {
+                Text(
+                    text = phoneError ?: "Malaysian mobile number, e.g. 0123456789",
+                    color = if (phoneError != null) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Phone,
                 imeAction = ImeAction.Next
@@ -120,15 +152,24 @@ fun SignUpScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
-        
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Password field
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
-            placeholder = { Text("Enter your password") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
+            isError = passwordError != null,
+            supportingText = {
+                Text(
+                    text = passwordError
+                        ?: "At least 8 characters, with uppercase, lowercase and a number.",
+                    color = if (passwordError != null) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
@@ -142,17 +183,10 @@ fun SignUpScreen(
             },
             modifier = Modifier.fillMaxWidth()
         )
-        
-        if (error != null) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = error!!,
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(20.dp))
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Sign Up button
         Button(
             onClick = {
                 viewModel.signup(username, email, phone, password, onSignUpSuccess)
@@ -170,6 +204,7 @@ fun SignUpScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Navigate to Log in
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,

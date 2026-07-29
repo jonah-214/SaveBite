@@ -10,8 +10,6 @@ import com.example.savebite.model.User
 // Room database
 @Database(entities = [User::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
-
-    // User DAO
     abstract fun userDao(): UserDao
 
     // Singleton instance of the database
