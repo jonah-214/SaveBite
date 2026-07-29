@@ -50,14 +50,15 @@ fun SignUpScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val usernameError by viewModel.usernameError
-    val emailError by viewModel.emailError
-    val phoneError by viewModel.phoneError
-    val passwordError by viewModel.passwordError
+    val usernameError by viewModel.signupUsernameError
+    val emailError by viewModel.signupEmailError
+    val phoneError by viewModel.signupPhoneError
+    val passwordError by viewModel.signupPasswordError
 
-    // Reset any leftover errors every time when this screen is entered
+    /* Reset any leftover errors whenever this screen is (re)entered
+    which covers both button navigation and the system back button. */
     LaunchedEffect(Unit) {
-        viewModel.clearSignupErrors()
+        viewModel.clearErrors()
     }
 
     Column(
@@ -186,7 +187,6 @@ fun SignUpScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Sign Up button
         Button(
             onClick = {
                 viewModel.signup(username, email, phone, password, onSignUpSuccess)
@@ -204,7 +204,6 @@ fun SignUpScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Navigate to Log in
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,

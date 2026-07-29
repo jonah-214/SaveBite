@@ -37,13 +37,13 @@ fun AppNavigation(
         composable(AppRoutes.SPLASH) {
             SplashScreen(
                 sessionManager = sessionManager,
-                // If a session is found, navigate to the dashboard.
+                // If a session is found, navigate to the dashboard
                 onSessionFound = {
                     navController.navigate(AppRoutes.DASHBOARD) {
                         popUpTo(AppRoutes.SPLASH) { inclusive = true }
                     }
                 },
-                // If no session is found, navigate to the login screen.
+                // If no session is found, navigate to the login screen
                 onNoSession = {
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(AppRoutes.SPLASH) { inclusive = true }
@@ -56,15 +56,16 @@ fun AppNavigation(
         composable(AppRoutes.LOGIN) {
             LoginScreen(
                 viewModel = viewModel,
-                // If login is successful, navigate to the dashboard.
+                // If login is successful, navigate to the dashboard
                 onLoginSuccess = {
                     navController.navigate(AppRoutes.DASHBOARD) {
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
                     }
                 },
+                // If login is canceled, navigate to the signup screen
                 onNavigateToSignup = {
-                    // Replace Login with Signup instead of stacking on top of it.
-                    // Keeps the back stack at a single auth screen at any time.
+                    // Clear stale errors before leaving, so Signup opens clean
+                    viewModel.clearErrors()
                     navController.navigate(AppRoutes.SIGNUP) {
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
                         launchSingleTop = true
@@ -77,14 +78,16 @@ fun AppNavigation(
         composable(AppRoutes.SIGNUP) {
             SignUpScreen(
                 viewModel = viewModel,
-                // If signup is successful, navigate to the dashboard.
+                // If signup is successful, navigate to the dashboard
                 onSignUpSuccess = {
                     navController.navigate(AppRoutes.DASHBOARD) {
                         popUpTo(AppRoutes.SIGNUP) { inclusive = true }
                     }
                 },
+                // If signup is canceled, navigate to the login screen
                 onNavigateToLogin = {
-                    // Replace Signup with Login instead of stacking on top of it.
+                    // Clear stale errors before leaving, so Login opens clean
+                    viewModel.clearErrors()
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(AppRoutes.SIGNUP) { inclusive = true }
                         launchSingleTop = true

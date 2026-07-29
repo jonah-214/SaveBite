@@ -50,11 +50,12 @@ fun LoginScreen(
 
     val identifierError by viewModel.loginIdentifierError
     val passwordError by viewModel.loginPasswordError
-    val generalError by viewModel.errorMessage
+    val loginError by viewModel.loginError
 
-    // Reset any leftover errors every time when this screen is entered
+    /* Reset any leftover errors whenever this screen is (re)entered
+    which covers both button navigation and the system back button. */
     LaunchedEffect(Unit) {
-        viewModel.clearLoginErrors()
+        viewModel.clearErrors()
     }
 
     Column(
@@ -81,7 +82,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Email or phone field
+        // Email/Phone field
         OutlinedTextField(
             value = identifier,
             onValueChange = { identifier = it },
@@ -130,19 +131,17 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        /* Combined "invalid credentials" error - intentionally not tied to a specific field
-        so it doesn't reveal whether the account exists. */
-        if (generalError != null) {
+        // General "invalid credentials" error - not tied to a specific field
+        if (loginError != null) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = generalError!!,
+                text = loginError!!,
                 color = MaterialTheme.colorScheme.error
             )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Login button
         Button(
             onClick = {
                 viewModel.login(identifier, password, onLoginSuccess)
@@ -160,7 +159,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Navigate to Signup
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
