@@ -90,6 +90,7 @@ fun SignUpScreen(
             value = username,
             onValueChange = { username = it },
             label = { Text("Username") },
+            placeholder = { Text("John_Doe") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             isError = usernameError != null,
@@ -114,6 +115,7 @@ fun SignUpScreen(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
+            placeholder = { Text("johndoe@example.com") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             isError = emailError != null,
@@ -136,12 +138,13 @@ fun SignUpScreen(
             value = phone,
             onValueChange = { phone = it },
             label = { Text("Phone Number") },
+            placeholder = { Text("60123456789") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             isError = phoneError != null,
             supportingText = {
                 Text(
-                    text = phoneError ?: "Malaysian mobile number, e.g. 0123456789",
+                    text = phoneError ?: "Only Malaysian phone number is supported.",
                     color = if (phoneError != null) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -160,6 +163,7 @@ fun SignUpScreen(
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
+            placeholder = { Text("Enter your password") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             isError = passwordError != null,

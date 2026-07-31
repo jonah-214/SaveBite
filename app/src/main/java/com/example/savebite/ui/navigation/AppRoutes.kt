@@ -18,6 +18,8 @@ object AppRoutes {
     const val SIGNUP = "signup"
     // Home screen
     const val DASHBOARD = "dashboard"
+    // Expiry Reminder screen
+    const val REMINDER = "reminder"
     // Food Inventory screen
     const val INVENTORY = "inventory"
     // Shopping List screen
@@ -26,6 +28,8 @@ object AppRoutes {
     const val RECIPE = "recipe"
     // Waste Tracker Report screen
     const val REPORTS = "reports"
+    // Profile & Settings screen
+    const val PROFILE = "profile"
 }
 
 // Navigation items

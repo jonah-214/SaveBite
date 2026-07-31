@@ -18,6 +18,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.savebite.ui.screen.DashboardScreen
 import com.example.savebite.ui.screen.LoginScreen
 import com.example.savebite.ui.screen.SignUpScreen
 import com.example.savebite.ui.screen.SplashScreen
@@ -121,7 +122,13 @@ fun AppNavigation(
 
             // Dashboard screen route
             composable(AppRoutes.DASHBOARD) {
-                PlaceholderScreen("Dashboard", viewModel, navController)
+                DashboardScreen(
+                    navController = navController
+                )
+            }
+
+            composable(AppRoutes.REMINDER) {
+                PlaceholderScreen("Reminders", viewModel, navController)
             }
 
             composable(AppRoutes.INVENTORY) {
@@ -139,10 +146,15 @@ fun AppNavigation(
             composable(AppRoutes.REPORTS) {
                 PlaceholderScreen("Reports", viewModel, navController)
             }
+
+            composable(AppRoutes.PROFILE) {
+                PlaceholderScreen("Profile", viewModel, navController)
+            }
         }
     }
 }
 
+// Temporary placeholder screen for each module
 @Composable
 fun PlaceholderScreen(
     title: String,
