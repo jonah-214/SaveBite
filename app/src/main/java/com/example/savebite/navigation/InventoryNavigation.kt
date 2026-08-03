@@ -1,86 +1,82 @@
 package com.example.savebite.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.navigation.NavHostController
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.savebite.model.Inventory
+import androidx.navigation.navArgument
 import com.example.savebite.screen.AddInventoryScreen
-import com.example.savebite.screen.InventoryList
-import com.example.savebite.screen.InventoryCard
 import com.example.savebite.screen.InventoryDetailScreen
-
-// Navigation Routes
-sealed class Screen(val route: String) {
-    object InventoryList : Screen("inventory_list")
-    object AddInventory : Screen("add_inventory")
-}
+import com.example.savebite.screen.InventoryList
+import com.example.savebite.viewmodel.InventoryViewModel
 
 @Composable
-fun InventoryNavigation(
-    navController: NavHostController = rememberNavController()
-) {
-    // Starting mock data defined directly here
-    val initialItems = listOf(
-        Inventory(
-            name = "Milk",
-            description = "Fresh Whole Milk",
-            category = "Dairy",
-            storage = "Refrigerator",
-            quantity = 1,
-            daysLeft = 3,
-            purchaseDate = "30 Jul 2026",
-            expiry = "05 Aug 2026",
-            notes = "Keep chilled"
-        ),
-        Inventory(
-            name = "Apples",
-            description = "Fuji Apples",
-            category = "Produce",
-            storage = "Pantry",
-            quantity = 6,
-            daysLeft = 8,
-            purchaseDate = "01 Aug 2026",
-            expiry = "10 Aug 2026",
-            notes = ""
-        )
-    )
+fun InventoryNavigation(viewModel: InventoryViewModel) {
+    val navController = rememberNavController()
+    val inventoryList by viewModel.inventoryList.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val selectedStorage by viewModel.selectedStorage.collectAsState()
 
-    // State list initialized with the mock items above
-    val inventoryItems = remember { mutableStateListOf<Inventory>().apply { addAll(initialItems) } }
+    NavHost(navController = navController, startDestination = "inventory_list") {
 
-    NavHost(
-        navController = navController,
-        startDestination = Screen.InventoryList.route
-    ) {
-        // 1. Inventory List Screen
-        composable(Screen.InventoryList.route) {
+        // --- 1. LIST SCREEN ---
+        composable("inventory_list") {
             InventoryList(
-                foods = inventoryItems,
-                onNavigateToAddInventory = {
-                    navController.navigate(Screen.AddInventory.route)
-                },
-                onBackClick = {
+                foods = inventoryList,
+                searchQuery = searchQuery,
+                onQueryChange = { viewModel.searchQuery.value = it },
+                selectedCategory = selectedStorage,
+                onCategorySelected = { viewModel.selectedStorage.value = it },
+                onNavigateToAddInventory = { navController.navigate("add_inventory") },
+                onItemClick = { item -> navController.navigate("details/${item.id}") },
+                onEditClick = { item -> navController.navigate("add_inventory?itemId=${item.id}") },
+                onDeleteClick = { item -> viewModel.deleteItem(item) }
+            )
+        }
+
+        // --- 2. ADD / EDIT SCREEN ---
+        composable(
+            route = "add_inventory?itemId={itemId}",
+            arguments = listOf(navArgument("itemId") {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            })
+        ) { backStackEntry ->
+            val itemId = backStackEntry.arguments?.getString("itemId")
+            AddInventoryScreen(
+                itemId = itemId,
+                viewModel = viewModel,
+                onBackClick = { navController.popBackStack() },
+                onSaveClick = { item ->
+                    viewModel.saveItem(item)
                     navController.popBackStack()
                 }
             )
         }
 
-        // 2. Add Inventory Screen
-        composable(Screen.AddInventory.route) {
-            AddInventoryScreen(
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onSaveClick = { newItem ->
-                    // Adds the newly created item to the top of the list
-                    inventoryItems.add(0, newItem)
-                    navController.popBackStack()
-                }
-            )
+        // --- 3. DETAILS SCREEN ---
+        composable(
+            route = "details/{itemId}",
+            arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
+            val itemState by viewModel.getItemById(itemId).collectAsState(initial = null)
+
+            itemState?.let { item ->
+                InventoryDetailScreen(
+                    detail = item,
+                    onBackClick = { navController.popBackStack() },
+                    onEditClick = { navController.navigate("add_inventory?itemId=${item.id}") },
+                    onDeleteClick = {
+                        viewModel.deleteItem(item)
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
     }
 }

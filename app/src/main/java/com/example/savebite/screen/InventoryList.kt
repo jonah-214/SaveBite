@@ -1,11 +1,9 @@
 package com.example.savebite.screen
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,58 +11,56 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.R
-import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.style.TextOverflow
+import com.example.savebite.R
 import com.example.savebite.model.Inventory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventoryList(
-    foods: List<Inventory> = emptyList(), // Default to empty list
+    foods: List<Inventory> = emptyList(),
+    searchQuery: String = "",
+    onQueryChange: (String) -> Unit = {},
+    selectedCategory: String = "All",
+    onCategorySelected: (String) -> Unit = {},
     onNavigateToAddInventory: () -> Unit = {},
+    onItemClick: (Inventory) -> Unit = {},
+    onEditClick: (Inventory) -> Unit = {},
+    onDeleteClick: (Inventory) -> Unit = {},
     onBackClick: () -> Unit = {}
 ) {
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("All") }
     var showAddDialog by remember { mutableStateOf(false) }
     var showAddCategoryDialog by remember { mutableStateOf(false) }
     var newCategoryName by remember { mutableStateOf("") }
@@ -80,9 +76,9 @@ fun InventoryList(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = onBackClick) {
                         Icon(
-                            painter = painterResource(com.example.savebite.R.drawable.back),
+                            painter = painterResource(R.drawable.back),
                             contentDescription = "Back",
                             tint = Color.White,
                             modifier = Modifier.size(20.dp)
@@ -96,19 +92,19 @@ fun InventoryList(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {showAddDialog = true},
+                onClick = { showAddDialog = true },
                 containerColor = Color(0xFF2D3A31)
             ) {
                 Icon(
-                    painter = painterResource(com.example.savebite.R.drawable.add),
+                    painter = painterResource(R.drawable.add),
                     contentDescription = "Add button",
                     tint = Color.White,
                     modifier = Modifier.size(36.dp)
-
                 )
             }
         },
     ) { padding ->
+        // --- ADD CHOICES DIALOG ---
         if (showAddDialog) {
             AlertDialog(
                 containerColor = Color.White,
@@ -171,6 +167,7 @@ fun InventoryList(
             )
         }
 
+        // --- ADD CATEGORY DIALOG ---
         if (showAddCategoryDialog) {
             AlertDialog(
                 containerColor = Color.White,
@@ -208,7 +205,6 @@ fun InventoryList(
                     Button(
                         onClick = {
                             if (newCategoryName.isNotBlank()) {
-
                                 showAddCategoryDialog = false
                             }
                         },
@@ -227,27 +223,43 @@ fun InventoryList(
             )
         }
 
-        Column (
+        // --- MAIN CONTENT ---
+        Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(5.dp)
+                .padding(8.dp)
         ) {
             CategoryTabs(
                 selectedCategory = selectedCategory,
-                onCategorySelected = {selectedCategory = it}
+                onCategorySelected = onCategorySelected
             )
-            Spacer(modifier = Modifier.height(5.dp))
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             SearchFoodBar(
                 query = searchQuery,
-                onQueryChange = {searchQuery=it}
+                onQueryChange = onQueryChange
             )
 
             Spacer(modifier = Modifier.height(10.dp))
-            LazyColumn (
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ){
 
+            // Populated LazyColumn displaying cards
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(
+                    items = foods,
+                    key = { item -> item.id }
+                ) { food ->
+                    InventoryCard(
+                        food = food,
+                        onEditClick = { onEditClick(food) },
+                        onDeleteClick = { onDeleteClick(food) },
+                        onCardClick = { onItemClick(food) }
+                    )
+                }
             }
         }
     }
@@ -305,21 +317,21 @@ fun SearchFoodBar(
         onValueChange = onQueryChange,
         modifier = modifier
             .fillMaxWidth()
-            .height(50.dp), // Reduced height from default 56.dp
-        textStyle = MaterialTheme.typography.bodyMedium, // Compact font size
+            .height(50.dp),
+        textStyle = MaterialTheme.typography.bodyMedium,
         leadingIcon = {
             Icon(
-                painter = painterResource(com.example.savebite.R.drawable.search),
+                painter = painterResource(R.drawable.search),
                 contentDescription = "Search",
                 tint = Color.Gray,
-                modifier = Modifier.size(18.dp) // Compact icon size
+                modifier = Modifier.size(18.dp)
             )
         },
         trailingIcon = {
             if (query.isNotEmpty()) {
                 IconButton(onClick = { onQueryChange("") }) {
                     Icon(
-                        painter = painterResource(com.example.savebite.R.drawable.clear), // Built-in Material clear icon
+                        painter = painterResource(R.drawable.clear),
                         contentDescription = "Clear search",
                         tint = Color.Gray,
                         modifier = Modifier.size(18.dp)

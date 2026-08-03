@@ -1,7 +1,6 @@
 package com.example.savebite.screen
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,24 +14,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-// Detailed Food Data Model
-data class InventoryDetail(
-    val name: String = "Milk",
-    val description: String = "Fresh Milk",
-    val category: String = "Dairy",
-    val storage: String = "Refrigerator",
-    val quantity: Int = 1,
-    val daysLeft: Int = 2,
-    val purchaseDate: String = "20 Jul 2026",
-    val expiryDate: String = "25 Jul 2026",
-    val notes: String = "Keep chilled and shake well before use."
-)
+import com.example.savebite.model.Inventory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventoryDetailScreen(
-    detail: InventoryDetail = InventoryDetail(),
+    detail: Inventory,
     onBackClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {}
@@ -297,7 +284,7 @@ fun InventoryDetailScreen(
                         )
                         Row {
                             Text(
-                                text = detail.expiryDate,
+                                text = detail.expiry,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = Color.Black

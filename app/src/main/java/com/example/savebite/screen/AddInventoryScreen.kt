@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
 import com.example.savebite.model.Inventory
+import com.example.savebite.viewmodel.InventoryViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -27,6 +28,8 @@ import java.util.concurrent.TimeUnit
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddInventoryScreen(
+    itemId: String? = null,
+    viewModel: InventoryViewModel? = null,
     onBackClick: () -> Unit = {},
     onSaveClick: (Inventory) -> Unit = {}
 ) {
@@ -41,6 +44,23 @@ fun AddInventoryScreen(
     var purchaseDate by remember { mutableStateOf(getTodayFormatted()) }
     var expiryDate by remember { mutableStateOf(getFutureDateFormatted(5)) }
     var notes by remember { mutableStateOf("") }
+
+    // If editing, load data
+    if (itemId != null && viewModel != null) {
+        val existingItem by viewModel.getItemById(itemId).collectAsState(initial = null)
+        LaunchedEffect(existingItem) {
+            existingItem?.let { item ->
+                name = item.name
+                description = item.description
+                category = item.category
+                storage = item.storage
+                quantity = item.quantity
+                purchaseDate = item.purchaseDate
+                expiryDate = item.expiry
+                notes = item.notes
+            }
+        }
+    }
 
     // Dialog & Dropdown States
     var categoryExpanded by remember { mutableStateOf(false) }
@@ -57,7 +77,7 @@ fun AddInventoryScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Add Inventory",
+                        text = if (itemId != null) "Edit Inventory" else "Add Inventory",
                         color = Color.White,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.SemiBold
@@ -319,6 +339,7 @@ fun AddInventoryScreen(
                         val calculatedDaysLeft = calculateDaysLeft(expiryDate)
 
                         val newFood = Inventory(
+                            id = itemId ?: java.util.UUID.randomUUID().toString(),
                             name = name,
                             description = description,
                             category = category,

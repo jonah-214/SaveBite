@@ -1,6 +1,7 @@
 package com.example.savebite.screen
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,11 +35,14 @@ import com.example.savebite.model.Inventory
 @Composable
 fun InventoryCard(
     food: Inventory,
-    onEditClick: () -> Unit = {},
-    onDeleteClick: () -> Unit = {}
+    onEditClick: (Inventory) -> Unit,
+    onDeleteClick: (Inventory) -> Unit,
+    onCardClick: (Inventory) -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCardClick(food) },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -138,7 +142,7 @@ fun InventoryCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     // Edit Button
                     OutlinedButton(
-                        onClick = onEditClick,
+                        onClick = { onEditClick(food) },
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                         border = BorderStroke(1.dp, Color(0xFF148A1E)),
                         shape = RoundedCornerShape(10.dp),
@@ -156,7 +160,7 @@ fun InventoryCard(
 
                     // Delete Button
                     OutlinedButton(
-                        onClick = onDeleteClick,
+                        onClick = { onDeleteClick(food) },
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                         border = BorderStroke(1.dp, Color(0xFFE53935)),
                         shape = RoundedCornerShape(10.dp),

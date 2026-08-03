@@ -1,7 +1,7 @@
 package com.example.savebite.model
 
-import androidx.room3.Entity
-import androidx.room3.PrimaryKey
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 @Entity(tableName = "inventory_table")
 data class Inventory(

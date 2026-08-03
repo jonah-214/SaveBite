@@ -6,41 +6,42 @@ import androidx.lifecycle.viewModelScope
 import com.example.savebite.data.local.AppDatabase
 import com.example.savebite.data.local.InventoryRepository
 import com.example.savebite.model.Inventory
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class InventoryViewModel(
-    application: Application,
-    WhileSubsubscribed: SharingStarted.Companion.(Int) -> SharingStarted
-) : AndroidViewModel(application) {
+class InventoryViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: InventoryRepository
+    val searchQuery = MutableStateFlow("")
+    val selectedStorage = MutableStateFlow("All")
 
-    // Converts Room Flow into a Compose-friendly StateFlow
+    @OptIn(ExperimentalCoroutinesApi::class)
     val inventoryList: StateFlow<List<Inventory>>
 
     init {
         val dao = AppDatabase.getDatabase(application).inventoryDao()
         repository = InventoryRepository(dao)
 
-        inventoryList = repository.allInventory.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubsubscribed(5000),
-            initialValue = emptyList()
-        )
+        // Dynamically re-query based on Search query & Storage Filter Tab
+        inventoryList = searchQuery.flatMapLatest { query ->
+            selectedStorage.flatMapLatest { storage ->
+                repository.searchAndFilter(query, storage)
+            }
+        }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Lazily, emptyList())
     }
 
-    fun addInventoryItem(item: Inventory) {
-        viewModelScope.launch {
-            repository.insertItem(item)
-        }
+    fun saveItem(item: Inventory) = viewModelScope.launch {
+        repository.insertItem(item)
     }
 
-    fun deleteInventoryItem(item: Inventory) {
-        viewModelScope.launch {
-            repository.deleteItem(item)
-        }
+    fun deleteItem(item: Inventory) = viewModelScope.launch {
+        repository.deleteItem(item)
     }
+
+    fun getItemById(id: String) = repository.getItemById(id)
 }
