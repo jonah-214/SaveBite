@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
 import com.example.savebite.model.Inventory
+import com.example.savebite.ui.theme.BackgroundLight
+import com.example.savebite.ui.theme.PrimaryGreen
 import com.example.savebite.viewmodel.InventoryViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -109,7 +111,7 @@ fun AddInventoryScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF148A1E)
+                    containerColor = PrimaryGreen
                 )
             )
         }
@@ -216,7 +218,7 @@ fun AddInventoryScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, Color.LightGray),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9))
+                colors = CardDefaults.cardColors(containerColor = BackgroundLight)
             ) {
                 Row(
                     modifier = Modifier
@@ -278,7 +280,7 @@ fun AddInventoryScreen(
                             Icon(
                                 painter = painterResource(R.drawable.calendar),
                                 contentDescription = "Purchase Date",
-                                tint = Color(0xFF148A1E),
+                                tint = PrimaryGreen,
                                 modifier = Modifier.size(20.dp)
                             )
                         },
@@ -289,7 +291,7 @@ fun AddInventoryScreen(
                             disabledTextColor = MaterialTheme.colorScheme.onSurface,
                             disabledBorderColor = MaterialTheme.colorScheme.outline,
                             disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledTrailingIconColor = Color(0xFF148A1E)
+                            disabledTrailingIconColor = PrimaryGreen
                         )
                     )
                     Box(
@@ -310,7 +312,7 @@ fun AddInventoryScreen(
                             Icon(
                                 painter = painterResource(R.drawable.calendar_clock),
                                 contentDescription = "Expiry Date",
-                                tint = Color(0xFF148A1E),
+                                tint = PrimaryGreen,
                                 modifier = Modifier.size(20.dp)
                             )
                         },
@@ -321,7 +323,7 @@ fun AddInventoryScreen(
                             disabledTextColor = MaterialTheme.colorScheme.onSurface,
                             disabledBorderColor = MaterialTheme.colorScheme.outline,
                             disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledTrailingIconColor = Color(0xFF148A1E)
+                            disabledTrailingIconColor = PrimaryGreen
                         )
                     )
                     Box(
@@ -371,7 +373,7 @@ fun AddInventoryScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF148A1E)),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
                 shape = RoundedCornerShape(12.dp),
                 enabled = name.isNotBlank()
             ) {
@@ -397,7 +399,7 @@ fun AddInventoryScreen(
                     }
                     showPurchasePicker = false
                 }) {
-                    Text("OK", color = Color(0xFF148A1E))
+                    Text("OK", color = PrimaryGreen)
                 }
             },
             dismissButton = {
@@ -409,9 +411,9 @@ fun AddInventoryScreen(
             DatePicker(
                 state = datePickerState,
                 colors = DatePickerDefaults.colors(
-                    selectedDayContainerColor = Color(0xFF148A1E),
-                    todayDateBorderColor = Color(0xFF148A1E),
-                    todayContentColor = Color(0xFF148A1E)
+                    selectedDayContainerColor = PrimaryGreen,
+                    todayDateBorderColor = PrimaryGreen,
+                    todayContentColor = PrimaryGreen
                 )
             )
         }
@@ -429,7 +431,7 @@ fun AddInventoryScreen(
                     }
                     showExpiryPicker = false
                 }) {
-                    Text("OK", color = Color(0xFF148A1E))
+                    Text("OK", color = PrimaryGreen)
                 }
             },
             dismissButton = {
@@ -441,9 +443,9 @@ fun AddInventoryScreen(
             DatePicker(
                 state = datePickerState,
                 colors = DatePickerDefaults.colors(
-                    selectedDayContainerColor = Color(0xFF148A1E),
-                    todayDateBorderColor = Color(0xFF148A1E),
-                    todayContentColor = Color(0xFF148A1E)
+                    selectedDayContainerColor = PrimaryGreen,
+                    todayDateBorderColor = PrimaryGreen,
+                    todayContentColor = PrimaryGreen
                 )
             )
         }

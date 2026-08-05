@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.model.Inventory
+import com.example.savebite.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,9 +23,11 @@ fun InventoryDetailScreen(
     detail: Inventory,
     onBackClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
-    onDeleteClick: () -> Unit = {}
+    onDeleteClick: () -> Unit = {},
+    onWasteClick: () -> Unit = {}
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showWasteDialog by remember { mutableStateOf(false) }
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -43,6 +46,31 @@ fun InventoryDetailScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel", color = Color.Gray)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+    if (showWasteDialog) {
+        AlertDialog(
+            onDismissRequest = { showWasteDialog = false },
+            title = { Text(text = "Mark as Waste") },
+            text = { Text(text = "Are you sure you want to mark ${detail.name} as waste?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onWasteClick()
+                        showWasteDialog = false
+                    }
+                ) {
+                    Text("Waste", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showWasteDialog = false }) {
                     Text("Cancel", color = Color.Gray)
                 }
             },
@@ -73,7 +101,7 @@ fun InventoryDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF148A1E)
+                    containerColor = PrimaryGreen
                 )
             )
         }
@@ -100,11 +128,11 @@ fun InventoryDetailScreen(
                 // Light Blue Category Pill
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFFD0E4FF)
+                    color = CategoryBlueBg
                 ) {
                     Text(
                         text = detail.category,
-                        color = Color(0xFF0056D2),
+                        color = CategoryBlueText,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
@@ -127,7 +155,7 @@ fun InventoryDetailScreen(
             // Light Green Storage Pill Tag
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = Color(0xFFE2F3E4)
+                color = StorageGreenBg
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -137,13 +165,13 @@ fun InventoryDetailScreen(
                     Icon(
                         painter = painterResource(com.example.savebite.R.drawable.refrigerator),
                         contentDescription = "Storage",
-                        tint = Color(0xFF148A1E),
+                        tint = PrimaryGreen,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = detail.storage,
-                        color = Color(0xFF148A1E),
+                        color = PrimaryGreen,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -151,7 +179,7 @@ fun InventoryDetailScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+            HorizontalDivider(color = GrayBorder, thickness = 1.dp)
             Spacer(modifier = Modifier.height(20.dp))
 
             // 2. Quantity & Status Row
@@ -169,14 +197,14 @@ fun InventoryDetailScreen(
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = Color.Transparent,
-                        border = BorderStroke(2.dp, Color(0xFF148A1E)),
+                        border = BorderStroke(2.dp, PrimaryGreen),
                         modifier = Modifier.size(48.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 painter = painterResource(com.example.savebite.R.drawable.inventory),
                                 contentDescription = "Quantity",
-                                tint = Color(0xFF148A1E),
+                                tint = PrimaryGreen,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -204,7 +232,7 @@ fun InventoryDetailScreen(
                     modifier = Modifier
                         .height(50.dp)
                         .width(1.dp),
-                    color = Color(0xFFE0E0E0)
+                    color = GrayBorder
                 )
 
                 // Status Days Left Section
@@ -218,7 +246,7 @@ fun InventoryDetailScreen(
                     Icon(
                         painter = painterResource(com.example.savebite.R.drawable.clock), // replace with clock icon
                         contentDescription = "Status",
-                        tint = if (detail.daysLeft <= 3) Color(0xFFD32F2F) else Color(0xFFC89A00),
+                        tint = if (detail.daysLeft <= 3) UrgentRedText else SafeYellowText,
                         modifier = Modifier.size(48.dp)
                     )
 
@@ -235,7 +263,7 @@ fun InventoryDetailScreen(
                             text = "${detail.daysLeft} days left",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = if (detail.daysLeft <= 3) Color(0xFFD32F2F) else Color(0xFFC89A00)
+                            color = if (detail.daysLeft <= 3) UrgentRedText else SafeYellowText
                         )
                     }
                 }
@@ -247,7 +275,7 @@ fun InventoryDetailScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, Color(0xFFD0D0D0)),
+                border = BorderStroke(1.dp, GrayCardBorder),
                 colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Column(
@@ -260,7 +288,7 @@ fun InventoryDetailScreen(
                         text = "Details",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF148A1E)
+                        color = PrimaryGreen
                     )
 
                     // Purchase Date Row
@@ -271,7 +299,7 @@ fun InventoryDetailScreen(
                         Icon(
                             painter = painterResource(com.example.savebite.R.drawable.calendar),
                             contentDescription = null,
-                            tint = Color(0xFF148A1E),
+                            tint = PrimaryGreen,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -289,7 +317,7 @@ fun InventoryDetailScreen(
                         )
                     }
 
-                    HorizontalDivider(color = Color(0xFFF0F0F0), thickness = 1.dp)
+                    HorizontalDivider(color = GrayDivider, thickness = 1.dp)
 
                     // Expiry Date Row
                     Row(
@@ -320,12 +348,12 @@ fun InventoryDetailScreen(
                             Text(
                                 text = "(${detail.daysLeft} days left)",
                                 fontSize = 14.sp,
-                                color = if (detail.daysLeft <= 3) Color(0xFFD32F2F) else Color(0xFFC89A00)
+                                color = if (detail.daysLeft <= 3) UrgentRedText else SafeYellowText
                             )
                         }
                     }
 
-                    HorizontalDivider(color = Color(0xFFF0F0F0), thickness = 1.dp)
+                    HorizontalDivider(color = GrayDivider, thickness = 1.dp)
 
                     // Notes Row
                     Row(
@@ -335,7 +363,7 @@ fun InventoryDetailScreen(
                         Icon(
                             painter = painterResource(com.example.savebite.R.drawable.note),
                             contentDescription = null,
-                            tint = Color(0xFF148A1E),
+                            tint = PrimaryGreen,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -369,18 +397,18 @@ fun InventoryDetailScreen(
                         .weight(1f)
                         .height(48.dp),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Color(0xFFCCCCCC))
+                    border = BorderStroke(1.dp, GrayButtonBorder)
                 ) {
                     Icon(
                         painter = painterResource(com.example.savebite.R.drawable.edit),
                         contentDescription = "Edit",
-                        tint = Color(0xFF148A1E),
+                        tint = PrimaryGreen,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Edit",
-                        color = Color(0xFF148A1E),
+                        color = PrimaryGreen,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -393,7 +421,7 @@ fun InventoryDetailScreen(
                         .weight(1.2f)
                         .height(48.dp),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Color(0xFFCCCCCC))
+                    border = BorderStroke(1.dp, GrayButtonBorder)
                 ) {
                     Icon(
                         painter = painterResource(com.example.savebite.R.drawable.delete),
@@ -409,6 +437,23 @@ fun InventoryDetailScreen(
                         fontWeight = FontWeight.Medium
                     )
                 }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = { showWasteDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, Color.Red)
+            ) {
+                Text(
+                    text = "Mark as WASTE",
+                    color = Color.Red,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }

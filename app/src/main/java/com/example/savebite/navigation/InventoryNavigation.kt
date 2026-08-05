@@ -78,6 +78,10 @@ fun InventoryNavigation(viewModel: InventoryViewModel) {
                     onDeleteClick = {
                         viewModel.deleteItem(item)
                         navController.popBackStack()
+                    },
+                    onWasteClick = {
+                        viewModel.deleteItem(item)
+                        navController.popBackStack()
                     }
                 )
             }

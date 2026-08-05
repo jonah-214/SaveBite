@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
 import com.example.savebite.model.Inventory
+import com.example.savebite.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,14 +90,14 @@ fun InventoryList(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF148A1E)
+                    containerColor = PrimaryGreen
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = Color(0xFF2D3A31)
+                containerColor = DarkGreen
             ) {
                 Icon(
                     painter = painterResource(R.drawable.add),
@@ -134,12 +135,12 @@ fun InventoryList(
                             },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Color(0xFF148A1E))
+                            border = BorderStroke(1.dp, PrimaryGreen)
                         ) {
                             Text(
                                 text = " Inventory ",
                                 fontSize = 15.sp,
-                                color = Color(0xFF148A1E)
+                                color = PrimaryGreen
                             )
                         }
 
@@ -151,12 +152,12 @@ fun InventoryList(
                             },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Color(0xFF2D3A31))
+                            border = BorderStroke(1.dp, DarkGreen)
                         ) {
                             Text(
                                 text = "Storage",
                                 fontSize = 15.sp,
-                                color = Color(0xFF2D3A31)
+                                color = DarkGreen
                             )
                         }
                     }
@@ -197,8 +198,8 @@ fun InventoryList(
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color(0xFF148A1E),
-                                focusedLabelColor = Color(0xFF148A1E)
+                                focusedBorderColor = PrimaryGreen,
+                                focusedLabelColor = PrimaryGreen
                             )
                         )
                     }
@@ -212,7 +213,7 @@ fun InventoryList(
                             }
                         },
                         enabled = newStorageName.isNotBlank(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF148A1E)),
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Text("Save", color = Color.White)
@@ -307,9 +308,9 @@ fun StorageTab(
                 onClick = { onStorageSelected(storage) },
                 label = { Text(storage) },
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = Color(0xFF2D3A31),
+                    selectedContainerColor = DarkGreen,
                     selectedLabelColor = Color.White,
-                    containerColor = Color(0xFFF0F0F0),
+                    containerColor = GrayDivider,
                     labelColor = Color.Black
                 ),
                 border = FilterChipDefaults.filterChipBorder(
@@ -365,8 +366,8 @@ fun SearchFoodBar(
         shape = RoundedCornerShape(20.dp),
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFFF5F5F5),
-            unfocusedContainerColor = Color(0xFFF5F5F5),
+            focusedContainerColor = GraySearch,
+            unfocusedContainerColor = GraySearch,
             focusedBorderColor = Color.Transparent,
             unfocusedBorderColor = Color.Transparent
         )

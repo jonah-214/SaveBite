@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R // Correct Resource import
 import com.example.savebite.model.Inventory
+import com.example.savebite.ui.theme.*
 
 @Composable
 fun InventoryCard(
@@ -79,7 +80,7 @@ fun InventoryCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        border = BorderStroke(1.dp, Color(0xFFE0E0E0))
+        border = BorderStroke(1.dp, GrayBorder)
     ) {
         Column(
             modifier = Modifier
@@ -97,7 +98,7 @@ fun InventoryCard(
                         text = food.name,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1E1E1E),
+                        color = TextBlack,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -116,8 +117,8 @@ fun InventoryCard(
                 // Days Left Pill/Badge (Urgent <= 3 days, Safe > 3 days)
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = if (food.daysLeft <= 3) Color(0xFFFFEBEE) else Color(0xFFFFF8E1),
-                    contentColor = if (food.daysLeft <= 3) Color(0xFFD32F2F) else Color(0xFFC89A00)
+                    color = if (food.daysLeft <= 3) UrgentRedBg else SafeYellowBg,
+                    contentColor = if (food.daysLeft <= 3) UrgentRedText else SafeYellowText
                 ) {
                     Text(
                         text = "${food.daysLeft} days left",
@@ -129,7 +130,7 @@ fun InventoryCard(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = Color(0xFFF0F0F0), thickness = 1.dp)
+            HorizontalDivider(color = GrayDivider, thickness = 1.dp)
             Spacer(modifier = Modifier.height(12.dp))
 
             // --- BOTTOM ROW: Metadata & Actions ---
@@ -150,7 +151,7 @@ fun InventoryCard(
                             text = food.storage,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFF2D3A31)
+                            color = DarkGreen
                         )
                     }
 
@@ -166,7 +167,7 @@ fun InventoryCard(
                             text = food.expiry,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFF148A1E)
+                            color = PrimaryGreen
                         )
                     }
                 }
@@ -177,36 +178,36 @@ fun InventoryCard(
                     OutlinedButton(
                         onClick = { onEditClick(food) },
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                        border = BorderStroke(1.dp, Color(0xFF148A1E)),
+                        border = BorderStroke(1.dp, PrimaryGreen),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.height(36.dp)
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.edit),
                             contentDescription = "Edit",
-                            tint = Color(0xFF148A1E),
+                            tint = PrimaryGreen,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Edit", color = Color(0xFF148A1E), fontSize = 12.sp)
+                        Text("Edit", color = PrimaryGreen, fontSize = 12.sp)
                     }
 
                     // Delete Button
                     OutlinedButton(
                         onClick = { showDeleteDialog = true },
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                        border = BorderStroke(1.dp, Color(0xFFE53935)),
+                        border = BorderStroke(1.dp, ActionRed),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.height(36.dp)
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.delete),
                             contentDescription = "Delete",
-                            tint = Color(0xFFE53935),
+                            tint = ActionRed,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Delete", color = Color(0xFFE53935), fontSize = 12.sp)
+                        Text("Delete", color = ActionRed, fontSize = 12.sp)
                     }
                 }
             }
