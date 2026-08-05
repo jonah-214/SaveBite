@@ -38,7 +38,7 @@ fun InventoryDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            painter = painterResource(com.example.savebite.R.drawable.back),
+                            painter = painterResource(com.example.savebite.R.drawable.close),
                             contentDescription = "Back",
                             tint = Color.White,
                             modifier = Modifier.size(20.dp)
@@ -173,7 +173,7 @@ fun InventoryDetailScreen(
                 }
 
                 // Vertical Divider Line
-                Divider(
+                VerticalDivider(
                     modifier = Modifier
                         .height(50.dp)
                         .width(1.dp),
@@ -191,7 +191,7 @@ fun InventoryDetailScreen(
                     Icon(
                         painter = painterResource(com.example.savebite.R.drawable.clock), // replace with clock icon
                         contentDescription = "Status",
-                        tint = Color(0xFFFFB300),
+                        tint = if (detail.daysLeft <= 3) Color(0xFFD32F2F) else Color(0xFFC89A00),
                         modifier = Modifier.size(48.dp)
                     )
 
@@ -208,7 +208,7 @@ fun InventoryDetailScreen(
                             text = "${detail.daysLeft} days left",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFFFF8F00)
+                            color = if (detail.daysLeft <= 3) Color(0xFFD32F2F) else Color(0xFFC89A00)
                         )
                     }
                 }
@@ -293,7 +293,7 @@ fun InventoryDetailScreen(
                             Text(
                                 text = "(${detail.daysLeft} days left)",
                                 fontSize = 14.sp,
-                                color = Color(0xFFFF8F00)
+                                color = if (detail.daysLeft <= 3) Color(0xFFD32F2F) else Color(0xFFC89A00)
                             )
                         }
                     }
