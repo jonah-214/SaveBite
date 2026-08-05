@@ -20,7 +20,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +45,33 @@ fun InventoryCard(
     onDeleteClick: (Inventory) -> Unit,
     onCardClick: (Inventory) -> Unit
 ) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(text = "Delete Item") },
+            text = { Text(text = "Are you sure you want to delete ${food.name}?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteClick(food)
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("Delete", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel", color = Color.Gray)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -160,7 +193,7 @@ fun InventoryCard(
 
                     // Delete Button
                     OutlinedButton(
-                        onClick = { onDeleteClick(food) },
+                        onClick = { showDeleteDialog = true },
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                         border = BorderStroke(1.dp, Color(0xFFE53935)),
                         shape = RoundedCornerShape(10.dp),

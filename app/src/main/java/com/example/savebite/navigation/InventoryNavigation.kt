@@ -17,6 +17,7 @@ import com.example.savebite.viewmodel.InventoryViewModel
 fun InventoryNavigation(viewModel: InventoryViewModel) {
     val navController = rememberNavController()
     val inventoryList by viewModel.inventoryList.collectAsState()
+    val storageList by viewModel.storageList.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedStorage by viewModel.selectedStorage.collectAsState()
 
@@ -26,11 +27,13 @@ fun InventoryNavigation(viewModel: InventoryViewModel) {
         composable("inventory_list") {
             InventoryList(
                 foods = inventoryList,
+                storageList = storageList,
                 searchQuery = searchQuery,
                 onQueryChange = { viewModel.searchQuery.value = it },
-                selectedCategory = selectedStorage,
-                onCategorySelected = { viewModel.selectedStorage.value = it },
+                selectedStorage = selectedStorage,
+                onStorageSelected = { viewModel.selectedStorage.value = it },
                 onNavigateToAddInventory = { navController.navigate("add_inventory") },
+                onAddStorageClick = { viewModel.addStorage(it) },
                 onItemClick = { item -> navController.navigate("details/${item.id}") },
                 onEditClick = { item -> navController.navigate("add_inventory?itemId=${item.id}") },
                 onDeleteClick = { item -> viewModel.deleteItem(item) }
@@ -50,6 +53,7 @@ fun InventoryNavigation(viewModel: InventoryViewModel) {
             AddInventoryScreen(
                 itemId = itemId,
                 viewModel = viewModel,
+                storageLocations = storageList,
                 onBackClick = { navController.popBackStack() },
                 onSaveClick = { item ->
                     viewModel.saveItem(item)

@@ -1,11 +1,17 @@
 package com.example.savebite.data.local
 
 import com.example.savebite.model.Inventory
+import com.example.savebite.model.Storage
 import kotlinx.coroutines.flow.Flow
 
-class InventoryRepository(private val inventoryDao: InventoryDao) {
+class InventoryRepository(
+    private val inventoryDao: InventoryDao,
+    private val storageDao: StorageDao
+) {
 
     val allInventory: Flow<List<Inventory>> = inventoryDao.getAllInventory()
+
+    val allStorageNames: Flow<List<String>> = storageDao.getAllStorageNames()
 
     suspend fun insertItem(item: Inventory) = inventoryDao.insertItem(item)
 
@@ -17,5 +23,11 @@ class InventoryRepository(private val inventoryDao: InventoryDao) {
 
     fun searchAndFilter(query: String, storage: String): Flow<List<Inventory>> {
         return inventoryDao.searchAndFilterInventory(query, storage)
+    }
+
+    suspend fun insertStorage(name: String) {
+        if (name.isNotBlank()) {
+            storageDao.insertStorage(Storage(name))
+        }
     }
 }

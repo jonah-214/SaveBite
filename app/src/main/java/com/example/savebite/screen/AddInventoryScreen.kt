@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit
 fun AddInventoryScreen(
     itemId: String? = null,
     viewModel: InventoryViewModel? = null,
+    storageLocations: List<String> = listOf("Pantry", "Refrigerator", "Freezer"),
     onBackClick: () -> Unit = {},
     onSaveClick: (Inventory) -> Unit = {}
 ) {
@@ -37,7 +38,9 @@ fun AddInventoryScreen(
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Dairy") }
-    var storage by remember { mutableStateOf("Refrigerator") }
+    var storage by remember(storageLocations) {
+        mutableStateOf(storageLocations.firstOrNull() ?: "Refrigerator")
+    }
     var quantity by remember { mutableIntStateOf(1) }
 
     // Default Dates (Today & 5 Days Later)
@@ -68,8 +71,20 @@ fun AddInventoryScreen(
     var showPurchasePicker by remember { mutableStateOf(false) }
     var showExpiryPicker by remember { mutableStateOf(false) }
 
-    val categories = listOf("Dairy", "Produce", "Meat", "Bakery", "Beverage", "Pantry Items")
-    val storageLocations = listOf("Refrigerator", "Pantry", "Freezer", "Box 1")
+    val categories = listOf(
+        "Dairy & Eggs",
+        "Produce",
+        "Meat & Seafood",
+        "Bakery & Bread",
+        "Beverages",
+        "Pantry & Dry Goods",
+        "Frozen Foods",
+        "Snacks & Sweets",
+        "Condiments & Sauces",
+        "Canned Goods",
+        "Leftovers & Prepared",
+        "Spices & Baking"
+    )
 
     Scaffold(
         containerColor = Color.White,

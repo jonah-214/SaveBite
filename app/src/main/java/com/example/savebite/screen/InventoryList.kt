@@ -34,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,19 +52,21 @@ import com.example.savebite.model.Inventory
 @Composable
 fun InventoryList(
     foods: List<Inventory> = emptyList(),
+    storageList: List<String> = listOf("Pantry", "Refrigerator", "Freezer"),
     searchQuery: String = "",
     onQueryChange: (String) -> Unit = {},
-    selectedCategory: String = "All",
-    onCategorySelected: (String) -> Unit = {},
+    selectedStorage: String = "All",
+    onStorageSelected: (String) -> Unit = {},
     onNavigateToAddInventory: () -> Unit = {},
+    onAddStorageClick: (String) -> Unit = {},
     onItemClick: (Inventory) -> Unit = {},
     onEditClick: (Inventory) -> Unit = {},
     onDeleteClick: (Inventory) -> Unit = {},
     onBackClick: () -> Unit = {}
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
-    var showAddCategoryDialog by remember { mutableStateOf(false) }
-    var newCategoryName by remember { mutableStateOf("") }
+    var showAddStorageDialog by remember { mutableStateOf(false) }
+    var newStorageName by remember { mutableStateOf("") }
 
     Scaffold(
         containerColor = Color.White,
@@ -143,15 +146,15 @@ fun InventoryList(
                         OutlinedButton(
                             onClick = {
                                 showAddDialog = false
-                                newCategoryName = ""
-                                showAddCategoryDialog = true
+                                newStorageName = ""
+                                showAddStorageDialog = true
                             },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(1.dp, Color(0xFF2D3A31))
                         ) {
                             Text(
-                                text = "Category",
+                                text = "Storage",
                                 fontSize = 15.sp,
                                 color = Color(0xFF2D3A31)
                             )
@@ -167,15 +170,14 @@ fun InventoryList(
             )
         }
 
-        // --- ADD CATEGORY DIALOG ---
-        if (showAddCategoryDialog) {
+        if (showAddStorageDialog) {
             AlertDialog(
                 containerColor = Color.White,
-                onDismissRequest = { showAddCategoryDialog = false },
+                onDismissRequest = { showAddStorageDialog = false },
                 shape = RoundedCornerShape(20.dp),
                 title = {
                     Text(
-                        text = "Add New Category",
+                        text = "Add New Storage Location",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -187,10 +189,10 @@ fun InventoryList(
                             .padding(vertical = 8.dp)
                     ) {
                         OutlinedTextField(
-                            value = newCategoryName,
-                            onValueChange = { newCategoryName = it },
-                            label = { Text("Category Name") },
-                            placeholder = { Text("e.g. Snacks, Beverages") },
+                            value = newStorageName,
+                            onValueChange = { newStorageName = it },
+                            label = { Text("Storage Name") },
+                            placeholder = { Text("e.g. Snack Box, Cellar") },
                             singleLine = true,
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth(),
@@ -204,11 +206,12 @@ fun InventoryList(
                 confirmButton = {
                     Button(
                         onClick = {
-                            if (newCategoryName.isNotBlank()) {
-                                showAddCategoryDialog = false
+                            if (newStorageName.isNotBlank()) {
+                                onAddStorageClick(newStorageName.trim())
+                                showAddStorageDialog = false
                             }
                         },
-                        enabled = newCategoryName.isNotBlank(),
+                        enabled = newStorageName.isNotBlank(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF148A1E)),
                         shape = RoundedCornerShape(10.dp)
                     ) {
@@ -216,23 +219,23 @@ fun InventoryList(
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showAddCategoryDialog = false }) {
+                    TextButton(onClick = { showAddStorageDialog = false }) {
                         Text("Cancel", color = Color.Gray)
                     }
                 }
             )
         }
 
-        // --- MAIN CONTENT ---
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
                 .padding(8.dp)
         ) {
-            CategoryTabs(
-                selectedCategory = selectedCategory,
-                onCategorySelected = onCategorySelected
+            StorageTab (
+                storages = storageList,
+                selectedStorage = selectedStorage,
+                onStorageSelected = onStorageSelected
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -266,29 +269,43 @@ fun InventoryList(
 }
 
 @Composable
-fun CategoryTabs(
-    selectedCategory: String,
-    onCategorySelected: (String) -> Unit
+fun StorageTab(
+    storages: List<String>,
+    selectedStorage: String,
+    onStorageSelected: (String) -> Unit
 ) {
-    val categories = listOf(
-        "All",
-        "Pantry",
-        "Refrigerator",
-        "Freezer",
-        "Box 1"
-    )
+    val scrollState = rememberScrollState()
+
+    // Automatically scroll back to the start whenever the selected storage changes
+    LaunchedEffect(selectedStorage) {
+        scrollState.animateScrollTo(0)
+    }
+
+    val categories = remember(storages, selectedStorage) {
+        val list = mutableListOf("All")
+        if (selectedStorage != "All" && storages.contains(selectedStorage)) {
+            list.add(selectedStorage)
+        }
+        storages.forEach { storage ->
+            if (storage != selectedStorage) {
+                list.add(storage)
+            }
+        }
+        list
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
+            .horizontalScroll(scrollState),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        categories.forEach { category ->
-            val isSelected = selectedCategory == category
+        categories.forEach { storage ->
+            val isSelected = selectedStorage == storage
             FilterChip(
                 selected = isSelected,
-                onClick = { onCategorySelected(category) },
-                label = { Text(category) },
+                onClick = { onStorageSelected(storage) },
+                label = { Text(storage) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = Color(0xFF2D3A31),
                     selectedLabelColor = Color.White,
