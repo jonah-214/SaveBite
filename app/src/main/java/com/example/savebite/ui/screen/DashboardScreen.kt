@@ -1,5 +1,6 @@
 package com.example.savebite.ui.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,17 +19,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.RestaurantMenu
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -36,6 +41,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.savebite.ui.navigation.AppRoutes
+import com.example.savebite.ui.theme.onWarningContainerLight
+import com.example.savebite.ui.theme.warningContainerLight
 import com.example.savebite.ui.viewmodel.DashboardViewModel
 
 
@@ -110,8 +117,16 @@ fun DashboardHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
-            Text("Good Morning, $username", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-            Text("Here's what needs your attention", fontSize = 13.sp)
+            Text(
+                text = "Good Morning, $username",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
+            Text(
+                text = "Here's what needs your attention",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
         IconButton(
@@ -134,8 +149,10 @@ fun ExpiryReminderCard(
     onSeeAllClick: () -> Unit
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF6D9B0)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier
             .fillMaxWidth()
     ) {
@@ -143,35 +160,11 @@ fun ExpiryReminderCard(
             modifier = Modifier
             .padding(16.dp)
         ) {
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = null
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Text(
-                        text = "Expiry Reminder",
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Text(
-                    text = "See All",
-                    color = Color.Blue,
-                    modifier = Modifier
-                        .clickable { onSeeAllClick() }
-                )
-            }
+            SectionHeader(
+                title = "Expiry Reminder",
+                icon = Icons.Default.Notifications,
+                onSeeAllClick = onSeeAllClick
+            )
 
             Text(
                 text = "${items.size} items expiring soon",
@@ -196,20 +189,27 @@ fun ExpiryItemRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFE0E0E0),
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh,
                 RoundedCornerShape(12.dp))
             .padding(12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("${item.name} • ${item.quantity}")
+        Text(
+            "${item.name} • ${item.quantity}",
+            color = MaterialTheme.colorScheme.onSurface
+        )
 
-        val badgeColor = if (item.daysLeft <= 1) Color(0xFFE57373) else Color(0xFFF6B96C)
+        val (bg, fg) = if (item.daysLeft <= 1) {
+            MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
+        } else {
+            warningContainerLight to onWarningContainerLight
+        }
         Text(
             text = "${item.daysLeft} days",
-            color = Color.Black,
+            color = fg,
             modifier = Modifier
-                .background(badgeColor, RoundedCornerShape(50))
+                .background(bg, RoundedCornerShape(50))
                 .padding(horizontal = 10.dp, vertical = 4.dp)
         )
     }
@@ -230,7 +230,7 @@ fun StatsRow(
         StatsCard(
             count = inventoryCount,
             label = "Inventory",
-            backgroundColor = Color(0xFF3E7B3E),
+            icon = Icons.Default.Inventory2,
             modifier = Modifier
                 .weight(1f),
             onClick = onInventoryClick
@@ -238,7 +238,7 @@ fun StatsRow(
         StatsCard(
             count = shoppingCount,
             label = "Shopping List",
-            backgroundColor = Color(0xFFE8A33D),
+            icon = Icons.Default.ShoppingCart,
             modifier = Modifier
                 .weight(1f),
             onClick = onShoppingClick
@@ -250,29 +250,36 @@ fun StatsRow(
 fun StatsCard(
     count: Int,
     label: String,
-    backgroundColor: Color,
+    icon: ImageVector,
     modifier: Modifier,
     onClick: () -> Unit
 ) {
     Card(
         modifier = modifier
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp),
+        Column(modifier = Modifier
+            .padding(16.dp)
         ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(8.dp))
             Text(
                 text = "$count",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = label,
-                color = Color.White
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -285,42 +292,28 @@ fun WasteReportSection(
     onSeeAllClick: () -> Unit
 ) {
     Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text ="Waste Report",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
-            Text(
-                text = "See All",
-                color = Color.Blue,
-                modifier = Modifier
-                    .clickable { onSeeAllClick() }
-            )
-        }
+        SectionHeader(
+            title = "Waste Report",
+            onSeeAllClick = onSeeAllClick
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFB9D3F7),
-                    RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(16.dp))
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = "Saved This Month",
-                color = Color(0xFF1A3D7C),
-                fontWeight = FontWeight.Bold
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                fontWeight = FontWeight.Medium
             )
             Text(
-                "RM $savedAmount",
-                color = Color(0xFF1A3D7C),
+                text = "RM $savedAmount",
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -337,12 +330,13 @@ fun WasteReportSection(
         ) {
             wasteByWeek.forEach { value ->
                 val barHeight = (value.toFloat() / maxValue) * 50.dp.value
+                val barColor = if (value == maxValue) warningContainerLight else MaterialTheme.colorScheme.primary
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .height(barHeight.dp)
                         .align(Alignment.Bottom)
-                        .background(Color(0xFF3E7B3E), RoundedCornerShape(6.dp))
+                        .background(barColor, RoundedCornerShape(6.dp))
                 )
             }
         }
@@ -363,22 +357,10 @@ fun RecipeSuggestionsRow(
     onSeeAllClick: () -> Unit
 ) {
     Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Recipe Suggestions",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
-            Text(
-                text = "See All",
-                color = Color.Blue,
-                modifier = Modifier.clickable { onSeeAllClick() }
-            )
-        }
+        SectionHeader(
+            title = "Recipe Suggestions",
+            onSeeAllClick = onSeeAllClick
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -409,5 +391,49 @@ fun RecipeCard(
             Text(recipe.name, fontWeight = FontWeight.Bold)
             Text(recipe.usesText, fontSize = 12.sp, color = Color.Gray)
         }
+    }
+}
+
+@Composable
+fun SeeAllText(onClick: () -> Unit) {
+    Text(
+        text = "See All",
+        color = MaterialTheme.colorScheme.primary,
+        style = MaterialTheme.typography.labelLarge,
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(vertical = 4.dp, horizontal = 8.dp)
+    )
+}
+
+@Composable
+fun SectionHeader(
+    title: String,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    onSeeAllClick: () -> Unit
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        SeeAllText(onSeeAllClick)
     }
 }
