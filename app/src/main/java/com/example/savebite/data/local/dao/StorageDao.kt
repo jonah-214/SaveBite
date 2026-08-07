@@ -1,4 +1,4 @@
-package com.example.savebite.data.local
+package com.example.savebite.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert

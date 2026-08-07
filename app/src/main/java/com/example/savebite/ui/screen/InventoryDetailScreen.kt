@@ -1,4 +1,4 @@
-package com.example.savebite.screen
+package com.example.savebite.ui.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -14,6 +14,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.savebite.R
 import com.example.savebite.model.Inventory
 import com.example.savebite.ui.theme.*
 
@@ -93,7 +94,7 @@ fun InventoryDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            painter = painterResource(com.example.savebite.R.drawable.close),
+                            painter = painterResource(R.drawable.close),
                             contentDescription = "Back",
                             tint = Color.White,
                             modifier = Modifier.size(20.dp)
@@ -101,7 +102,7 @@ fun InventoryDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryGreen
+                    containerColor = primaryLight
                 )
             )
         }
@@ -128,11 +129,11 @@ fun InventoryDetailScreen(
                 // Light Blue Category Pill
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = CategoryBlueBg
+                    color = tertiaryContainerLight
                 ) {
                     Text(
                         text = detail.category,
-                        color = CategoryBlueText,
+                        color = onTertiaryContainerLight,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
@@ -155,7 +156,7 @@ fun InventoryDetailScreen(
             // Light Green Storage Pill Tag
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = StorageGreenBg
+                color = primaryContainerLight
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -163,15 +164,15 @@ fun InventoryDetailScreen(
                 ) {
                     // Refrigerator Icon (Uses a built-in vector or painterResource)
                     Icon(
-                        painter = painterResource(com.example.savebite.R.drawable.refrigerator),
+                        painter = painterResource(R.drawable.refrigerator),
                         contentDescription = "Storage",
-                        tint = PrimaryGreen,
+                        tint = primaryLight,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = detail.storage,
-                        color = PrimaryGreen,
+                        color = primaryLight,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -179,7 +180,7 @@ fun InventoryDetailScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = GrayBorder, thickness = 1.dp)
+            HorizontalDivider(color = outlineVariantLight, thickness = 1.dp)
             Spacer(modifier = Modifier.height(20.dp))
 
             // 2. Quantity & Status Row
@@ -197,14 +198,14 @@ fun InventoryDetailScreen(
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = Color.Transparent,
-                        border = BorderStroke(2.dp, PrimaryGreen),
+                        border = BorderStroke(2.dp, primaryLight),
                         modifier = Modifier.size(48.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                painter = painterResource(com.example.savebite.R.drawable.inventory),
+                                painter = painterResource(R.drawable.inventory),
                                 contentDescription = "Quantity",
-                                tint = PrimaryGreen,
+                                tint = primaryLight,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -232,7 +233,7 @@ fun InventoryDetailScreen(
                     modifier = Modifier
                         .height(50.dp)
                         .width(1.dp),
-                    color = GrayBorder
+                    color = outlineVariantLight
                 )
 
                 // Status Days Left Section
@@ -244,9 +245,9 @@ fun InventoryDetailScreen(
                 ) {
                     // Orange Clock Icon
                     Icon(
-                        painter = painterResource(com.example.savebite.R.drawable.clock), // replace with clock icon
+                        painter = painterResource(R.drawable.clock), // replace with clock icon
                         contentDescription = "Status",
-                        tint = if (detail.daysLeft <= 3) UrgentRedText else SafeYellowText,
+                        tint = if (detail.daysLeft <= 3) errorLight else onWarningContainerLight,
                         modifier = Modifier.size(48.dp)
                     )
 
@@ -263,7 +264,7 @@ fun InventoryDetailScreen(
                             text = "${detail.daysLeft} days left",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = if (detail.daysLeft <= 3) UrgentRedText else SafeYellowText
+                            color = if (detail.daysLeft <= 3) errorLight else onWarningContainerLight
                         )
                     }
                 }
@@ -275,7 +276,7 @@ fun InventoryDetailScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, GrayCardBorder),
+                border = BorderStroke(1.dp, outlineVariantLight),
                 colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Column(
@@ -288,7 +289,7 @@ fun InventoryDetailScreen(
                         text = "Details",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = PrimaryGreen
+                        color = primaryLight
                     )
 
                     // Purchase Date Row
@@ -297,9 +298,9 @@ fun InventoryDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            painter = painterResource(com.example.savebite.R.drawable.calendar),
+                            painter = painterResource(R.drawable.calendar),
                             contentDescription = null,
-                            tint = PrimaryGreen,
+                            tint = primaryLight,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -317,7 +318,7 @@ fun InventoryDetailScreen(
                         )
                     }
 
-                    HorizontalDivider(color = GrayDivider, thickness = 1.dp)
+                    HorizontalDivider(color = outlineVariantLight, thickness = 1.dp)
 
                     // Expiry Date Row
                     Row(
@@ -325,7 +326,7 @@ fun InventoryDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            painter = painterResource(com.example.savebite.R.drawable.calendar_clock),
+                            painter = painterResource(R.drawable.calendar_clock),
                             contentDescription = null,
                             tint = Color.Black,
                             modifier = Modifier.size(20.dp)
@@ -348,12 +349,12 @@ fun InventoryDetailScreen(
                             Text(
                                 text = "(${detail.daysLeft} days left)",
                                 fontSize = 14.sp,
-                                color = if (detail.daysLeft <= 3) UrgentRedText else SafeYellowText
+                                color = if (detail.daysLeft <= 3) errorLight else onWarningContainerLight
                             )
                         }
                     }
 
-                    HorizontalDivider(color = GrayDivider, thickness = 1.dp)
+                    HorizontalDivider(color = outlineVariantLight, thickness = 1.dp)
 
                     // Notes Row
                     Row(
@@ -361,9 +362,9 @@ fun InventoryDetailScreen(
                         verticalAlignment = Alignment.Top
                     ) {
                         Icon(
-                            painter = painterResource(com.example.savebite.R.drawable.note),
+                            painter = painterResource(R.drawable.note),
                             contentDescription = null,
-                            tint = PrimaryGreen,
+                            tint = primaryLight,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -397,18 +398,18 @@ fun InventoryDetailScreen(
                         .weight(1f)
                         .height(48.dp),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, GrayButtonBorder)
+                    border = BorderStroke(1.dp, outlineLight)
                 ) {
                     Icon(
-                        painter = painterResource(com.example.savebite.R.drawable.edit),
+                        painter = painterResource(R.drawable.edit),
                         contentDescription = "Edit",
-                        tint = PrimaryGreen,
+                        tint = primaryLight,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Edit",
-                        color = PrimaryGreen,
+                        color = primaryLight,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -421,10 +422,10 @@ fun InventoryDetailScreen(
                         .weight(1.2f)
                         .height(48.dp),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, GrayButtonBorder)
+                    border = BorderStroke(1.dp, outlineLight)
                 ) {
                     Icon(
-                        painter = painterResource(com.example.savebite.R.drawable.delete),
+                        painter = painterResource(R.drawable.delete),
                         contentDescription = "Delete",
                         tint = Color.Red,
                         modifier = Modifier.size(20.dp)

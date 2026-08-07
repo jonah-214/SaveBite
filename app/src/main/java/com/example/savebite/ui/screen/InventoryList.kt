@@ -1,4 +1,4 @@
-package com.example.savebite.screen
+package com.example.savebite.ui.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
@@ -79,25 +79,15 @@ fun InventoryList(
                         color = Color.White,
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            painter = painterResource(R.drawable.back),
-                            contentDescription = "Back",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryGreen
+                    containerColor = primaryLight
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = DarkGreen
+                containerColor = onPrimaryContainerLight
             ) {
                 Icon(
                     painter = painterResource(R.drawable.add),
@@ -135,12 +125,12 @@ fun InventoryList(
                             },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, PrimaryGreen)
+                            border = BorderStroke(1.dp, primaryLight)
                         ) {
                             Text(
                                 text = " Inventory ",
                                 fontSize = 15.sp,
-                                color = PrimaryGreen
+                                color = primaryLight
                             )
                         }
 
@@ -152,12 +142,12 @@ fun InventoryList(
                             },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, DarkGreen)
+                            border = BorderStroke(1.dp, onPrimaryContainerLight)
                         ) {
                             Text(
                                 text = "Storage",
                                 fontSize = 15.sp,
-                                color = DarkGreen
+                                color = onPrimaryContainerLight
                             )
                         }
                     }
@@ -198,8 +188,8 @@ fun InventoryList(
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = PrimaryGreen,
-                                focusedLabelColor = PrimaryGreen
+                                focusedBorderColor = primaryLight,
+                                focusedLabelColor = primaryLight
                             )
                         )
                     }
@@ -213,7 +203,7 @@ fun InventoryList(
                             }
                         },
                         enabled = newStorageName.isNotBlank(),
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryLight),
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Text("Save", color = Color.White)
@@ -308,9 +298,9 @@ fun StorageTab(
                 onClick = { onStorageSelected(storage) },
                 label = { Text(storage) },
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = DarkGreen,
+                    selectedContainerColor = onPrimaryContainerLight,
                     selectedLabelColor = Color.White,
-                    containerColor = GrayDivider,
+                    containerColor = outlineVariantLight,
                     labelColor = Color.Black
                 ),
                 border = FilterChipDefaults.filterChipBorder(
@@ -366,8 +356,8 @@ fun SearchFoodBar(
         shape = RoundedCornerShape(20.dp),
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = GraySearch,
-            unfocusedContainerColor = GraySearch,
+            focusedContainerColor = surfaceContainerLowLight,
+            unfocusedContainerColor = surfaceContainerLowLight,
             focusedBorderColor = Color.Transparent,
             unfocusedBorderColor = Color.Transparent
         )

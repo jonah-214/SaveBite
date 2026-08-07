@@ -1,5 +1,7 @@
-package com.example.savebite.data.local
+package com.example.savebite.data.repo
 
+import com.example.savebite.data.local.dao.InventoryDao
+import com.example.savebite.data.local.dao.StorageDao
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.Storage
 import kotlinx.coroutines.flow.Flow

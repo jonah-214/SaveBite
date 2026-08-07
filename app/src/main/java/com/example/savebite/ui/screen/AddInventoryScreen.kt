@@ -1,4 +1,4 @@
-package com.example.savebite.screen
+package com.example.savebite.ui.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -17,14 +17,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
 import com.example.savebite.model.Inventory
-import com.example.savebite.ui.theme.BackgroundLight
-import com.example.savebite.ui.theme.PrimaryGreen
-import com.example.savebite.viewmodel.InventoryViewModel
+import com.example.savebite.ui.theme.backgroundLight
+import com.example.savebite.ui.theme.primaryLight
+import com.example.savebite.ui.viewmodel.InventoryViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,7 +112,7 @@ fun AddInventoryScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryGreen
+                    containerColor = primaryLight
                 )
             )
         }
@@ -218,7 +219,7 @@ fun AddInventoryScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, Color.LightGray),
-                colors = CardDefaults.cardColors(containerColor = BackgroundLight)
+                colors = CardDefaults.cardColors(containerColor = backgroundLight)
             ) {
                 Row(
                     modifier = Modifier
@@ -280,7 +281,7 @@ fun AddInventoryScreen(
                             Icon(
                                 painter = painterResource(R.drawable.calendar),
                                 contentDescription = "Purchase Date",
-                                tint = PrimaryGreen,
+                                tint = primaryLight,
                                 modifier = Modifier.size(20.dp)
                             )
                         },
@@ -291,7 +292,7 @@ fun AddInventoryScreen(
                             disabledTextColor = MaterialTheme.colorScheme.onSurface,
                             disabledBorderColor = MaterialTheme.colorScheme.outline,
                             disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledTrailingIconColor = PrimaryGreen
+                            disabledTrailingIconColor = primaryLight
                         )
                     )
                     Box(
@@ -312,7 +313,7 @@ fun AddInventoryScreen(
                             Icon(
                                 painter = painterResource(R.drawable.calendar_clock),
                                 contentDescription = "Expiry Date",
-                                tint = PrimaryGreen,
+                                tint = primaryLight,
                                 modifier = Modifier.size(20.dp)
                             )
                         },
@@ -323,7 +324,7 @@ fun AddInventoryScreen(
                             disabledTextColor = MaterialTheme.colorScheme.onSurface,
                             disabledBorderColor = MaterialTheme.colorScheme.outline,
                             disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledTrailingIconColor = PrimaryGreen
+                            disabledTrailingIconColor = primaryLight
                         )
                     )
                     Box(
@@ -356,7 +357,7 @@ fun AddInventoryScreen(
                         val calculatedDaysLeft = calculateDaysLeft(expiryDate)
 
                         val newFood = Inventory(
-                            id = itemId ?: java.util.UUID.randomUUID().toString(),
+                            id = itemId ?: UUID.randomUUID().toString(),
                             name = name,
                             description = description,
                             category = category,
@@ -373,7 +374,7 @@ fun AddInventoryScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryLight),
                 shape = RoundedCornerShape(12.dp),
                 enabled = name.isNotBlank()
             ) {
@@ -399,7 +400,7 @@ fun AddInventoryScreen(
                     }
                     showPurchasePicker = false
                 }) {
-                    Text("OK", color = PrimaryGreen)
+                    Text("OK", color = primaryLight)
                 }
             },
             dismissButton = {
@@ -411,9 +412,9 @@ fun AddInventoryScreen(
             DatePicker(
                 state = datePickerState,
                 colors = DatePickerDefaults.colors(
-                    selectedDayContainerColor = PrimaryGreen,
-                    todayDateBorderColor = PrimaryGreen,
-                    todayContentColor = PrimaryGreen
+                    selectedDayContainerColor = primaryLight,
+                    todayDateBorderColor = primaryLight,
+                    todayContentColor = primaryLight
                 )
             )
         }
@@ -431,7 +432,7 @@ fun AddInventoryScreen(
                     }
                     showExpiryPicker = false
                 }) {
-                    Text("OK", color = PrimaryGreen)
+                    Text("OK", color = primaryLight)
                 }
             },
             dismissButton = {
@@ -443,9 +444,9 @@ fun AddInventoryScreen(
             DatePicker(
                 state = datePickerState,
                 colors = DatePickerDefaults.colors(
-                    selectedDayContainerColor = PrimaryGreen,
-                    todayDateBorderColor = PrimaryGreen,
-                    todayContentColor = PrimaryGreen
+                    selectedDayContainerColor = primaryLight,
+                    todayDateBorderColor = primaryLight,
+                    todayContentColor = primaryLight
                 )
             )
         }
