@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.savebite.ui.screen.DashboardScreen
 import com.example.savebite.ui.screen.LoginScreen
+import com.example.savebite.ui.screen.ProfileScreen
 import com.example.savebite.ui.screen.SignUpScreen
 import com.example.savebite.ui.screen.SplashScreen
 import com.example.savebite.ui.viewmodel.AuthViewModel
@@ -148,7 +149,9 @@ fun AppNavigation(
             }
 
             composable(AppRoutes.PROFILE) {
-                PlaceholderScreen("Profile", viewModel, navController)
+                ProfileScreen(
+                    navController = navController
+                )
             }
         }
     }
