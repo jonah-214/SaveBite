@@ -10,20 +10,28 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
+import com.example.savebite.ui.screen.AddInventoryScreen
 import com.example.savebite.ui.screen.DashboardScreen
+import com.example.savebite.ui.screen.InventoryDetailScreen
+import com.example.savebite.ui.screen.InventoryList
 import com.example.savebite.ui.screen.LoginScreen
 import com.example.savebite.ui.screen.ProfileScreen
 import com.example.savebite.ui.screen.SignUpScreen
 import com.example.savebite.ui.screen.SplashScreen
 import com.example.savebite.ui.viewmodel.AuthViewModel
+import com.example.savebite.ui.viewmodel.InventoryViewModel
 import com.example.savebite.utils.SessionManager
 
 @Composable
@@ -133,7 +141,74 @@ fun AppNavigation(
             }
 
             composable(AppRoutes.INVENTORY) {
-                PlaceholderScreen("Inventory", viewModel, navController)
+                val inventoryViewModel: InventoryViewModel = viewModel()
+                val inventoryList by inventoryViewModel.inventoryList.collectAsState()
+                val storageList by inventoryViewModel.storageList.collectAsState()
+                val searchQuery by inventoryViewModel.searchQuery.collectAsState()
+                val selectedStorage by inventoryViewModel.selectedStorage.collectAsState()
+
+                InventoryList(
+                    foods = inventoryList,
+                    storageList = storageList,
+                    searchQuery = searchQuery,
+                    onQueryChange = { inventoryViewModel.searchQuery.value = it },
+                    selectedStorage = selectedStorage,
+                    onStorageSelected = { inventoryViewModel.selectedStorage.value = it },
+                    onNavigateToAddInventory = { navController.navigate("add_inventory") },
+                    onAddStorageClick = { inventoryViewModel.addStorage(it) },
+                    onItemClick = { item -> navController.navigate("inventory_details/${item.id}") },
+                    onEditClick = { item -> navController.navigate("add_inventory?itemId=${item.id}") },
+                    onDeleteClick = { item -> inventoryViewModel.deleteItem(item) }
+                )
+            }
+
+            composable(
+                route = "add_inventory?itemId={itemId}",
+                arguments = listOf(navArgument("itemId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                })
+            ) { backStackEntry ->
+                val inventoryViewModel: InventoryViewModel = viewModel()
+                val storageList by inventoryViewModel.storageList.collectAsState()
+                val itemId = backStackEntry.arguments?.getString("itemId")
+
+                AddInventoryScreen(
+                    itemId = itemId,
+                    viewModel = inventoryViewModel,
+                    storageLocations = storageList,
+                    onBackClick = { navController.popBackStack() },
+                    onSaveClick = { item ->
+                        inventoryViewModel.saveItem(item)
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                route = "inventory_details/{itemId}",
+                arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val inventoryViewModel: InventoryViewModel = viewModel()
+                val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
+                val itemState by inventoryViewModel.getItemById(itemId).collectAsState(initial = null)
+
+                itemState?.let { item ->
+                    InventoryDetailScreen(
+                        detail = item,
+                        onBackClick = { navController.popBackStack() },
+                        onEditClick = { navController.navigate("add_inventory?itemId=${item.id}") },
+                        onDeleteClick = {
+                            inventoryViewModel.deleteItem(item)
+                            navController.popBackStack()
+                        },
+                        onWasteClick = {
+                            inventoryViewModel.deleteItem(item)
+                            navController.popBackStack()
+                        }
+                    )
+                }
             }
 
             composable(AppRoutes.SHOPPING) {
