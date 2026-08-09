@@ -37,6 +37,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "savebite_database"
                 )
+                    // TODO: Replace with a proper Migration before final submission —
+                    // this wipes all local data on any schema change.
                     .fallbackToDestructiveMigration()
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
