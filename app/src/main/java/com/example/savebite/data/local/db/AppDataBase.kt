@@ -1,4 +1,4 @@
-package com.example.savebite.data.local
+package com.example.savebite.data.local.db
 
 import android.content.Context
 import androidx.room.Database
@@ -37,7 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "savebite_database"
                 )
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration(dropAllTables = true)
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)

@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import com.example.savebite.data.local.AppDatabase
 import com.example.savebite.ui.navigation.AppNavigation
 import com.example.savebite.ui.theme.SaveBiteTheme
+import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.ui.viewmodel.AuthViewModelFactory
 import com.example.savebite.utils.SessionManager
 

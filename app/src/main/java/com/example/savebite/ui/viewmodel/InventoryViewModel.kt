@@ -3,8 +3,8 @@ package com.example.savebite.ui.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.savebite.data.local.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
+import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.model.Inventory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
