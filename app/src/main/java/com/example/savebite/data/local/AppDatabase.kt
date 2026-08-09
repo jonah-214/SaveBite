@@ -16,15 +16,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Database(
-    entities = [Inventory::class, Storage::class, User::class],
+    entities = [User::class, Inventory::class, Storage::class],
     version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
+    abstract fun userDao(): UserDao
     abstract fun inventoryDao(): InventoryDao
     abstract fun storageDao(): StorageDao
-    abstract fun userDao(): UserDao
 
     companion object {
         @Volatile
@@ -38,11 +38,11 @@ abstract class AppDatabase : RoomDatabase() {
                     "savebite_database"
                 )
                     .fallbackToDestructiveMigration()
-                    .addCallback(object : RoomDatabase.Callback() {
+                    .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
                             CoroutineScope(Dispatchers.IO).launch {
-                                getDatabase(context).storageDao().apply {
+                                INSTANCE?.storageDao()?.apply {
                                     insertStorage(Storage("Pantry"))
                                     insertStorage(Storage("Refrigerator"))
                                     insertStorage(Storage("Freezer"))
