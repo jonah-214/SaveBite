@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
     version = 3,
     exportSchema = false
 )
-abstract class TempDb : RoomDatabase() {
+abstract class AppDatabase : RoomDatabase() {
 
     abstract fun inventoryDao(): InventoryDao
     abstract fun storageDao(): StorageDao
@@ -28,13 +28,13 @@ abstract class TempDb : RoomDatabase() {
 
     companion object {
         @Volatile
-        private var INSTANCE: TempDb? = null
+        private var INSTANCE: AppDatabase? = null
 
-        fun getDatabase(context: Context): TempDb {
+        fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    TempDb::class.java,
+                    AppDatabase::class.java,
                     "savebite_database"
                 )
                     .fallbackToDestructiveMigration()
