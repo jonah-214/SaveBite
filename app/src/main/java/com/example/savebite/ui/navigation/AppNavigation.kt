@@ -22,6 +22,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.ui.screen.AddInventoryScreen
 import com.example.savebite.ui.screen.DashboardScreen
 import com.example.savebite.ui.screen.InventoryDetailScreen
@@ -31,6 +32,8 @@ import com.example.savebite.ui.screen.ProfileScreen
 import com.example.savebite.ui.screen.SignUpScreen
 import com.example.savebite.ui.screen.SplashScreen
 import com.example.savebite.ui.viewmodel.AuthViewModel
+import com.example.savebite.ui.viewmodel.DashboardViewModel
+import com.example.savebite.ui.viewmodel.DashboardViewModelFactory
 import com.example.savebite.ui.viewmodel.InventoryViewModel
 import com.example.savebite.utils.SessionManager
 
@@ -39,6 +42,7 @@ fun AppNavigation(
     navController: NavHostController,
     viewModel: AuthViewModel,
     sessionManager: SessionManager,
+    userRepository: UserRepository,
     modifier: Modifier = Modifier
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -131,8 +135,12 @@ fun AppNavigation(
 
             // Dashboard screen route
             composable(AppRoutes.DASHBOARD) {
+                val dashboardViewModel: DashboardViewModel = viewModel(
+                    factory = DashboardViewModelFactory(userRepository, sessionManager)
+                )
                 DashboardScreen(
-                    navController = navController
+                    navController = navController,
+                    dashboardViewModel = dashboardViewModel
                 )
             }
 

@@ -36,6 +36,7 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     viewModel = authViewModel,
                     sessionManager = sessionManager,
+                    userRepository = userRepository,
                     modifier = Modifier.fillMaxSize()
                 )
             }

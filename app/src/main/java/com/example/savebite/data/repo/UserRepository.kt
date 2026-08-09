@@ -29,4 +29,9 @@ class UserRepository(private val userDao: UserDao) {
     suspend fun insertUser(user: User): Long {
         return userDao.insertUser(user)
     }
+
+    // Get user by ID
+    suspend fun getUserById(id: Int): User? {
+        return userDao.getUserById(id)
+    }
 }
