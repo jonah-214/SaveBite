@@ -11,23 +11,26 @@ import androidx.navigation.compose.rememberNavController
 import com.example.savebite.ui.navigation.AppNavigation
 import com.example.savebite.ui.theme.SaveBiteTheme
 import com.example.savebite.data.local.db.AppDatabase
+import com.example.savebite.data.repo.UserRepository
+import com.example.savebite.ui.viewmodel.AuthViewModel
 import com.example.savebite.ui.viewmodel.AuthViewModelFactory
 import com.example.savebite.utils.SessionManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Initialize dependencies
+
+        // Initialize the database, session manager, and view model
         val database = AppDatabase.getDatabase(this)
         val sessionManager = SessionManager(this)
-        val authViewModelFactory = AuthViewModelFactory(database.userDao(), sessionManager)
+        val userRepository = UserRepository(database.userDao())
+        val authViewModelFactory = AuthViewModelFactory(userRepository, sessionManager)
 
         enableEdgeToEdge()
         setContent {
             SaveBiteTheme {
                 val navController = rememberNavController()
-                val authViewModel: com.example.savebite.ui.viewmodel.AuthViewModel = viewModel(factory = authViewModelFactory)
+                val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
 
                 AppNavigation(
                     navController = navController,
