@@ -41,12 +41,11 @@ abstract class AppDatabase : RoomDatabase() {
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
-                            INSTANCE?.let { database ->
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    val storageDao = database.storageDao()
-                                    storageDao.insertStorage(Storage("Pantry"))
-                                    storageDao.insertStorage(Storage("Refrigerator"))
-                                    storageDao.insertStorage(Storage("Freezer"))
+                            CoroutineScope(Dispatchers.IO).launch {
+                                getDatabase(context).storageDao().apply {
+                                    insertStorage(Storage("Pantry"))
+                                    insertStorage(Storage("Refrigerator"))
+                                    insertStorage(Storage("Freezer"))
                                 }
                             }
                         }
