@@ -1,0 +1,37 @@
+package com.example.savebite.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import com.example.savebite.model.Inventory
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface InventoryDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertItem(item: Inventory)
+
+    @Query("SELECT * FROM inventory_table ORDER BY daysLeft ASC")
+    fun getAllInventory(): Flow<List<Inventory>>
+
+    @Query("SELECT * FROM inventory_table WHERE id = :id")
+    fun getInventoryById(id: String): Flow<Inventory?>
+
+    @Query("""
+        SELECT * FROM inventory_table 
+        WHERE (:storage = 'All' OR storage = :storage)
+        AND (name LIKE '%' || :searchQuery || '%' OR description LIKE '%' || :searchQuery || '%')
+        ORDER BY daysLeft ASC
+    """)
+    fun searchAndFilterInventory(searchQuery: String, storage: String): Flow<List<Inventory>>
+
+    @Update
+    suspend fun updateItem(item: Inventory)
+
+    @Delete
+    suspend fun deleteItem(item: Inventory)
+}
