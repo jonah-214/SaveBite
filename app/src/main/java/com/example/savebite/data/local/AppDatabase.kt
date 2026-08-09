@@ -7,21 +7,24 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.savebite.data.local.dao.InventoryDao
 import com.example.savebite.data.local.dao.StorageDao
+import com.example.savebite.data.local.dao.UserDao
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.Storage
+import com.example.savebite.model.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Database(
-    entities = [Inventory::class, Storage::class],
-    version = 2,
+    entities = [Inventory::class, Storage::class, User::class],
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun inventoryDao(): InventoryDao
     abstract fun storageDao(): StorageDao
+    abstract fun userDao(): UserDao
 
     companion object {
         @Volatile
