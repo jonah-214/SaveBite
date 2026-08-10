@@ -1,6 +1,7 @@
 package com.example.savebite.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -15,4 +16,7 @@ interface StorageDao {
 
     @Query("SELECT name FROM storage_table")
     fun getAllStorageNames(): Flow<List<String>>
+
+    @Delete
+    suspend fun deleteStorage(storage: Storage)
 }

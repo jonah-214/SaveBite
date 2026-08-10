@@ -32,4 +32,9 @@ class InventoryRepository(
             storageDao.insertStorage(Storage(name))
         }
     }
+
+    suspend fun deleteStorageAndReassign(name: String, defaultStorage: String = "Refrigerator") {
+        inventoryDao.reassignStorage(name, defaultStorage)
+        storageDao.deleteStorage(Storage(name))
+    }
 }
