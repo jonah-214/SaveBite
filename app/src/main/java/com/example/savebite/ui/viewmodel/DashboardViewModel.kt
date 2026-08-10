@@ -1,12 +1,39 @@
 package com.example.savebite.ui.viewmodel
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.ui.screen.ExpiryItem
 import com.example.savebite.ui.screen.RecipeSuggestion
+import com.example.savebite.utils.SessionManager
+import kotlinx.coroutines.launch
 
-class DashboardViewModel : ViewModel() {
+class DashboardViewModel(
+    private val userRepository: UserRepository,
+    private val sessionManager: SessionManager
+) : ViewModel() {
+    private val _username = mutableStateOf("User")
+    val username: State<String> = _username
+
+    init {
+        loadUsername()
+    }
+
+    private fun loadUsername() {
+        viewModelScope.launch {
+            val userId = sessionManager.getLoggedInUserId()
+            if (userId != -1) {
+                val user = userRepository.getUserById(userId)
+                if (user != null) {
+                    _username.value = user.username
+                }
+            }
+        }
+    }
+
     // Temporary hardcoded values - replace with real DAO/repository call
-
     val inventoryCount = 10
     val shoppingListCount = 5
     val savedThisMonth = 45

@@ -170,7 +170,7 @@ fun SignUpScreen(
             supportingText = {
                 Text(
                     text = passwordError
-                        ?: "At least 8 characters, with uppercase, lowercase and a number.",
+                        ?: "At least 6 characters, with uppercase, lowercase and a number.",
                     color = if (passwordError != null) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.onSurfaceVariant
                 )

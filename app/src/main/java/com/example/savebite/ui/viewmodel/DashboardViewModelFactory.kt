@@ -5,12 +5,12 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.utils.SessionManager
 
-class AuthViewModelFactory(
+class DashboardViewModelFactory(
     private val userRepository: UserRepository,
     private val sessionManager: SessionManager
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
-        return AuthViewModel(userRepository, sessionManager) as T
+        return DashboardViewModel(userRepository, sessionManager) as T
     }
 }

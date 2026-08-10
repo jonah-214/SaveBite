@@ -44,6 +44,7 @@ import com.example.savebite.ui.navigation.AppRoutes
 import com.example.savebite.ui.theme.onWarningContainerLight
 import com.example.savebite.ui.theme.warningContainerLight
 import com.example.savebite.ui.viewmodel.DashboardViewModel
+import com.example.savebite.ui.viewmodel.DashboardViewModelFactory
 
 
 // Hardcoded data - Expiry & Recipe suggestions
@@ -61,7 +62,7 @@ data class RecipeSuggestion(
 @Composable
 fun DashboardScreen(
     navController: NavHostController,
-    dashboardViewModel: DashboardViewModel = viewModel()
+    dashboardViewModel: DashboardViewModel
 ) {
     Column(
         modifier = Modifier
@@ -69,7 +70,7 @@ fun DashboardScreen(
             .padding(16.dp)
     ) {
         DashboardHeader(
-            username = "John Doe",
+            username = dashboardViewModel.username.value,
             onProfileClick = {
                 navController.navigate(AppRoutes.PROFILE)
             }
@@ -118,7 +119,7 @@ fun DashboardHeader(
     ) {
         Column {
             Text(
-                text = "Good Morning, $username",
+                text = "Greetings, $username",
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )
