@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
@@ -31,8 +33,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -43,9 +50,12 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun ProfileScreen(navController: NavHostController) {
+    var notificationEnabled by remember { mutableStateOf(true) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
         ProfileHeaderCard(
@@ -54,18 +64,30 @@ fun ProfileScreen(navController: NavHostController) {
             phone = "+60123456789"
         )
 
-        Spacer(Modifier.height(16.dp))
-
+        Spacer(Modifier.height(20.dp))
+        SectionLabel("Account Settings")
         AccountSettingsCard(
             onEditProfileClick = { /* TODO: navigate later */ },
-            onChangePasswordClick = { /* TODO */ },
-            onNotificationSettingsClick = { /* TODO */ },
+            onChangePasswordClick = { /* TODO */ }
+        )
+
+        Spacer(Modifier.height(12.dp))
+        SectionLabel("Preferences")
+        PreferencesCard(
+            notificationEnabled = notificationEnabled,
+            onNotificationToggle = { notificationEnabled = it },
+        )
+
+        Spacer(Modifier.height(12.dp))
+        SectionLabel("Support")
+        SupportCard(
             onAboutUsClick = { /* TODO */ }
         )
 
-        Spacer(Modifier.height(16.dp))
-
-        LogoutButton(onClick = { /* TODO: wire AuthViewModel.logout later */ })
+        Spacer(Modifier.height(24.dp))
+        LogoutButton(
+            onClick = { /* TODO: logout */ }
+        )
     }
 }
 
@@ -132,8 +154,69 @@ fun ProfileHeaderCard(
 @Composable
 fun AccountSettingsCard(
     onEditProfileClick: () -> Unit,
-    onChangePasswordClick: () -> Unit,
-    onNotificationSettingsClick: () -> Unit,
+    onChangePasswordClick: () -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = BorderStroke(
+            0.5.dp,
+            MaterialTheme.colorScheme.outlineVariant
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            SettingsRow(
+                icon = Icons.Default.Person,
+                label = "Edit Profile",
+                subtitle = "Change profile picture, number, E-mail",
+                onClick = onEditProfileClick
+            )
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+            SettingsRow(
+                icon = Icons.Default.Lock,
+                label = "Change Password",
+                subtitle = "Update and strengthen account security",
+                onClick = onChangePasswordClick
+            )
+        }
+    }
+}
+
+@Composable
+fun PreferencesCard(
+    notificationEnabled: Boolean,
+    onNotificationToggle: (Boolean) -> Unit,
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            SettingsRow(
+                icon = Icons.Default.Notifications,
+                label = "Notification",
+                subtitle = "Customize your notification preferences",
+                onClick = { onNotificationToggle(!notificationEnabled) },
+                trailing = {
+                    Switch(
+                        checked = notificationEnabled,
+                        onCheckedChange = onNotificationToggle
+                    )
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun SupportCard(
     onAboutUsClick: () -> Unit
 ) {
     Card(
@@ -146,41 +229,25 @@ fun AccountSettingsCard(
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-        ) {
-            SettingsRow(
-                icon = Icons.Default.Person,
-                label = "Edit Profile",
-                onClick = onEditProfileClick
-            )
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-            SettingsRow(
-                icon = Icons.Default.Lock,
-                label = "Change Password",
-                onClick = onChangePasswordClick
-            )
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-            SettingsRow(
-                icon = Icons.Default.Notifications,
-                label = "Notification Settings",
-                onClick = onNotificationSettingsClick
-            )
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
+        Column(modifier = Modifier.padding(16.dp)) {
             SettingsRow(
                 icon = Icons.Default.Info,
                 label = "About Us",
+                subtitle = "Learn more about SaveBite",
                 onClick = onAboutUsClick
             )
         }
     }
+}
+
+@Composable
+fun SectionLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp)
+    )
 }
 
 @Composable
@@ -216,7 +283,15 @@ fun LogoutButton(
 fun SettingsRow(
     icon: ImageVector,
     label: String,
-    onClick: () -> Unit
+    subtitle: String,
+    onClick: () -> Unit,
+    trailing: @Composable () -> Unit = {
+        Icon(
+            Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 ) {
     Row(
         modifier = Modifier
@@ -226,24 +301,31 @@ fun SettingsRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(22.dp)
             )
 
-            Spacer(Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-            )
+            Column {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
-        Icon(
-            Icons.Default.ChevronRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        trailing()
     }
 }
