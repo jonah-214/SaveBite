@@ -15,18 +15,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
-import com.example.savebite.ui.theme.*
+import androidx.compose.material3.MaterialTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +41,7 @@ fun ManageStorageScreen(
     var storageToDelete by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
-        containerColor = backgroundLight,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Column(
                 modifier = Modifier
@@ -53,8 +53,7 @@ fun ManageStorageScreen(
                         Text(
                             text = "Manage Storage",
                             fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = onPrimaryLight
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     },
                     navigationIcon = {
@@ -62,19 +61,19 @@ fun ManageStorageScreen(
                             Icon(
                                 painter = painterResource(R.drawable.close),
                                 contentDescription = "Back",
-                                tint = onPrimaryLight,
+                                tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = primaryLight
+                        containerColor = MaterialTheme.colorScheme.primary
                     )
                 )
                 Text(
                     text = "Add, edit or delete your storage places",
                     fontSize = 13.sp,
-                    color = outlineLight,
+                    color = MaterialTheme.colorScheme.outline,
                     modifier = Modifier.padding(start = 16.dp, top = 4.dp)
                 )
             }
@@ -82,12 +81,12 @@ fun ManageStorageScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = onPrimaryContainerLight
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.add),
+                    imageVector = Icons.Default.Add,
                     contentDescription = "Add Storage Place",
-                    tint = Color.White,
                     modifier = Modifier.size(36.dp)
                 )
             }
@@ -106,13 +105,13 @@ fun ManageStorageScreen(
                 text = "Your Storage Places",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = onSurfaceVariantLight,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
             Card(
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = surfaceContainerLowLight),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column {
@@ -129,13 +128,13 @@ fun ManageStorageScreen(
                                 enabled = false,
                                 modifier = Modifier
                                     .size(44.dp)
-                                    .background(secondaryContainerLight, shape = CircleShape)
+                                    .background(MaterialTheme.colorScheme.secondaryContainer, shape = CircleShape)
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.add),
                                     contentDescription = null,
                                     modifier = Modifier.size(22.dp),
-                                    tint = onSecondaryContainerLight
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
 
@@ -147,7 +146,7 @@ fun ManageStorageScreen(
                                     text = place,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = onSurfaceLight
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
 
@@ -160,7 +159,7 @@ fun ManageStorageScreen(
                                     Icon(
                                         imageVector = Icons.Default.RemoveCircle,
                                         contentDescription = "Delete",
-                                        tint = errorLight,
+                                        tint = MaterialTheme.colorScheme.error,
                                         modifier = Modifier.size(24.dp)
                                     )
                                 }
@@ -169,7 +168,7 @@ fun ManageStorageScreen(
 
                         if (index < storages.size - 1) {
                             HorizontalDivider(
-                                color = outlineVariantLight,
+                                color = MaterialTheme.colorScheme.outlineVariant,
                                 thickness = 1.dp
                             )
                         }
@@ -181,7 +180,7 @@ fun ManageStorageScreen(
 
     if (showAddDialog) {
         AlertDialog(
-            containerColor = surfaceContainerLowestLight,
+            containerColor = MaterialTheme.colorScheme.surface,
             onDismissRequest = { showAddDialog = false },
             shape = RoundedCornerShape(20.dp),
             title = {
@@ -189,7 +188,7 @@ fun ManageStorageScreen(
                     text = "Add New Storage Location",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = onSurfaceLight
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             },
             text = {
@@ -207,10 +206,10 @@ fun ManageStorageScreen(
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = primaryLight,
-                            focusedLabelColor = primaryLight,
-                            unfocusedTextColor = onSurfaceLight,
-                            focusedTextColor = onSurfaceLight
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface
                         )
                     )
                 }
@@ -225,15 +224,15 @@ fun ManageStorageScreen(
                         }
                     },
                     enabled = newStorageName.isNotBlank(),
-                    colors = ButtonDefaults.buttonColors(containerColor = primaryLight),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(10.dp)
                 ) {
-                    Text("Save", color = onPrimaryLight)
+                    Text("Save", color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddDialog = false }) {
-                    Text("Cancel", color = outlineLight)
+                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
                 }
             }
         )
@@ -242,11 +241,11 @@ fun ManageStorageScreen(
     if (storageToDelete != null) {
         AlertDialog(
             onDismissRequest = { storageToDelete = null },
-            title = { Text(text = "Delete Storage Location", color = onSurfaceLight) },
+            title = { Text(text = "Delete Storage Location", color = MaterialTheme.colorScheme.onSurface) },
             text = {
                 Text(
                     text = "Are you sure you want to delete \"${storageToDelete}\"? All items in this storage will be moved to \"Refrigerator\".",
-                    color = onSurfaceVariantLight
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             confirmButton = {
@@ -256,15 +255,15 @@ fun ManageStorageScreen(
                         storageToDelete = null
                     }
                 ) {
-                    Text("Delete", color = errorLight)
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { storageToDelete = null }) {
-                    Text("Cancel", color = outlineLight)
+                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
                 }
             },
-            containerColor = surfaceContainerLowestLight,
+            containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp)
         )
     }

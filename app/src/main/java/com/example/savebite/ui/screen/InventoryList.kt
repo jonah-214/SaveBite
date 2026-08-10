@@ -56,29 +56,29 @@ fun InventoryList(
     onNavigateToManageStorage: () -> Unit = {}
 ) {
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         "Food Inventory",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = primaryLight
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNavigateToAddInventory,
-                containerColor = onPrimaryContainerLight
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
                 Icon(
                     painter = painterResource(R.drawable.add),
                     contentDescription = "Add button",
-                    tint = Color.White,
                     modifier = Modifier.size(36.dp)
                 )
             }
@@ -167,15 +167,15 @@ fun StorageTab(
                 onClick = { onStorageSelected(storage) },
                 label = { Text(storage) },
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = onPrimaryContainerLight,
-                    selectedLabelColor = Color.White,
-                    containerColor = outlineVariantLight,
-                    labelColor = Color.Black
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isSelected,
-                    borderColor = Color.Transparent,
+                    borderColor = MaterialTheme.colorScheme.outline,
                     selectedBorderColor = Color.Transparent
                 )
             )
@@ -189,7 +189,7 @@ fun StorageTab(
                 text = "...",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = onPrimaryContainerLight
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -237,8 +237,8 @@ fun SearchFoodBar(
         shape = RoundedCornerShape(20.dp),
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = surfaceContainerLowLight,
-            unfocusedContainerColor = surfaceContainerLowLight,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedBorderColor = Color.Transparent,
             unfocusedBorderColor = Color.Transparent
         )
