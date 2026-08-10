@@ -22,6 +22,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.example.savebite.data.local.db.AppDatabase
+import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.ui.screen.AddInventoryScreen
 import com.example.savebite.ui.screen.DashboardScreen
@@ -135,8 +137,12 @@ fun AppNavigation(
 
             // Dashboard screen route
             composable(AppRoutes.DASHBOARD) {
+                val inventoryRepository = InventoryRepository(
+                    AppDatabase.getDatabase(navController.context).inventoryDao(),
+                    AppDatabase.getDatabase(navController.context).storageDao()
+                )
                 val dashboardViewModel: DashboardViewModel = viewModel(
-                    factory = DashboardViewModelFactory(userRepository, sessionManager)
+                    factory = DashboardViewModelFactory(userRepository, inventoryRepository, sessionManager)
                 )
                 DashboardScreen(
                     navController = navController,
