@@ -37,8 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R // Correct Resource import
 import com.example.savebite.model.Inventory
-import com.example.savebite.ui.theme.*
-import com.example.savebite.ui.theme.*
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun InventoryCard(
@@ -66,10 +65,10 @@ fun InventoryCard(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel", color = Color.Gray)
+                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
                 }
             },
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp)
         )
     }
@@ -79,9 +78,9 @@ fun InventoryCard(
             .fillMaxWidth()
             .clickable { onCardClick(food) },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        border = BorderStroke(1.dp, outlineVariantLight)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(
             modifier = Modifier
@@ -99,7 +98,7 @@ fun InventoryCard(
                         text = food.name,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = onSurfaceLight,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -109,7 +108,7 @@ fun InventoryCard(
                     Text(
                         text = "Qty: ${food.quantity}",
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -118,8 +117,8 @@ fun InventoryCard(
                 // Days Left Pill/Badge (Urgent <= 3 days, Safe > 3 days)
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = if (food.daysLeft <= 3) errorContainerLight else warningContainerLight,
-                    contentColor = if (food.daysLeft <= 3) errorLight else onWarningContainerLight
+                    color = if (food.daysLeft <= 3) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = if (food.daysLeft <= 3) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
                 ) {
                     Text(
                         text = "${food.daysLeft} days left",
@@ -131,7 +130,7 @@ fun InventoryCard(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = outlineVariantLight, thickness = 1.dp)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
             Spacer(modifier = Modifier.height(12.dp))
 
             // --- BOTTOM ROW: Metadata & Actions ---
@@ -146,13 +145,13 @@ fun InventoryCard(
                         Text(
                             text = "Storage: ",
                             fontSize = 13.sp,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = food.storage,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = onPrimaryContainerLight
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
 
@@ -162,13 +161,13 @@ fun InventoryCard(
                         Text(
                             text = "Expires: ",
                             fontSize = 13.sp,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = food.expiry,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = primaryLight
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -179,36 +178,36 @@ fun InventoryCard(
                     OutlinedButton(
                         onClick = { onEditClick(food) },
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                        border = BorderStroke(1.dp, primaryLight),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.height(36.dp)
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.edit),
                             contentDescription = "Edit",
-                            tint = primaryLight,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Edit", color = primaryLight, fontSize = 12.sp)
+                        Text("Edit", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
                     }
 
                     // Delete Button
                     OutlinedButton(
                         onClick = { showDeleteDialog = true },
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                        border = BorderStroke(1.dp, errorLight),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.height(36.dp)
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.delete),
                             contentDescription = "Delete",
-                            tint = errorLight,
+                            tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Delete", color = errorLight, fontSize = 12.sp)
+                        Text("Delete", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                     }
                 }
             }

@@ -30,6 +30,7 @@ import com.example.savebite.ui.screen.DashboardScreen
 import com.example.savebite.ui.screen.InventoryDetailScreen
 import com.example.savebite.ui.screen.InventoryList
 import com.example.savebite.ui.screen.LoginScreen
+import com.example.savebite.ui.screen.ManageStorageScreen
 import com.example.savebite.ui.screen.ProfileScreen
 import com.example.savebite.ui.screen.SignUpScreen
 import com.example.savebite.ui.screen.SplashScreen
@@ -169,10 +170,10 @@ fun AppNavigation(
                     selectedStorage = selectedStorage,
                     onStorageSelected = { inventoryViewModel.selectedStorage.value = it },
                     onNavigateToAddInventory = { navController.navigate("add_inventory") },
-                    onAddStorageClick = { inventoryViewModel.addStorage(it) },
                     onItemClick = { item -> navController.navigate("inventory_details/${item.id}") },
                     onEditClick = { item -> navController.navigate("add_inventory?itemId=${item.id}") },
-                    onDeleteClick = { item -> inventoryViewModel.deleteItem(item) }
+                    onDeleteClick = { item -> inventoryViewModel.deleteItem(item) },
+                    onNavigateToManageStorage = { navController.navigate(AppRoutes.MANAGE_STORAGE) }
                 )
             }
 
@@ -223,6 +224,17 @@ fun AppNavigation(
                         }
                     )
                 }
+            }
+
+            composable(AppRoutes.MANAGE_STORAGE) {
+                val inventoryViewModel: InventoryViewModel = viewModel()
+                val storageList by inventoryViewModel.storageList.collectAsState()
+                ManageStorageScreen(
+                    storages = storageList,
+                    onBackClick = { navController.popBackStack() },
+                    onAddStorageClick = { inventoryViewModel.addStorage(it) },
+                    onDeleteStorageClick = { inventoryViewModel.deleteStorage(it) }
+                )
             }
 
             composable(AppRoutes.SHOPPING) {
