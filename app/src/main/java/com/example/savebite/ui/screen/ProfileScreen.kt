@@ -47,10 +47,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.savebite.ui.viewmodel.ProfileViewModel
 
 @Composable
-fun ProfileScreen(navController: NavHostController) {
+fun ProfileScreen(
+    navController: NavHostController,
+    profileViewModel: ProfileViewModel
+) {
     var notificationEnabled by remember { mutableStateOf(true) }
+    val user = profileViewModel.user.value
 
     Column(
         modifier = Modifier
@@ -59,9 +64,9 @@ fun ProfileScreen(navController: NavHostController) {
             .padding(16.dp)
     ) {
         ProfileHeaderCard(
-            username = "John Doe",
-            email = "johndoe@gmail.com",
-            phone = "+60123456789"
+            username = user?.username ?: "",
+            email = user?.email ?: "",
+            phone = user?.phone ?: ""
         )
 
         Spacer(Modifier.height(20.dp))

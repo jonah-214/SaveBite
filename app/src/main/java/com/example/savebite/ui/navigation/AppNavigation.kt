@@ -38,6 +38,8 @@ import com.example.savebite.ui.viewmodel.AuthViewModel
 import com.example.savebite.ui.viewmodel.DashboardViewModel
 import com.example.savebite.ui.viewmodel.DashboardViewModelFactory
 import com.example.savebite.ui.viewmodel.InventoryViewModel
+import com.example.savebite.ui.viewmodel.ProfileViewModel
+import com.example.savebite.ui.viewmodel.ProfileViewModelFactory
 import com.example.savebite.utils.SessionManager
 
 @Composable
@@ -250,8 +252,15 @@ fun AppNavigation(
             }
 
             composable(AppRoutes.PROFILE) {
+                val profileViewModel: ProfileViewModel = viewModel(
+                    factory = ProfileViewModelFactory(
+                        userRepository,
+                        sessionManager
+                    )
+                )
                 ProfileScreen(
-                    navController = navController
+                    navController = navController,
+                    profileViewModel = profileViewModel
                 )
             }
         }
