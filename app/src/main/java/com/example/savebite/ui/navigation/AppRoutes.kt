@@ -30,6 +30,8 @@ object AppRoutes {
     const val REPORTS = "reports"
     // Profile & Settings screen
     const val PROFILE = "profile"
+    // Manage Storage screen
+    const val MANAGE_STORAGE = "manage_storage"
 }
 
 // Navigation items

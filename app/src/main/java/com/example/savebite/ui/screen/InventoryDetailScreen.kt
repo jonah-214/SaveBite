@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
 import com.example.savebite.model.Inventory
-import com.example.savebite.ui.theme.*
+import androidx.compose.material3.MaterialTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,10 +47,10 @@ fun InventoryDetailScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel", color = Color.Gray)
+                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
                 }
             },
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp)
         )
     }
@@ -58,8 +58,8 @@ fun InventoryDetailScreen(
     if (showWasteDialog) {
         AlertDialog(
             onDismissRequest = { showWasteDialog = false },
-            title = { Text(text = "Mark as Waste") },
-            text = { Text(text = "Are you sure you want to mark ${detail.name} as waste?") },
+            title = { Text(text = "Mark as Waste", color = MaterialTheme.colorScheme.onSurface) },
+            text = { Text(text = "Are you sure you want to mark ${detail.name} as waste?", color = MaterialTheme.colorScheme.onSurfaceVariant) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -67,27 +67,27 @@ fun InventoryDetailScreen(
                         showWasteDialog = false
                     }
                 ) {
-                    Text("Waste", color = Color.Red)
+                    Text("Waste", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showWasteDialog = false }) {
-                    Text("Cancel", color = Color.Gray)
+                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
                 }
             },
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp)
         )
     }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = "Inventory Details",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 20.sp
                     )
                 },
@@ -96,13 +96,13 @@ fun InventoryDetailScreen(
                         Icon(
                             painter = painterResource(R.drawable.close),
                             contentDescription = "Back",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = primaryLight
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             )
         }
@@ -123,17 +123,17 @@ fun InventoryDetailScreen(
                     text = detail.name,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 // Light Blue Category Pill
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = tertiaryContainerLight
+                    color = MaterialTheme.colorScheme.tertiaryContainer
                 ) {
                     Text(
                         text = detail.category,
-                        color = onTertiaryContainerLight,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
@@ -148,7 +148,7 @@ fun InventoryDetailScreen(
                 text = detail.description,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -156,7 +156,7 @@ fun InventoryDetailScreen(
             // Light Green Storage Pill Tag
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = primaryContainerLight
+                color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -166,13 +166,13 @@ fun InventoryDetailScreen(
                     Icon(
                         painter = painterResource(R.drawable.refrigerator),
                         contentDescription = "Storage",
-                        tint = primaryLight,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = detail.storage,
-                        color = primaryLight,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -180,7 +180,7 @@ fun InventoryDetailScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = outlineVariantLight, thickness = 1.dp)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
             Spacer(modifier = Modifier.height(20.dp))
 
             // 2. Quantity & Status Row
@@ -198,14 +198,14 @@ fun InventoryDetailScreen(
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = Color.Transparent,
-                        border = BorderStroke(2.dp, primaryLight),
+                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                         modifier = Modifier.size(48.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 painter = painterResource(R.drawable.inventory),
                                 contentDescription = "Quantity",
-                                tint = primaryLight,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -218,12 +218,12 @@ fun InventoryDetailScreen(
                             text = "Quantity",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "${detail.quantity}",
                             fontSize = 16.sp,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -233,7 +233,7 @@ fun InventoryDetailScreen(
                     modifier = Modifier
                         .height(50.dp)
                         .width(1.dp),
-                    color = outlineVariantLight
+                    color = MaterialTheme.colorScheme.outlineVariant
                 )
 
                 // Status Days Left Section
@@ -247,7 +247,7 @@ fun InventoryDetailScreen(
                     Icon(
                         painter = painterResource(R.drawable.clock), // replace with clock icon
                         contentDescription = "Status",
-                        tint = if (detail.daysLeft <= 3) errorLight else onWarningContainerLight,
+                        tint = if (detail.daysLeft <= 3) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(48.dp)
                     )
 
@@ -258,13 +258,13 @@ fun InventoryDetailScreen(
                             text = "Status",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "${detail.daysLeft} days left",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = if (detail.daysLeft <= 3) errorLight else onWarningContainerLight
+                            color = if (detail.daysLeft <= 3) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
                         )
                     }
                 }
@@ -276,8 +276,8 @@ fun InventoryDetailScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, outlineVariantLight),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(
                     modifier = Modifier
@@ -289,7 +289,7 @@ fun InventoryDetailScreen(
                         text = "Details",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = primaryLight
+                        color = MaterialTheme.colorScheme.primary
                     )
 
                     // Purchase Date Row
@@ -300,25 +300,25 @@ fun InventoryDetailScreen(
                         Icon(
                             painter = painterResource(R.drawable.calendar),
                             contentDescription = null,
-                            tint = primaryLight,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "Purchase Date",
                             fontSize = 14.sp,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
                         )
                         Text(
                             text = detail.purchaseDate,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
-                    HorizontalDivider(color = outlineVariantLight, thickness = 1.dp)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
 
                     // Expiry Date Row
                     Row(
@@ -328,14 +328,14 @@ fun InventoryDetailScreen(
                         Icon(
                             painter = painterResource(R.drawable.calendar_clock),
                             contentDescription = null,
-                            tint = Color.Black,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "Expiry Date",
                             fontSize = 14.sp,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
                         )
                         Row {
@@ -343,18 +343,18 @@ fun InventoryDetailScreen(
                                 text = detail.expiry,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = Color.Black
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "(${detail.daysLeft} days left)",
                                 fontSize = 14.sp,
-                                color = if (detail.daysLeft <= 3) errorLight else onWarningContainerLight
+                                color = if (detail.daysLeft <= 3) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
                             )
                         }
                     }
 
-                    HorizontalDivider(color = outlineVariantLight, thickness = 1.dp)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
 
                     // Notes Row
                     Row(
@@ -364,20 +364,20 @@ fun InventoryDetailScreen(
                         Icon(
                             painter = painterResource(R.drawable.note),
                             contentDescription = null,
-                            tint = primaryLight,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "Notes",
                             fontSize = 14.sp,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(0.4f)
                         )
                         Text(
                             text = detail.notes,
                             fontSize = 14.sp,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(0.6f)
                         )
                     }
@@ -398,18 +398,18 @@ fun InventoryDetailScreen(
                         .weight(1f)
                         .height(48.dp),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, outlineLight)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.edit),
                         contentDescription = "Edit",
-                        tint = primaryLight,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Edit",
-                        color = primaryLight,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -422,18 +422,18 @@ fun InventoryDetailScreen(
                         .weight(1.2f)
                         .height(48.dp),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, outlineLight)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.delete),
                         contentDescription = "Delete",
-                        tint = Color.Red,
+                        tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Delete",
-                        color = Color.Red,
+                        color = MaterialTheme.colorScheme.error,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -447,11 +447,11 @@ fun InventoryDetailScreen(
                     .fillMaxWidth()
                     .height(48.dp),
                 shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, Color.Red)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
             ) {
                 Text(
                     text = "Mark as WASTE",
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )

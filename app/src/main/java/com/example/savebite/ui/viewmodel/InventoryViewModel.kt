@@ -58,5 +58,12 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
         repository.insertStorage(name)
     }
 
+    fun deleteStorage(name: String) = viewModelScope.launch {
+        if (selectedStorage.value == name) {
+            selectedStorage.value = "All"
+        }
+        repository.deleteStorageAndReassign(name)
+    }
+
     fun getItemById(id: String) = repository.getItemById(id)
 }

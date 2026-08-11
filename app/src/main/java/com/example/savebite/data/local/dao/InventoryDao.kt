@@ -34,4 +34,7 @@ interface InventoryDao {
 
     @Delete
     suspend fun deleteItem(item: Inventory)
+
+    @Query("UPDATE inventory_table SET storage = :newStorage WHERE storage = :oldStorage")
+    suspend fun reassignStorage(oldStorage: String, newStorage: String)
 }

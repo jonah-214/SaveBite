@@ -1,6 +1,5 @@
 package com.example.savebite.ui.screen
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,9 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -25,20 +21,15 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -59,164 +50,40 @@ fun InventoryList(
     selectedStorage: String = "All",
     onStorageSelected: (String) -> Unit = {},
     onNavigateToAddInventory: () -> Unit = {},
-    onAddStorageClick: (String) -> Unit = {},
     onItemClick: (Inventory) -> Unit = {},
     onEditClick: (Inventory) -> Unit = {},
     onDeleteClick: (Inventory) -> Unit = {},
-    onBackClick: () -> Unit = {}
+    onNavigateToManageStorage: () -> Unit = {}
 ) {
-    var showAddDialog by remember { mutableStateOf(false) }
-    var showAddStorageDialog by remember { mutableStateOf(false) }
-    var newStorageName by remember { mutableStateOf("") }
-
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         "Food Inventory",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = primaryLight
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showAddDialog = true },
-                containerColor = onPrimaryContainerLight
+                onClick = onNavigateToAddInventory,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
                 Icon(
                     painter = painterResource(R.drawable.add),
                     contentDescription = "Add button",
-                    tint = Color.White,
                     modifier = Modifier.size(36.dp)
                 )
             }
         },
     ) { padding ->
-        // --- ADD CHOICES DIALOG ---
-        if (showAddDialog) {
-            AlertDialog(
-                containerColor = Color.White,
-                onDismissRequest = { showAddDialog = false },
-                shape = RoundedCornerShape(20.dp),
-                title = {
-                    Text(
-                        text = "What would you like to add?",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                text = {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = {
-                                showAddDialog = false
-                                onNavigateToAddInventory()
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, primaryLight)
-                        ) {
-                            Text(
-                                text = " Inventory ",
-                                fontSize = 15.sp,
-                                color = primaryLight
-                            )
-                        }
-
-                        OutlinedButton(
-                            onClick = {
-                                showAddDialog = false
-                                newStorageName = ""
-                                showAddStorageDialog = true
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, onPrimaryContainerLight)
-                        ) {
-                            Text(
-                                text = "Storage",
-                                fontSize = 15.sp,
-                                color = onPrimaryContainerLight
-                            )
-                        }
-                    }
-                },
-                confirmButton = {},
-                dismissButton = {
-                    TextButton(onClick = { showAddDialog = false }) {
-                        Text("Cancel", color = Color.Gray)
-                    }
-                }
-            )
-        }
-
-        if (showAddStorageDialog) {
-            AlertDialog(
-                containerColor = Color.White,
-                onDismissRequest = { showAddStorageDialog = false },
-                shape = RoundedCornerShape(20.dp),
-                title = {
-                    Text(
-                        text = "Add New Storage Location",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                text = {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = newStorageName,
-                            onValueChange = { newStorageName = it },
-                            label = { Text("Storage Name") },
-                            placeholder = { Text("e.g. Snack Box, Cellar") },
-                            singleLine = true,
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = primaryLight,
-                                focusedLabelColor = primaryLight
-                            )
-                        )
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            if (newStorageName.isNotBlank()) {
-                                onAddStorageClick(newStorageName.trim())
-                                showAddStorageDialog = false
-                            }
-                        },
-                        enabled = newStorageName.isNotBlank(),
-                        colors = ButtonDefaults.buttonColors(containerColor = primaryLight),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Text("Save", color = Color.White)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showAddStorageDialog = false }) {
-                        Text("Cancel", color = Color.Gray)
-                    }
-                }
-            )
-        }
-
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -226,7 +93,8 @@ fun InventoryList(
             StorageTab (
                 storages = storageList,
                 selectedStorage = selectedStorage,
-                onStorageSelected = onStorageSelected
+                onStorageSelected = onStorageSelected,
+                onNavigateToManageStorage = onNavigateToManageStorage
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -263,7 +131,8 @@ fun InventoryList(
 fun StorageTab(
     storages: List<String>,
     selectedStorage: String,
-    onStorageSelected: (String) -> Unit
+    onStorageSelected: (String) -> Unit,
+    onNavigateToManageStorage: () -> Unit
 ) {
     val scrollState = rememberScrollState()
 
@@ -298,17 +167,29 @@ fun StorageTab(
                 onClick = { onStorageSelected(storage) },
                 label = { Text(storage) },
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = onPrimaryContainerLight,
-                    selectedLabelColor = Color.White,
-                    containerColor = outlineVariantLight,
-                    labelColor = Color.Black
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isSelected,
-                    borderColor = Color.Transparent,
+                    borderColor = MaterialTheme.colorScheme.outline,
                     selectedBorderColor = Color.Transparent
                 )
+            )
+        }
+
+        IconButton(
+            onClick = onNavigateToManageStorage,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Text(
+                text = "...",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -356,8 +237,8 @@ fun SearchFoodBar(
         shape = RoundedCornerShape(20.dp),
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = surfaceContainerLowLight,
-            unfocusedContainerColor = surfaceContainerLowLight,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedBorderColor = Color.Transparent,
             unfocusedBorderColor = Color.Transparent
         )

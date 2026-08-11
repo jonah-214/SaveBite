@@ -1,6 +1,7 @@
 package com.example.savebite.ui.screen
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -17,8 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
 import com.example.savebite.model.Inventory
-import com.example.savebite.ui.theme.backgroundLight
-import com.example.savebite.ui.theme.primaryLight
 import com.example.savebite.ui.viewmodel.InventoryViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -90,29 +89,28 @@ fun AddInventoryScreen(
     )
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = if (itemId != null) "Edit Inventory" else "Add Inventory",
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontSize = 20.sp
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            painter = painterResource(R.drawable.back),
-                            contentDescription = "Back",
-                            tint = Color.White,
+                            painter = painterResource(R.drawable.close),
+                            contentDescription = "Close",
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = primaryLight
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             )
         }
@@ -163,15 +161,20 @@ fun AddInventoryScreen(
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
                     )
                     ExposedDropdownMenu(
                         expanded = categoryExpanded,
-                        onDismissRequest = { categoryExpanded = false }
+                        onDismissRequest = { categoryExpanded = false },
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                     ) {
                         categories.forEach { item ->
                             DropdownMenuItem(
-                                text = { Text(item) },
+                                text = { Text(item, color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     category = item
                                     categoryExpanded = false
@@ -195,15 +198,20 @@ fun AddInventoryScreen(
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
                     )
                     ExposedDropdownMenu(
                         expanded = storageExpanded,
-                        onDismissRequest = { storageExpanded = false }
+                        onDismissRequest = { storageExpanded = false },
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                     ) {
                         storageLocations.forEach { loc ->
                             DropdownMenuItem(
-                                text = { Text(loc) },
+                                text = { Text(loc, color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     storage = loc
                                     storageExpanded = false
@@ -218,8 +226,8 @@ fun AddInventoryScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, Color.LightGray),
-                colors = CardDefaults.cardColors(containerColor = backgroundLight)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Row(
                     modifier = Modifier
@@ -281,7 +289,7 @@ fun AddInventoryScreen(
                             Icon(
                                 painter = painterResource(R.drawable.calendar),
                                 contentDescription = "Purchase Date",
-                                tint = primaryLight,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                         },
@@ -292,7 +300,7 @@ fun AddInventoryScreen(
                             disabledTextColor = MaterialTheme.colorScheme.onSurface,
                             disabledBorderColor = MaterialTheme.colorScheme.outline,
                             disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledTrailingIconColor = primaryLight
+                            disabledTrailingIconColor = MaterialTheme.colorScheme.primary
                         )
                     )
                     Box(
@@ -313,7 +321,7 @@ fun AddInventoryScreen(
                             Icon(
                                 painter = painterResource(R.drawable.calendar_clock),
                                 contentDescription = "Expiry Date",
-                                tint = primaryLight,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                         },
@@ -324,7 +332,7 @@ fun AddInventoryScreen(
                             disabledTextColor = MaterialTheme.colorScheme.onSurface,
                             disabledBorderColor = MaterialTheme.colorScheme.outline,
                             disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledTrailingIconColor = primaryLight
+                            disabledTrailingIconColor = MaterialTheme.colorScheme.primary
                         )
                     )
                     Box(
@@ -374,7 +382,7 @@ fun AddInventoryScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryLight),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp),
                 enabled = name.isNotBlank()
             ) {
@@ -400,21 +408,21 @@ fun AddInventoryScreen(
                     }
                     showPurchasePicker = false
                 }) {
-                    Text("OK", color = primaryLight)
+                    Text("OK", color = MaterialTheme.colorScheme.primary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showPurchasePicker = false }) {
-                    Text("Cancel", color = Color.Gray)
+                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
                 }
             }
         ) {
             DatePicker(
                 state = datePickerState,
                 colors = DatePickerDefaults.colors(
-                    selectedDayContainerColor = primaryLight,
-                    todayDateBorderColor = primaryLight,
-                    todayContentColor = primaryLight
+                    selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+                    todayDateBorderColor = MaterialTheme.colorScheme.primary,
+                    todayContentColor = MaterialTheme.colorScheme.primary
                 )
             )
         }
@@ -432,21 +440,21 @@ fun AddInventoryScreen(
                     }
                     showExpiryPicker = false
                 }) {
-                    Text("OK", color = primaryLight)
+                    Text("OK", color = MaterialTheme.colorScheme.primary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showExpiryPicker = false }) {
-                    Text("Cancel", color = Color.Gray)
+                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
                 }
             }
         ) {
             DatePicker(
                 state = datePickerState,
                 colors = DatePickerDefaults.colors(
-                    selectedDayContainerColor = primaryLight,
-                    todayDateBorderColor = primaryLight,
-                    todayContentColor = primaryLight
+                    selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+                    todayDateBorderColor = MaterialTheme.colorScheme.primary,
+                    todayContentColor = MaterialTheme.colorScheme.primary
                 )
             )
         }
