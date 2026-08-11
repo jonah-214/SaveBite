@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Inventory2
@@ -66,7 +68,9 @@ fun DashboardScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
+            .padding(top = 24.dp, bottom = 16.dp) // Adjusted for status bar alignment
     ) {
         DashboardHeader(
             username = dashboardViewModel.username.value,
@@ -75,13 +79,13 @@ fun DashboardScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         ExpiryReminderCard(
             items = dashboardViewModel.expiringItems.collectAsState().value,
             onSeeAllClick = { navController.navigate(AppRoutes.REMINDER) }
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         StatsRow(
             inventoryCount = dashboardViewModel.inventoryCount.collectAsState().value,
@@ -89,14 +93,14 @@ fun DashboardScreen(
             onInventoryClick = { navController.navigate(AppRoutes.INVENTORY) },
             onShoppingClick = { navController.navigate(AppRoutes.SHOPPING) }
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         WasteReportSection(
             savedAmount = dashboardViewModel.savedThisMonth,
             wasteByWeek = dashboardViewModel.wasteTrackerData,
             onSeeAllClick = { /* navigate to Waste Tracker later */ }
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         RecipeSuggestionsRow(
             recipes = dashboardViewModel.recipeSuggestions,
@@ -111,37 +115,43 @@ fun DashboardHeader(
     onProfileClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
             Text(
-                text = "Greetings, $username",
+                text = "Welcome, $username",
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
+                color = MaterialTheme.colorScheme.onBackground
             )
             Text(
-                text = "Here's what needs your attention",
-                fontSize = 13.sp,
+                text = "Track your food, save the planet",
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
         IconButton(
-            onClick = onProfileClick
+            onClick = onProfileClick,
+            modifier = Modifier
+                .background(
+                    MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(50)
+                )
+                .size(48.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.AccountCircle,
                 contentDescription = "Profile",
-                modifier = Modifier
-                    .size(40.dp)
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(28.dp)
             )
         }
-
     }
 }
+
 
 @Composable
 fun ExpiryReminderCard(
