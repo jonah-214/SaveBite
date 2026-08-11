@@ -33,6 +33,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ProfileViewModel
 
 @Composable
@@ -57,42 +59,54 @@ fun ProfileScreen(
     var notificationEnabled by remember { mutableStateOf(true) }
     val user = profileViewModel.user.value
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-    ) {
-        ProfileHeaderCard(
-            username = user?.username ?: "",
-            email = user?.email ?: "",
-            phone = user?.phone ?: ""
-        )
+    Scaffold(
+        topBar = {
+            AppTopBar(
+                title = "Profile & Settings",
+                showBackButton = true,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp)
+        ) {
+            ProfileHeaderCard(
+                username = user?.username ?: "Loading...",
+                email = user?.email ?: "",
+                phone = user?.phone ?: ""
+            )
 
-        Spacer(Modifier.height(20.dp))
-        SectionLabel("Account Settings")
-        AccountSettingsCard(
-            onEditProfileClick = { /* TODO: navigate later */ },
-            onChangePasswordClick = { /* TODO */ }
-        )
+            Spacer(Modifier.height(20.dp))
 
-        Spacer(Modifier.height(12.dp))
-        SectionLabel("Preferences")
-        PreferencesCard(
-            notificationEnabled = notificationEnabled,
-            onNotificationToggle = { notificationEnabled = it },
-        )
+            SectionLabel("Account Settings")
+            AccountSettingsCard(
+                onEditProfileClick = { /* TODO: navigate later */ },
+                onChangePasswordClick = { /* TODO */ }
+            )
 
-        Spacer(Modifier.height(12.dp))
-        SectionLabel("Support")
-        SupportCard(
-            onAboutUsClick = { /* TODO */ }
-        )
+            Spacer(Modifier.height(12.dp))
 
-        Spacer(Modifier.height(24.dp))
-        LogoutButton(
-            onClick = { /* TODO: logout */ }
-        )
+            SectionLabel("Preferences")
+            PreferencesCard(
+                notificationEnabled = notificationEnabled,
+                onNotificationToggle = { notificationEnabled = it },
+            )
+
+            Spacer(Modifier.height(12.dp))
+            SectionLabel("Support")
+            SupportCard(
+                onAboutUsClick = { /* TODO */ }
+            )
+
+            Spacer(Modifier.height(24.dp))
+            LogoutButton(
+                onClick = { /* TODO: logout */ }
+            )
+        }
     }
 }
 

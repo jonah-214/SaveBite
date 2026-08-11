@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
 import com.example.savebite.model.Inventory
+import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.InventoryViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -91,27 +92,10 @@ fun AddInventoryScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = if (itemId != null) "Edit Inventory" else "Add Inventory",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontSize = 20.sp
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            painter = painterResource(R.drawable.close),
-                            contentDescription = "Close",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+            AppTopBar(
+                title = if (itemId != null) "Edit Inventory" else "Add Inventory",
+                showBackButton = true,
+                onBackClick = onBackClick
             )
         }
     ) { padding ->

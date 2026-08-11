@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
 import com.example.savebite.model.Inventory
+import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,16 +59,9 @@ fun InventoryList(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Food Inventory",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+            AppTopBar(
+                title = "Food Inventory",
+                showBackButton = false
             )
         },
         floatingActionButton = {

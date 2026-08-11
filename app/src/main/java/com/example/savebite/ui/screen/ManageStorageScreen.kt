@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
+import com.example.savebite.ui.navigation.AppTopBar
 import androidx.compose.material3.MaterialTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,27 +49,10 @@ fun ManageStorageScreen(
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
             ) {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "Manage Storage",
-                            fontSize = 20.sp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                painter = painterResource(R.drawable.close),
-                                contentDescription = "Back",
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                AppTopBar(
+                    title = "Manage Storage",
+                    showBackButton = true,
+                    onBackClick = onBackClick
                 )
                 Text(
                     text = "Add, edit or delete your storage places",
