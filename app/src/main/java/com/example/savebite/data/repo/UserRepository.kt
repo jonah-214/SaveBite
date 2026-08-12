@@ -4,6 +4,10 @@ import com.example.savebite.data.local.dao.UserDao
 import com.example.savebite.model.User
 
 class UserRepository(private val userDao: UserDao) {
+    // Insert user
+    suspend fun insertUser(user: User): Long {
+        return userDao.insertUser(user)
+    }
 
     // Get user by email or phone
     suspend fun getUserByEmailOrPhone(identifier: String): User? {
@@ -25,13 +29,28 @@ class UserRepository(private val userDao: UserDao) {
         return userDao.getUserByUsername(username)
     }
 
-    // Insert user
-    suspend fun insertUser(user: User): Long {
-        return userDao.insertUser(user)
-    }
-
     // Get user by ID
     suspend fun getUserById(id: Int): User? {
         return userDao.getUserById(id)
+    }
+
+    // Get user by username, excluding a specific ID
+    suspend fun getUserByUsernameExcludingId(username: String, excludeId: Int): User? {
+        return userDao.getUserByUsernameExcludingId(username, excludeId)
+    }
+
+    // Get user by email, excluding a specific ID
+    suspend fun getUserByEmailExcludingId(email: String, excludeId: Int): User? {
+        return userDao.getUserByEmailExcludingId(email, excludeId)
+    }
+
+    // Get user by phone, excluding a specific ID
+    suspend fun getUserByPhoneExcludingId(phone: String, excludeId: Int): User? {
+        return userDao.getUserByPhoneExcludingId(phone, excludeId)
+    }
+
+    // Update user
+    suspend fun updateUser(user: User): Int {
+        return userDao.updateUser(user)
     }
 }

@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -27,6 +28,7 @@ import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.ui.screen.AddInventoryScreen
 import com.example.savebite.ui.screen.DashboardScreen
+import com.example.savebite.ui.screen.EditProfileScreen
 import com.example.savebite.ui.screen.InventoryDetailScreen
 import com.example.savebite.ui.screen.InventoryList
 import com.example.savebite.ui.screen.LoginScreen
@@ -259,6 +261,24 @@ fun AppNavigation(
                     )
                 )
                 ProfileScreen(
+                    navController = navController,
+                    profileViewModel = profileViewModel
+                )
+            }
+
+            composable(AppRoutes.EDIT_PROFILE) { backStackEntry ->
+                // Share ProfileViewModel with ProfileScreen
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(AppRoutes.PROFILE)
+                }
+                val profileViewModel: ProfileViewModel = viewModel(
+                    viewModelStoreOwner = parentEntry,
+                    factory = ProfileViewModelFactory(
+                        userRepository,
+                        sessionManager
+                    )
+                )
+                EditProfileScreen(
                     navController = navController,
                     profileViewModel = profileViewModel
                 )

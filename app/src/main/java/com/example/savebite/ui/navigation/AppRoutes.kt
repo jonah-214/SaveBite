@@ -22,6 +22,8 @@ object AppRoutes {
     const val REMINDER = "reminder"
     // Food Inventory screen
     const val INVENTORY = "inventory"
+    // Manage Storage screen
+    const val MANAGE_STORAGE = "manage_storage"
     // Shopping List screen
     const val SHOPPING = "shopping"
     // Recipe Suggestions screen
@@ -30,8 +32,8 @@ object AppRoutes {
     const val REPORTS = "reports"
     // Profile & Settings screen
     const val PROFILE = "profile"
-    // Manage Storage screen
-    const val MANAGE_STORAGE = "manage_storage"
+    // Edit Profile screen
+    const val EDIT_PROFILE = "edit_profile"
 }
 
 // Navigation items

@@ -14,10 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
@@ -48,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.savebite.ui.navigation.AppRoutes
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ProfileViewModel
 
@@ -84,7 +83,9 @@ fun ProfileScreen(
 
             SectionLabel("Account Settings")
             AccountSettingsCard(
-                onEditProfileClick = { /* TODO: navigate later */ },
+                onEditProfileClick = {
+                    navController.navigate(AppRoutes.EDIT_PROFILE)
+                },
                 onChangePasswordClick = { /* TODO */ }
             )
 
@@ -104,7 +105,13 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(24.dp))
             LogoutButton(
-                onClick = { /* TODO: logout */ }
+                onClick = {
+                    profileViewModel.logout {
+                        navController.navigate(AppRoutes.LOGIN) {
+                            popUpTo(AppRoutes.DASHBOARD) { inclusive = true }
+                        }
+                    }
+                }
             )
         }
     }
