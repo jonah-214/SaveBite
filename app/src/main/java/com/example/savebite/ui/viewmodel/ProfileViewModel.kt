@@ -44,6 +44,13 @@ class ProfileViewModel(
         }
     }
 
+    // Clear all errors
+    fun clearErrors() {
+        _usernameError.value = null
+        _emailError.value = null
+        _phoneError.value = null
+    }
+
     // Edit User Profile
     fun updateProfile(newUserName: String, newEmail: String, newPhone: String) {
         viewModelScope.launch {
@@ -94,16 +101,16 @@ class ProfileViewModel(
         }
     }
 
+    // Reset update success state
+    fun resetUpdateSuccess() {
+        _updateSuccess.value = false
+    }
+
     // Logout user
     fun logout(onLoggedOut: () -> Unit) {
         viewModelScope.launch {
             sessionManager.clearUserSession()
             onLoggedOut()
         }
-    }
-
-    // Reset update success state
-    fun resetUpdateSuccess() {
-        _updateSuccess.value = false
     }
 }

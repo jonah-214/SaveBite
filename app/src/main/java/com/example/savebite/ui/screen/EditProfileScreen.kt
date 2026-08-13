@@ -48,6 +48,16 @@ fun EditProfileScreen(
     var email by remember { mutableStateOf(user?.email ?: "") }
     var phone by remember { mutableStateOf(user?.phone ?: "") }
 
+    // Check if details were changed
+    val isChanged = username != (user?.username ?: "") ||
+            email != (user?.email ?: "") ||
+            phone != (user?.phone ?: "")
+
+    // Reset errors when screen is entered
+    LaunchedEffect(Unit) {
+        profileViewModel.clearErrors()
+    }
+
     // Update fields when user changes
     LaunchedEffect(user) {
         if (user != null) {
@@ -82,13 +92,15 @@ fun EditProfileScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(horizontal = 24.dp)
         ) {
+            Spacer(modifier = Modifier.height(32.dp))
+
             // Avatar Placeholder
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .size(150.dp)
+                    .size(120.dp)
                     .background(
                         MaterialTheme.colorScheme.primaryContainer,
                         shape = CircleShape
@@ -99,11 +111,11 @@ fun EditProfileScreen(
                     imageVector = Icons.Default.AccountCircle,
                     contentDescription = "Avatar",
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(60.dp)
+                    modifier = Modifier.size(70.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Edit Profile Field - UserName
             Text(
@@ -163,7 +175,7 @@ fun EditProfileScreen(
 
             // Edit Profile Field - Phone
             Text(
-                text = "Name",
+                text = "Phone Number",
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
@@ -197,6 +209,7 @@ fun EditProfileScreen(
                         phone
                     )
                 },
+                enabled = isChanged,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
