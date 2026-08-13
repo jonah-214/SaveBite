@@ -27,6 +27,7 @@ import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.ui.screen.AddInventoryScreen
+import com.example.savebite.ui.screen.ChangePasswordScreen
 import com.example.savebite.ui.screen.DashboardScreen
 import com.example.savebite.ui.screen.EditProfileScreen
 import com.example.savebite.ui.screen.InventoryDetailScreen
@@ -283,6 +284,23 @@ fun AppNavigation(
                     profileViewModel = profileViewModel
                 )
             }
+
+            composable(AppRoutes.CHANGE_PASSWORD) {
+                val parentEntry = remember(it) {
+                    navController.getBackStackEntry(AppRoutes.PROFILE)
+                }
+                val profileViewModel: ProfileViewModel = viewModel(
+                    viewModelStoreOwner = parentEntry,
+                    factory = ProfileViewModelFactory(
+                        userRepository,
+                        sessionManager
+                    )
+                )
+                ChangePasswordScreen(
+                    navController = navController,
+                    profileViewModel = profileViewModel
+                )
+            }
         }
     }
 }
@@ -301,15 +319,6 @@ fun PlaceholderScreen(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("✅ $title reached — navigation works!")
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {
-                viewModel.logout {
-                    navController.navigate(AppRoutes.LOGIN) {
-                        popUpTo(AppRoutes.DASHBOARD) { inclusive = true }
-                    }
-                }
-            }) {
-                Text("Logout (test session clear)")
-            }
         }
     }
 }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -48,10 +49,16 @@ fun EditProfileScreen(
     var email by remember { mutableStateOf(user?.email ?: "") }
     var phone by remember { mutableStateOf(user?.phone ?: "") }
 
-    // Check if details were changed
+    // Check if details were changed and fields are not blank
     val isChanged = username != (user?.username ?: "") ||
             email != (user?.email ?: "") ||
             phone != (user?.phone ?: "")
+
+    // Check if all fields are filled
+    val canSave = isChanged &&
+            username.isNotBlank() &&
+            email.isNotBlank() &&
+            phone.isNotBlank()
 
     // Reset errors when screen is entered
     LaunchedEffect(Unit) {
@@ -128,7 +135,6 @@ fun EditProfileScreen(
                 value = username,
                 onValueChange = { username = it },
                 placeholder = { Text("Enter your new name") },
-                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -140,7 +146,8 @@ fun EditProfileScreen(
                     profileViewModel.usernameError.value?.let { errorMsg ->
                         Text(text = errorMsg, color = MaterialTheme.colorScheme.error)
                     }
-                }
+                },
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -156,7 +163,6 @@ fun EditProfileScreen(
                 value = email,
                 onValueChange = { email = it },
                 placeholder = { Text("Enter your new email address") },
-                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -168,7 +174,8 @@ fun EditProfileScreen(
                     profileViewModel.emailError.value?.let { errorMsg ->
                         Text(text = errorMsg, color = MaterialTheme.colorScheme.error)
                     }
-                }
+                },
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -184,23 +191,33 @@ fun EditProfileScreen(
                 value = phone,
                 onValueChange = { phone = it },
                 placeholder = { Text("Enter your new phone number") },
-                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Phone,
                     imeAction = ImeAction.Done
                 ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        profileViewModel.updateProfile(
+                            username,
+                            email,
+                            phone
+                        )
+                    }
+                ),
                 isError = profileViewModel.phoneError.value != null,
                 supportingText = {
                     profileViewModel.phoneError.value?.let { errorMsg ->
                         Text(text = errorMsg, color = MaterialTheme.colorScheme.error)
                     }
-                }
+                },
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Save Changes Button
             Button(
                 onClick = {
                     profileViewModel.updateProfile(
@@ -209,7 +226,7 @@ fun EditProfileScreen(
                         phone
                     )
                 },
-                enabled = isChanged,
+                enabled = canSave,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),

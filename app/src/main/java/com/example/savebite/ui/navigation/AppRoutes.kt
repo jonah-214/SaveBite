@@ -34,6 +34,9 @@ object AppRoutes {
     const val PROFILE = "profile"
     // Edit Profile screen
     const val EDIT_PROFILE = "edit_profile"
+
+    // Change Password screen
+    const val CHANGE_PASSWORD = "change_password"
 }
 
 // Navigation items

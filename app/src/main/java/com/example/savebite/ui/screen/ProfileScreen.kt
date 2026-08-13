@@ -73,6 +73,7 @@ fun ProfileScreen(
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
+            // Profile Header - Name, email, phone
             ProfileHeaderCard(
                 username = user?.username ?: "Loading...",
                 email = user?.email ?: "",
@@ -81,22 +82,27 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(20.dp))
 
+            // Account Settings tab
             SectionLabel("Account Settings")
             AccountSettingsCard(
                 onEditProfileClick = {
                     navController.navigate(AppRoutes.EDIT_PROFILE)
                 },
-                onChangePasswordClick = { /* TODO */ }
+                onChangePasswordClick = {
+                    navController.navigate(AppRoutes.CHANGE_PASSWORD)
+                }
             )
 
             Spacer(Modifier.height(12.dp))
 
+            // Preferences tab
             SectionLabel("Preferences")
             PreferencesCard(
                 notificationEnabled = notificationEnabled,
                 onNotificationToggle = { notificationEnabled = it },
             )
 
+            // Support tab
             Spacer(Modifier.height(12.dp))
             SectionLabel("Support")
             SupportCard(
@@ -137,6 +143,7 @@ fun ProfileHeaderCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Avatar Icon
             Box(
                 modifier = Modifier
                     .size(64.dp)
@@ -156,6 +163,7 @@ fun ProfileHeaderCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
+            // Name, email, phone
             Column {
                 Text(
                     text = username,
@@ -192,6 +200,7 @@ fun AccountSettingsCard(
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
+        // Manage Profile & Password Settings
         Column(modifier = Modifier.padding(16.dp)) {
             SettingsRow(
                 icon = Icons.Default.Person,
@@ -224,6 +233,7 @@ fun PreferencesCard(
         border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
+        // Notification Preference
         Column(modifier = Modifier.padding(16.dp)) {
             SettingsRow(
                 icon = Icons.Default.Notifications,
@@ -255,6 +265,7 @@ fun SupportCard(
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
+        // Support Settings
         Column(modifier = Modifier.padding(16.dp)) {
             SettingsRow(
                 icon = Icons.Default.Info,
@@ -274,35 +285,6 @@ fun SectionLabel(text: String) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp)
     )
-}
-
-@Composable
-fun LogoutButton(
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer
-        ),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp)
-    ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.Logout,
-            contentDescription = null
-        )
-
-        Spacer(Modifier.width(8.dp))
-
-        Text(
-            text = "Logout",
-            fontWeight = FontWeight.Bold
-        )
-    }
 }
 
 @Composable
@@ -339,6 +321,7 @@ fun SettingsRow(
 
             Spacer(modifier = Modifier.width(12.dp))
 
+            // Settings Row Labels & Subtitles
             Column {
                 Text(
                     text = label,
@@ -353,5 +336,34 @@ fun SettingsRow(
             }
         }
         trailing()
+    }
+}
+
+@Composable
+fun LogoutButton(
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer
+        ),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.Logout,
+            contentDescription = null
+        )
+
+        Spacer(Modifier.width(8.dp))
+
+        Text(
+            text = "Logout",
+            fontWeight = FontWeight.Bold
+        )
     }
 }
