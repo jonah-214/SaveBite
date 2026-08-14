@@ -28,6 +28,27 @@ import java.util.TimeZone
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+// Custom SelectableDates implementation to disable past dates
+@OptIn(ExperimentalMaterial3Api::class)
+object PastDateSelectableDates : SelectableDates {
+    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+        // Calculate the start of today in UTC millis
+        val todayUtcMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        return utcTimeMillis >= todayUtcMillis
+    }
+
+    override fun isSelectableYear(year: Int): Boolean {
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+        return year >= currentYear
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddInventoryScreen(
@@ -441,7 +462,9 @@ fun AddInventoryScreen(
 
     // --- PURCHASE DATE PICKER DIALOG ---
     if (showPurchasePicker) {
-        val datePickerState = rememberDatePickerState()
+        val datePickerState = rememberDatePickerState(
+            selectableDates = PastDateSelectableDates
+        )
         DatePickerDialog(
             onDismissRequest = { showPurchasePicker = false },
             confirmButton = {
@@ -473,7 +496,9 @@ fun AddInventoryScreen(
 
     // --- EXPIRY DATE PICKER DIALOG ---
     if (showExpiryPicker) {
-        val datePickerState = rememberDatePickerState()
+        val datePickerState = rememberDatePickerState(
+            selectableDates = PastDateSelectableDates
+        )
         DatePickerDialog(
             onDismissRequest = { showExpiryPicker = false },
             confirmButton = {

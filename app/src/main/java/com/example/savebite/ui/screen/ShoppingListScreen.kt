@@ -1,8 +1,5 @@
 package com.example.savebite.ui.screen
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -46,13 +43,7 @@ fun ShoppingListScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    Icons.Default.KeyboardArrowLeft,
-                    contentDescription = "Back",
-                    modifier = Modifier.size(28.dp)
-                )
                 Text("Shopping List", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Icon(Icons.Default.MoreVert, contentDescription = "Options")
             }
         }
     ) { innerPadding ->
