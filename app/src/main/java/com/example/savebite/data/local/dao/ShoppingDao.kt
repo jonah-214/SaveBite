@@ -1,0 +1,24 @@
+package com.example.savebite.data.local.dao
+
+import androidx.room.*
+import com.example.savebite.model.ShoppingItem
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface ShoppingDao {
+
+    @Query("SELECT * FROM shopping_table")
+    fun getAllShoppingItems(): Flow<List<ShoppingItem>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertShoppingItem(item: ShoppingItem)
+
+    @Update
+    suspend fun updateShoppingItem(item: ShoppingItem)
+
+    @Delete
+    suspend fun deleteShoppingItem(item: ShoppingItem)
+
+    @Query("DELETE FROM shopping_table WHERE isPurchased = 1")
+    suspend fun deletePurchasedItems()
+}

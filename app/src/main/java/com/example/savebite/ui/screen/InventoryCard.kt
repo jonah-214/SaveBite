@@ -106,7 +106,7 @@ fun InventoryCard(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = "Qty: ${food.quantity}",
+                        text = "Qty: ${food.quantity} ${food.unit}",
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

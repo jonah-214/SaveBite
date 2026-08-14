@@ -205,7 +205,7 @@ fun InventoryDetailScreen(
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
-                            text = "${detail.quantity}",
+                            text = "${detail.quantity} ${detail.unit}",
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

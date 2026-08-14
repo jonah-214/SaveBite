@@ -26,7 +26,9 @@ import androidx.navigation.navArgument
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.repo.UserRepository
+import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.ui.screen.AddInventoryScreen
+import com.example.savebite.ui.screen.AddShoppingItemScreen
 import com.example.savebite.ui.screen.ChangePasswordScreen
 import com.example.savebite.ui.screen.DashboardScreen
 import com.example.savebite.ui.screen.EditProfileScreen
@@ -35,6 +37,8 @@ import com.example.savebite.ui.screen.InventoryList
 import com.example.savebite.ui.screen.LoginScreen
 import com.example.savebite.ui.screen.ManageStorageScreen
 import com.example.savebite.ui.screen.ProfileScreen
+import com.example.savebite.ui.screen.ShoppingItemToInventoryScreen
+import com.example.savebite.ui.screen.ShoppingListScreen
 import com.example.savebite.ui.screen.SignUpScreen
 import com.example.savebite.ui.screen.SplashScreen
 import com.example.savebite.ui.viewmodel.AuthViewModel
@@ -43,6 +47,7 @@ import com.example.savebite.ui.viewmodel.DashboardViewModelFactory
 import com.example.savebite.ui.viewmodel.InventoryViewModel
 import com.example.savebite.ui.viewmodel.ProfileViewModel
 import com.example.savebite.ui.viewmodel.ProfileViewModelFactory
+import com.example.savebite.ui.viewmodel.ShoppingViewModel
 import com.example.savebite.utils.SessionManager
 
 @Composable
@@ -243,7 +248,52 @@ fun AppNavigation(
             }
 
             composable(AppRoutes.SHOPPING) {
-                PlaceholderScreen("Shopping List", viewModel, navController)
+                val context = navController.context
+                val db = AppDatabase.getDatabase(context)
+                val inventoryRepository = remember { InventoryRepository(db.inventoryDao(), db.storageDao()) }
+                val shoppingRepository = remember { ShoppingRepository(db.shoppingDao()) }
+
+                val shoppingViewModel: ShoppingViewModel = viewModel(
+                    factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+                        override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                            return ShoppingViewModel(shoppingRepository, inventoryRepository) as T
+                        }
+                    }
+                )
+
+                ShoppingListScreen(
+                    viewModel = shoppingViewModel,
+                    onNavigateToAddItem = { navController.navigate("add_shopping_item") },
+                    onNavigateToAddToInventory = { navController.navigate("add_to_inventory") }
+                )
+            }
+
+            composable("add_shopping_item") {
+                val parentEntry = remember(it) { navController.getBackStackEntry(AppRoutes.SHOPPING) }
+                val shoppingViewModel: ShoppingViewModel = viewModel(viewModelStoreOwner = parentEntry)
+
+                AddShoppingItemScreen(
+                    viewModel = shoppingViewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable("add_to_inventory") {
+                val parentEntry = remember(it) {
+                    navController.getBackStackEntry(AppRoutes.SHOPPING)
+                }
+                val shoppingViewModel: ShoppingViewModel = viewModel(viewModelStoreOwner = parentEntry)
+
+                ShoppingItemToInventoryScreen (
+                    viewModel = shoppingViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onSuccess = {
+                        // Navigate straight to Inventory Screen and clear backstack up to Dashboard
+                        navController.navigate(AppRoutes.INVENTORY) {
+                            popUpTo(AppRoutes.SHOPPING) { inclusive = true }
+                        }
+                    }
+                )
             }
 
             composable(AppRoutes.RECIPE) {

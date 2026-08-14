@@ -1,10 +1,16 @@
 package com.example.savebite.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import java.util.UUID
+
+@Entity(tableName = "shopping_table")
 data class ShoppingItem(
-    val id: Int,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val quantity: Double,
+    val quantity: Int,
     val unit: String,
     val category: String,
-    var purchased: Boolean = false
+    val isPurchased: Boolean = false
 )

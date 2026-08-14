@@ -45,6 +45,7 @@ fun AddInventoryScreen(
         mutableStateOf(storageLocations.firstOrNull() ?: "Refrigerator")
     }
     var quantity by remember { mutableIntStateOf(1) }
+    var unit by remember { mutableStateOf("pcs") }
 
     // Default Dates (Today & 5 Days Later)
     var purchaseDate by remember { mutableStateOf(getTodayFormatted()) }
@@ -61,6 +62,7 @@ fun AddInventoryScreen(
                 category = item.category
                 storage = item.storage
                 quantity = item.quantity
+                unit = item.unit
                 purchaseDate = item.purchaseDate
                 expiryDate = item.expiry
                 notes = item.notes
@@ -71,10 +73,11 @@ fun AddInventoryScreen(
     // Dialog & Dropdown States
     var categoryExpanded by remember { mutableStateOf(false) }
     var storageExpanded by remember { mutableStateOf(false) }
+    var unitExpanded by remember { mutableStateOf(false) }
     var showPurchasePicker by remember { mutableStateOf(false) }
     var showExpiryPicker by remember { mutableStateOf(false) }
 
-    val categories = listOf(
+    val categoryOptions = listOf(
         "Dairy & Eggs",
         "Produce",
         "Meat & Seafood",
@@ -87,6 +90,20 @@ fun AddInventoryScreen(
         "Canned Goods",
         "Leftovers & Prepared",
         "Spices & Baking"
+    )
+
+    val unitOptions = listOf(
+        "pcs",
+        "pack",
+        "box",
+        "bottle",
+        "can",
+        "kg",
+        "g",
+        "L",
+        "ml",
+        "oz",
+        "lb"
     )
 
     Scaffold(
@@ -156,7 +173,7 @@ fun AddInventoryScreen(
                         onDismissRequest = { categoryExpanded = false },
                         modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                     ) {
-                        categories.forEach { item ->
+                        categoryOptions.forEach { item ->
                             DropdownMenuItem(
                                 text = { Text(item, color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
@@ -216,7 +233,7 @@ fun AddInventoryScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -228,8 +245,9 @@ fun AddInventoryScreen(
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        // Decrement Button
                         OutlinedButton(
                             onClick = { if (quantity > 1) quantity-- },
                             contentPadding = PaddingValues(0.dp),
@@ -239,12 +257,15 @@ fun AddInventoryScreen(
                             Text("-", fontSize = 20.sp)
                         }
 
+                        // Quantity Display
                         Text(
                             text = "$quantity",
                             fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 4.dp)
                         )
 
+                        // Increment Button
                         OutlinedButton(
                             onClick = { quantity++ },
                             contentPadding = PaddingValues(0.dp),
@@ -252,6 +273,43 @@ fun AddInventoryScreen(
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text("+", fontSize = 18.sp)
+                        }
+
+                        // Unit Options Dropdown
+                        ExposedDropdownMenuBox(
+                            expanded = unitExpanded,
+                            onExpandedChange = { unitExpanded = !unitExpanded },
+                            modifier = Modifier.width(110.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = unit,
+                                onValueChange = {},
+                                readOnly = true,
+                                modifier = Modifier.menuAnchor(),
+                                shape = RoundedCornerShape(8.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    focusedContainerColor = MaterialTheme.colorScheme.surface
+                                )
+                            )
+                            ExposedDropdownMenu(
+                                expanded = unitExpanded,
+                                onDismissRequest = { unitExpanded = false },
+                                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                            ) {
+                                unitOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option, color = MaterialTheme.colorScheme.onSurface) },
+                                        onClick = {
+                                            unit = option
+                                            unitExpanded = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -355,6 +413,7 @@ fun AddInventoryScreen(
                             category = category,
                             storage = storage,
                             quantity = quantity,
+                            unit = unit,
                             daysLeft = calculatedDaysLeft,
                             purchaseDate = purchaseDate,
                             expiry = expiryDate,

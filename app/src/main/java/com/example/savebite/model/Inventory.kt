@@ -1,5 +1,6 @@
 package com.example.savebite.model
 
+import androidx.compose.ui.unit.TextUnit
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -12,6 +13,7 @@ data class Inventory(
     val category: String = "General",
     val storage: String,
     val quantity: Int,
+    val unit: String,
     val daysLeft: Int,
     val purchaseDate: String = "",
     val expiry: String,
