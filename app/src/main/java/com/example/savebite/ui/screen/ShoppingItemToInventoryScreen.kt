@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -56,7 +58,7 @@ fun ShoppingItemToInventoryScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF3F7F0), RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(20.dp))
                     .padding(24.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -66,46 +68,62 @@ fun ShoppingItemToInventoryScreen(
                     Text(
                         "${purchasedItems.size} items selected",
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
                         "Move to inventory to keep track of your stock.",
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // List of selected items inside header
+                    // List of selected items using LazyColumn inside Card
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            purchasedItems.forEach { item ->
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 200.dp) // Set a maximum height to enable scrolling for long lists
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            items(purchasedItems) { item ->
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 6.dp),
+                                        .padding(vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Box(
                                         modifier = Modifier
                                             .size(20.dp)
-                                            .background(Color(0xFF5B8E49), CircleShape),
+                                            .background(MaterialTheme.colorScheme.primary, CircleShape),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
                                             Icons.Default.Check,
                                             contentDescription = null,
-                                            tint = Color.White,
+                                            tint = MaterialTheme.colorScheme.onPrimary,
                                             modifier = Modifier.size(14.dp)
                                         )
                                     }
                                     Spacer(modifier = Modifier.width(10.dp))
-                                    Text(item.name, modifier = Modifier.weight(1f), fontSize = 14.sp)
-                                    Text("${item.quantity} ${item.unit}", color = Color.Gray, fontSize = 13.sp)
+                                    Text(
+                                        item.name,
+                                        modifier = Modifier.weight(1f),
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        "${item.quantity} ${item.unit}",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 13.sp
+                                    )
                                 }
                             }
                         }
@@ -127,7 +145,7 @@ fun ShoppingItemToInventoryScreen(
 
             // Notice Box
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -138,13 +156,13 @@ fun ShoppingItemToInventoryScreen(
                     Icon(
                         Icons.Default.Lightbulb,
                         contentDescription = null,
-                        tint = Color(0xFFFFB300)
+                        tint = MaterialTheme.colorScheme.tertiary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         "You can view and manage all your items in the Inventory page.",
                         fontSize = 12.sp,
-                        color = Color(0xFF5D4037)
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
                     )
                 }
             }
@@ -158,20 +176,29 @@ fun ShoppingItemToInventoryScreen(
                         onSuccess()
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5B8E49)),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
             ) {
-                Text("Add to Inventory", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    "Add to Inventory",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
             }
 
             TextButton(
                 onClick = onBackClick,
                 modifier = Modifier.padding(vertical = 4.dp)
             ) {
-                Text("Cancel", color = Color(0xFF5B8E49), fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Cancel",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }
@@ -187,11 +214,11 @@ fun StockOptionCard(
 ) {
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Color(0xFFF1F8E9) else Color.White
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
         ),
         border = BorderStroke(
             width = if (isSelected) 1.5.dp else 1.dp,
-            color = if (isSelected) Color(0xFF5B8E49) else Color(0xFFE0E0E0)
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
         ),
         shape = RoundedCornerShape(12.dp),
         modifier = modifier.clickable { onClick() }
@@ -201,22 +228,31 @@ fun StockOptionCard(
                 Box(
                     modifier = Modifier
                         .size(20.dp)
-                        .background(Color(0xFF5B8E49), CircleShape)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
                         .align(Alignment.TopEnd),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         Icons.Default.Check,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(12.dp)
                     )
                 }
             }
             Column {
-                Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(
+                    title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(subtitle, fontSize = 11.sp, color = Color.Gray)
+                Text(
+                    subtitle,
+                    fontSize = 11.sp,
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

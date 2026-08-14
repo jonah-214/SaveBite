@@ -453,7 +453,7 @@ fun AddInventoryScreen(
                 Text(
                     text = "Save Item",
                     fontSize = 16.sp,
-                    color = Color.White,
+                    color = Color.Black,
                     fontWeight = FontWeight.Bold
                 )
             }

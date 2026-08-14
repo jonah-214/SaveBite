@@ -184,11 +184,16 @@ fun AddShoppingItemScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5B8E49)),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp),
                 enabled = name.isNotBlank()
             ) {
-                Text("Save to Shopping List", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    "Save to Shopping List",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                )
             }
         }
     }

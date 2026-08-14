@@ -55,7 +55,7 @@ fun ShoppingListScreen(
         ) {
             // Progress Header Card
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F9F7)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -71,7 +71,8 @@ fun ShoppingListScreen(
                         Text(
                             "$purchasedCount / $totalCount items purchased",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
+                            fontSize = 15.sp,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         LinearProgressIndicator(
@@ -80,11 +81,15 @@ fun ShoppingListScreen(
                                 .fillMaxWidth()
                                 .height(6.dp)
                                 .clip(RoundedCornerShape(3.dp)),
-                            color = Color(0xFF4CAF50),
-                            trackColor = Color(0xFFE0E0E0)
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("Keep going! You're doing great!", fontSize = 12.sp, color = Color.Gray)
+                        Text(
+                            "Keep going! You're doing great!",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -101,7 +106,7 @@ fun ShoppingListScreen(
                     .padding(vertical = 8.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color(0xFFE0E0E0)
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                 )
             )
 
@@ -145,7 +150,7 @@ fun ShoppingListScreen(
             ) {
                 Button(
                     onClick = onNavigateToAddItem,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5B8E49)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .weight(1f)
@@ -160,7 +165,7 @@ fun ShoppingListScreen(
             // Transfer to Inventory Banner Prompt
             if (purchasedCount > 0) {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F8E9)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -173,16 +178,29 @@ fun ShoppingListScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column (modifier = Modifier.weight(1f)) {
-                            Text("Already purchased?", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Text("Move items to your inventory", fontSize = 12.sp, color = Color.Gray)
+                            Text(
+                                "Already purchased?",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                            Text(
+                                "Move items to your inventory",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                            )
                         }
                         Box(
                             modifier = Modifier
                                 .size(36.dp)
-                                .background(Color.White, CircleShape),
+                                .background(MaterialTheme.colorScheme.surface, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.ChevronRight, contentDescription = "Proceed")
+                            Icon(
+                                Icons.Default.ChevronRight,
+                                contentDescription = "Proceed",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     }
                 }
@@ -206,21 +224,30 @@ fun CategoryHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(category, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        Text(
+            category,
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp,
+            color = MaterialTheme.colorScheme.onBackground
+        )
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(Color(0xFFF0F0F0))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .padding(horizontal = 8.dp, vertical = 2.dp)
             ) {
-                Text(count.toString(), fontSize = 12.sp)
+                Text(
+                    count.toString(),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = if (isExpanded) "Collapse" else "Expand",
-                tint = Color.Gray
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -237,22 +264,31 @@ fun ShoppingItemRow(item: ShoppingItem, onToggle: () -> Unit) {
         Checkbox(
             checked = item.isPurchased,
             onCheckedChange = { onToggle() },
-            colors = CheckboxDefaults.colors(checkedColor = Color(0xFF5B8E49))
+            colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
         )
         Text(
             text = item.name,
             modifier = Modifier.weight(1f),
-            color = if (item.isPurchased) Color.Gray else Color.Unspecified
+            color = if (item.isPurchased) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface
         )
-        Text("${item.quantity} ${item.unit}", color = Color.Gray, fontSize = 13.sp)
+        Text(
+            "${item.quantity} ${item.unit}",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 13.sp
+        )
         Spacer(modifier = Modifier.width(8.dp))
         Box(
             modifier = Modifier
                 .size(28.dp)
-                .background(Color(0xFFF5F5F5), CircleShape),
+                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Increase", modifier = Modifier.size(16.dp))
+            Icon(
+                Icons.Default.Add,
+                contentDescription = "Increase",
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
