@@ -264,15 +264,25 @@ fun AppNavigation(
                 ShoppingListScreen(
                     viewModel = shoppingViewModel,
                     onNavigateToAddItem = { navController.navigate("add_shopping_item") },
+                    onNavigateToEditItem = { item -> navController.navigate("add_shopping_item?itemId=${item.id}") },
                     onNavigateToAddToInventory = { navController.navigate("add_to_inventory") }
                 )
             }
 
-            composable("add_shopping_item") {
-                val parentEntry = remember(it) { navController.getBackStackEntry(AppRoutes.SHOPPING) }
+            composable(
+                route = "add_shopping_item?itemId={itemId}",
+                arguments = listOf(navArgument("itemId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                })
+            ) { backStackEntry ->
+                val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(AppRoutes.SHOPPING) }
                 val shoppingViewModel: ShoppingViewModel = viewModel(viewModelStoreOwner = parentEntry)
+                val itemId = backStackEntry.arguments?.getString("itemId")
 
                 AddShoppingItemScreen(
+                    itemId = itemId,
                     viewModel = shoppingViewModel,
                     onBackClick = { navController.popBackStack() }
                 )

@@ -41,6 +41,18 @@ class ShoppingViewModel(
         }
     }
 
+    fun updateItem(item: ShoppingItem) {
+        viewModelScope.launch {
+            shoppingRepository.updateItem(item)
+        }
+    }
+
+    fun deleteItem(item: ShoppingItem) {
+        viewModelScope.launch {
+            shoppingRepository.deleteItem(item)
+        }
+    }
+
     fun transferSelectedToInventory(onComplete: () -> Unit) {
         viewModelScope.launch {
             val purchased = items.value.filter { it.isPurchased }

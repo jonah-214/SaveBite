@@ -20,13 +20,26 @@ import com.example.savebite.ui.viewmodel.ShoppingViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddShoppingItemScreen(
+    itemId: String? = null,
     viewModel: ShoppingViewModel,
     onBackClick: () -> Unit
 ) {
+    val items by viewModel.items.collectAsState()
+    val existingItem = remember(itemId, items) { items.find { it.id == itemId } }
+
     var name by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("1") }
     var unit by remember { mutableStateOf("pcs") }
     var category by remember { mutableStateOf("Dairy & Eggs") }
+
+    LaunchedEffect(existingItem) {
+        existingItem?.let {
+            name = it.name
+            quantity = it.quantity.toString()
+            unit = it.unit
+            category = it.category
+        }
+    }
 
     var categoryExpanded by remember { mutableStateOf(false) }
     var unitExpanded by remember { mutableStateOf(false) }
@@ -63,7 +76,12 @@ fun AddShoppingItemScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add Shopping Item", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        text = if (itemId != null) "Edit Shopping Item" else "Add Shopping Item",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -95,18 +113,21 @@ fun AddShoppingItemScreen(
                     label = { Text("Quantity") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
                 )
 
                 ExposedDropdownMenuBox(
                     expanded = unitExpanded,
                     onExpandedChange = { unitExpanded = !unitExpanded },
-                    modifier = Modifier.width(100.dp)
+                    modifier = Modifier.weight(1f)
                 ) {
                     OutlinedTextField(
                         value = unit,
                         onValueChange = {},
                         readOnly = true,
+                        label = { Text("Unit")},
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = unitExpanded) },
                         modifier = Modifier.menuAnchor(),
                         shape = RoundedCornerShape(8.dp),
                         singleLine = true,
@@ -172,12 +193,26 @@ fun AddShoppingItemScreen(
             Button(
                 onClick = {
                     if (name.isNotBlank()) {
-                        viewModel.addItem(
-                            name = name.trim(),
-                            quantity = quantity.toIntOrNull() ?: 1,
-                            unit = unit.ifBlank { "pcs" },
-                            category = category
-                        )
+                        val parsedQty = quantity.toIntOrNull() ?: 1
+                        val cleanUnit = unit.ifBlank { "pcs" }
+
+                        if (existingItem != null) {
+                            viewModel.updateItem(
+                                existingItem.copy(
+                                    name = name.trim(),
+                                    quantity = parsedQty,
+                                    unit = cleanUnit,
+                                    category = category
+                                )
+                            )
+                        } else {
+                            viewModel.addItem(
+                                name = name.trim(),
+                                quantity = parsedQty,
+                                unit = cleanUnit,
+                                category = category
+                            )
+                        }
                         onBackClick()
                     }
                 },
@@ -189,10 +224,9 @@ fun AddShoppingItemScreen(
                 enabled = name.isNotBlank()
             ) {
                 Text(
-                    "Save to Shopping List",
+                    text = if (itemId != null) "Update Item" else "Save to Shopping List",
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }

@@ -25,6 +25,7 @@ import com.example.savebite.ui.viewmodel.ShoppingViewModel
 fun ShoppingListScreen(
     viewModel: ShoppingViewModel,
     onNavigateToAddItem: () -> Unit = {},
+    onNavigateToEditItem: (ShoppingItem) -> Unit = {},
     onNavigateToAddToInventory: () -> Unit = {}
 ) {
     val items by viewModel.items.collectAsState()
@@ -33,6 +34,32 @@ fun ShoppingListScreen(
 
     // Track collapsed/expanded state for each category. Defaults to expanded (true).
     val categoryExpandedStates = remember { mutableStateMapOf<String, Boolean>() }
+
+    var itemToDelete by remember { mutableStateOf<ShoppingItem?>(null) }
+
+    itemToDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { itemToDelete = null },
+            title = { Text("Delete Item", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to delete \"${item.name}\"?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteItem(item)
+                        itemToDelete = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { itemToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -134,7 +161,9 @@ fun ShoppingListScreen(
                         items(list, key = { it.id }) { item ->
                             ShoppingItemRow(
                                 item = item,
-                                onToggle = { viewModel.togglePurchased(item) } // Pass 'item' instead of 'item.id'
+                                onToggle = { viewModel.togglePurchased(item) },
+                                onEdit = { onNavigateToEditItem(item) },
+                                onDelete = { itemToDelete = item }
                             )
                         }
                     }
@@ -254,11 +283,16 @@ fun CategoryHeader(
 }
 
 @Composable
-fun ShoppingItemRow(item: ShoppingItem, onToggle: () -> Unit) {
+fun ShoppingItemRow(
+    item: ShoppingItem,
+    onToggle: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
@@ -276,18 +310,23 @@ fun ShoppingItemRow(item: ShoppingItem, onToggle: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 13.sp
         )
-        Spacer(modifier = Modifier.width(8.dp))
-        Box(
-            modifier = Modifier
-                .size(28.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
+
+        Spacer(modifier = Modifier.weight(0.1f))
+
+        IconButton(onClick = onEdit) {
             Icon(
-                Icons.Default.Add,
-                contentDescription = "Increase",
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                Icons.Default.Edit,
+                contentDescription = "Edit Item",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        IconButton(onClick = onDelete) {
+            Icon(
+                Icons.Default.Delete,
+                contentDescription = "Delete Item",
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(20.dp)
             )
         }
     }
