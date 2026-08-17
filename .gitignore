@@ -1,15 +1,41 @@
+# --- Build Outputs ---
+/build/
+app/build/
+captures/
+*.apk
+*.ap_
+*.dex
+*.class
+out/
+
+# --- Gradle ---
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+
+# --- Android Studio / IntelliJ IDE ---
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+*.iws
+*.ipr
+.kotlin/
+.externalNativeBuild/
+.cxx/
+
+# --- Local Configuration ---
 local.properties
+secrets.properties
+
+# --- Security (CRITICAL) ---
+*.jks
+*.keystore
+google-services.json
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db
+
+# --- Logs & Temp ---
+*.log
+*.swp
+*~
