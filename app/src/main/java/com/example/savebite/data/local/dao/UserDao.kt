@@ -11,6 +11,10 @@ interface UserDao {
     @Insert
     suspend fun insertUser(user: User): Long
 
+    // Get a user by their Supabase UID
+    @Query("SELECT * FROM users WHERE supabaseUid = :uid LIMIT 1")
+    suspend fun getUserBySupabaseUid(uid: String): User?
+
     // Get a user by email or phone number
     @Query("SELECT * FROM users WHERE email = :identifier OR phone = :identifier LIMIT 1")
     suspend fun getUserByEmailOrPhone(identifier: String): User?

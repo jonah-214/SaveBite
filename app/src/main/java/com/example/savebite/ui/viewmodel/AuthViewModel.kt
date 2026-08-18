@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.savebite.data.repo.SupabaseAuthRepository
 import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.model.User
 import com.example.savebite.utils.PasswordHasher
@@ -13,6 +14,7 @@ import kotlinx.coroutines.launch
 
 class AuthViewModel(
     private val userRepository: UserRepository,
+    private val supabaseAuthRepository: SupabaseAuthRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -44,6 +46,10 @@ class AuthViewModel(
     private val _signupPasswordError = mutableStateOf<String?>(null)
     val signupPasswordError: State<String?> = _signupPasswordError
 
+    // Loading state - useful to disable buttons / show a spinner during network calls
+    private val _isLoading = mutableStateOf(false)
+    val isLoading: State<Boolean> = _isLoading
+
     // Clear all errors when switching Login or Signup screens
     fun clearErrors() {
         _loginIdentifierError.value = null
@@ -73,16 +79,27 @@ class AuthViewModel(
                 return@launch
             }
 
-            // Email or Phone and Password check
-            val user = userRepository.getUserByEmailOrPhone(identifier)
-            val hashedInput = PasswordHasher.hash(password)
-
-            // When user is null or password is incorrect
-            if (user == null || user.passwordHash != hashedInput) {
-                _loginError.value = "Invalid email/phone number or password"
+            // Supabase Auth only accepts email, so resolve phone -> email locally first
+            val email = if (identifier.contains("@")) {
+                identifier
             } else {
+                val localUser = userRepository.getUserByPhone(identifier)
+                if (localUser == null) {
+                    _loginError.value = "Invalid email/phone number or password"
+                    return@launch
+                }
+                localUser.email
+            }
+
+            _isLoading.value = true
+            val result = supabaseAuthRepository.login(email, password)
+            _isLoading.value = false
+
+            result.onSuccess { user ->
                 sessionManager.saveUserSession(user.id)
                 onSuccess()
+            }.onFailure {
+                _loginError.value = "Invalid email/phone number or password"
             }
         }
     }
@@ -95,7 +112,7 @@ class AuthViewModel(
             _signupPhoneError.value = null
             _signupPasswordError.value = null
 
-            // Validation checks all fields
+            // Validation checks all fields (format only - uniqueness is enforced by Supabase)
             val usernameFormatError = Validators.validateUsername(username)
             val emailFormatError = Validators.validateEmail(email)
             val phoneFormatError = Validators.validatePhone(phone)
@@ -112,37 +129,35 @@ class AuthViewModel(
                 return@launch
             }
 
-            // Username, Email and Phone check
-            if (userRepository.getUserByUsername(username) != null) {
-                _signupUsernameError.value = "Username is already taken"
-                return@launch
-            }
-            if (userRepository.getUserByEmail(email) != null) {
-                _signupEmailError.value = "Email is already registered"
-                return@launch
-            }
-            if (userRepository.getUserByPhone(phone) != null) {
-                _signupPhoneError.value = "Phone number is already registered"
-                return@launch
-            }
+            _isLoading.value = true
+            val result = supabaseAuthRepository.signUp(username, email, phone, password)
+            _isLoading.value = false
 
-            // Create user
-            val newUser = User(
-                username = username,
-                email = email,
-                phone = phone,
-                passwordHash = PasswordHasher.hash(password)
-            )
-            // Insert user into database
-            val newUserId = userRepository.insertUser(newUser)
-            sessionManager.saveUserSession(newUserId.toInt())
-            onSuccess()
+            result.onSuccess { user ->
+                sessionManager.saveUserSession(user.id)
+                onSuccess()
+            }.onFailure { error ->
+                // Map Supabase's unique-constraint / auth errors back to the right field
+                val message = error.message.orEmpty()
+                when {
+                    message.contains("username", ignoreCase = true) ->
+                        _signupUsernameError.value = "Username is already taken"
+                    message.contains("email", ignoreCase = true) ||
+                            message.contains("already registered", ignoreCase = true) ->
+                        _signupEmailError.value = "Email is already registered"
+                    message.contains("phone", ignoreCase = true) ->
+                        _signupPhoneError.value = "Phone number is already registered"
+                    else ->
+                        _signupEmailError.value = "Signup failed: $message"
+                }
+            }
         }
     }
 
     // Logout user
     fun logout(onLoggedOut: () -> Unit) {
         viewModelScope.launch {
+            supabaseAuthRepository.logout()
             sessionManager.clearUserSession()
             onLoggedOut()
         }

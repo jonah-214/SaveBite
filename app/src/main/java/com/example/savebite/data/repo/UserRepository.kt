@@ -9,6 +9,11 @@ class UserRepository(private val userDao: UserDao) {
         return userDao.insertUser(user)
     }
 
+    // Get user by Supabase UID
+    suspend fun getUserBySupabaseUid(uid: String): User? {
+        return userDao.getUserBySupabaseUid(uid)
+    }
+
     // Get user by email or phone
     suspend fun getUserByEmailOrPhone(identifier: String): User? {
         return userDao.getUserByEmailOrPhone(identifier)
