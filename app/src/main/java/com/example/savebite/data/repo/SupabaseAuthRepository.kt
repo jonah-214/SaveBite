@@ -15,6 +15,13 @@ data class ProfileRow(
     val phone: String
 )
 
+@Serializable
+data class ProfileUpdate(
+    val username: String,
+    val email: String,
+    val phone: String
+)
+
 class SupabaseAuthRepository(
     private val userRepository: UserRepository
 ) {
@@ -45,7 +52,7 @@ class SupabaseAuthRepository(
                 )
             )
 
-            // Mirror into local Room (passwordHash left blank/unused now)
+            // Mirror into local Room
             val localUser = User(
                 supabaseUid = uid,
                 username = username,
@@ -100,6 +107,50 @@ class SupabaseAuthRepository(
                 localUser = updated
             }
             Result.success(localUser)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Update profile fields in the Supabase 'profiles' table
+    suspend fun updateProfile(
+        uid: String,
+        username: String,
+        email: String,
+        phone: String
+    ): Result<Unit> {
+        return try {
+            client.postgrest["profiles"].update(
+                ProfileUpdate(
+                    username = username,
+                    email = email,
+                    phone = phone
+                )
+            ) {
+                filter { eq("id", uid) }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Change password: re-authenticate with the current password first (to verify it's correct), then update to the new one.
+    suspend fun changePassword(
+        email: String,
+        currentPassword: String,
+        newPassword: String
+    ): Result<Unit> {
+        return try {
+            // Authenticate with the current password, check if it's correct.
+            client.auth.signInWith(Email) {
+                this.email = email
+                this.password = currentPassword
+            }
+            client.auth.updateUser {
+                password = newPassword
+            }
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,6 +55,7 @@ fun AppNavigation(
     viewModel: AuthViewModel,
     sessionManager: SessionManager,
     userRepository: UserRepository,
+    profileViewModelFactory: ProfileViewModelFactory,
     modifier: Modifier = Modifier
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -316,10 +316,7 @@ fun AppNavigation(
 
             composable(AppRoutes.PROFILE) {
                 val profileViewModel: ProfileViewModel = viewModel(
-                    factory = ProfileViewModelFactory(
-                        userRepository,
-                        sessionManager
-                    )
+                    factory = profileViewModelFactory
                 )
                 ProfileScreen(
                     navController = navController,
@@ -334,10 +331,7 @@ fun AppNavigation(
                 }
                 val profileViewModel: ProfileViewModel = viewModel(
                     viewModelStoreOwner = parentEntry,
-                    factory = ProfileViewModelFactory(
-                        userRepository,
-                        sessionManager
-                    )
+                    factory = profileViewModelFactory
                 )
                 EditProfileScreen(
                     navController = navController,
@@ -351,10 +345,7 @@ fun AppNavigation(
                 }
                 val profileViewModel: ProfileViewModel = viewModel(
                     viewModelStoreOwner = parentEntry,
-                    factory = ProfileViewModelFactory(
-                        userRepository,
-                        sessionManager
-                    )
+                    factory = profileViewModelFactory
                 )
                 ChangePasswordScreen(
                     navController = navController,

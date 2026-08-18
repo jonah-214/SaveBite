@@ -15,6 +15,7 @@ import com.example.savebite.data.repo.SupabaseAuthRepository
 import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.ui.viewmodel.AuthViewModel
 import com.example.savebite.ui.viewmodel.AuthViewModelFactory
+import com.example.savebite.ui.viewmodel.ProfileViewModelFactory
 import com.example.savebite.utils.SessionManager
 
 class MainActivity : ComponentActivity() {
@@ -27,6 +28,7 @@ class MainActivity : ComponentActivity() {
         val userRepository = UserRepository(database.userDao())
         val supabaseAuthRepository = SupabaseAuthRepository(userRepository)
         val authViewModelFactory = AuthViewModelFactory(userRepository, supabaseAuthRepository, sessionManager)
+        val profileViewModelFactory = ProfileViewModelFactory(userRepository, supabaseAuthRepository, sessionManager)
 
         enableEdgeToEdge()
         setContent {
@@ -39,6 +41,7 @@ class MainActivity : ComponentActivity() {
                     viewModel = authViewModel,
                     sessionManager = sessionManager,
                     userRepository = userRepository,
+                    profileViewModelFactory = profileViewModelFactory,
                     modifier = Modifier.fillMaxSize()
                 )
             }
