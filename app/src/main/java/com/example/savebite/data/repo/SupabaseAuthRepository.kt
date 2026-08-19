@@ -1,11 +1,13 @@
 package com.example.savebite.data.repo
 
-import com.example.savebite.data.remote.SupabaseCilentProvider
+import com.example.savebite.data.remote.SupabaseClientProvider
 import com.example.savebite.model.User
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 @Serializable
 data class ProfileRow(
@@ -22,10 +24,17 @@ data class ProfileUpdate(
     val phone: String
 )
 
+@Serializable
+data class AvailabilityResponse(
+    val username_taken: Boolean,
+    val email_taken: Boolean,
+    val phone_taken: Boolean
+)
+
 class SupabaseAuthRepository(
     private val userRepository: UserRepository
 ) {
-    private val client = SupabaseCilentProvider.cilent
+    private val client = SupabaseClientProvider.client
 
     // Sign up: creates Supabase Auth user, inserts profile row, mirrors into Room
     suspend fun signUp(
@@ -35,24 +44,45 @@ class SupabaseAuthRepository(
         password: String
     ): Result<User> {
         return try {
-            client.auth.signUpWith(Email) {
+            val availability = client.postgrest.rpc(
+                function = "check_availability",
+                parameters = buildJsonObject {
+                    put("username_val", username)
+                    put("email_val", email)
+                    put("phone_val", phone)
+                }
+            ).decodeSingle<AvailabilityResponse>()
+
+            if (availability.username_taken) {
+                return Result.failure(Exception("CONFLICT_USERNAME"))
+            }
+            if (availability.email_taken) {
+                return Result.failure(Exception("CONFLICT_EMAIL"))
+            }
+            if (availability.phone_taken) {
+                return Result.failure(Exception("CONFLICT_PHONE"))
+            }
+
+            val signUpResult = client.auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
             }
-            val uid = client.auth.currentUserOrNull()?.id
-                ?: return Result.failure(Exception("Signup failed: no session"))
 
-            // Insert profile row in Supabase
-            client.postgrest["profiles"].insert(
-                ProfileRow(
-                    id = uid,
-                    username = username,
-                    email = email,
-                    phone = phone
-                )
+            // Supabase returns an empty identities list (no exception) when the email is already registered, to prevent email enumeration.
+            if (signUpResult?.identities?.isEmpty() == true) {
+                return Result.failure(Exception("CONFLICT_EMAIL"))
+            }
+
+            val uid = client.auth.currentUserOrNull()?.id
+            if (uid == null) {
+                // No session but identities were present -> likely "Confirm email" is enabled and a confirmation email was just sent.
+                return Result.failure(Exception("EMAIL_CONFIRMATION_REQUIRED"))
+            }
+
+            client.postgrest.from("profiles").insert(
+                ProfileRow(id = uid, username = username, email = email, phone = phone)
             )
 
-            // Mirror into local Room
             val localUser = User(
                 supabaseUid = uid,
                 username = username,
@@ -63,7 +93,63 @@ class SupabaseAuthRepository(
             val localId = userRepository.insertUser(localUser)
             Result.success(localUser.copy(id = localId.toInt()))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(mapSignUpException(e))
+        }
+    }
+
+    private fun mapSignUpException(error: Exception): Exception {
+        val message = error.message.orEmpty()
+        val normalized = message.lowercase()
+        val hasUniqueViolation = normalized.contains("duplicate key value violates unique constraint") ||
+                normalized.contains("unique constraint") ||
+                normalized.contains("23505")
+
+        return when {
+            // Supabase Auth duplicate-email response
+            normalized.contains("user already registered") ->
+                Exception("CONFLICT_EMAIL")
+
+            // Postgres unique-constraint errors from profiles insert
+            normalized.contains("profiles_username_key") ->
+                Exception("CONFLICT_USERNAME")
+            normalized.contains("profiles_email_key") ->
+                Exception("CONFLICT_EMAIL")
+            normalized.contains("profiles_phone_key") ->
+                Exception("CONFLICT_PHONE")
+
+            // Alternate Postgres details format:
+            // Key (username)=(...) already exists.
+            hasUniqueViolation &&
+                    (normalized.contains("key (username)") || normalized.contains("(username)")) ->
+                Exception("CONFLICT_USERNAME")
+            hasUniqueViolation &&
+                    (normalized.contains("key (phone)") || normalized.contains("(phone)")) ->
+                Exception("CONFLICT_PHONE")
+            hasUniqueViolation &&
+                    (normalized.contains("key (email)") || normalized.contains("(email)")) ->
+                Exception("CONFLICT_EMAIL")
+
+            // Generic fallback patterns
+            normalized.contains("username") &&
+                    (normalized.contains("already") ||
+                            normalized.contains("taken") ||
+                            normalized.contains("exists") ||
+                            normalized.contains("duplicate")) ->
+                Exception("CONFLICT_USERNAME")
+            normalized.contains("phone") &&
+                    (normalized.contains("already") ||
+                            normalized.contains("used") ||
+                            normalized.contains("exists") ||
+                            normalized.contains("duplicate")) ->
+                Exception("CONFLICT_PHONE")
+            normalized.contains("email") &&
+                    (normalized.contains("already") ||
+                            normalized.contains("used") ||
+                            normalized.contains("exists") ||
+                            normalized.contains("duplicate")) ->
+                Exception("CONFLICT_EMAIL")
+
+            else -> error
         }
     }
 
@@ -81,7 +167,7 @@ class SupabaseAuthRepository(
                 ?: return Result.failure(Exception("Login failed: no session"))
 
             // Pull latest profile from Supabase (source of truth for profile fields)
-            val remoteProfile = client.postgrest["profiles"]
+            val remoteProfile = client.postgrest.from("profiles")
                 .select { filter { eq("id", uid) } }
                 .decodeSingle<ProfileRow>()
 
@@ -120,7 +206,7 @@ class SupabaseAuthRepository(
         phone: String
     ): Result<Unit> {
         return try {
-            client.postgrest["profiles"].update(
+            client.postgrest.from("profiles").update(
                 ProfileUpdate(
                     username = username,
                     email = email,

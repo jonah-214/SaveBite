@@ -6,8 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savebite.data.repo.SupabaseAuthRepository
 import com.example.savebite.data.repo.UserRepository
-import com.example.savebite.model.User
-import com.example.savebite.utils.PasswordHasher
 import com.example.savebite.utils.SessionManager
 import com.example.savebite.utils.Validators
 import kotlinx.coroutines.launch
@@ -46,9 +44,13 @@ class AuthViewModel(
     private val _signupPasswordError = mutableStateOf<String?>(null)
     val signupPasswordError: State<String?> = _signupPasswordError
 
-    // Loading state - useful to disable buttons / show a spinner during network calls
+    // Loading state - used to show loading spinner
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
+
+    // Login/Sign Up Success Message
+    private val _successMessage = mutableStateOf<String?>(null)
+    val successMessage: State<String?> = _successMessage
 
     // Clear all errors when switching Login or Signup screens
     fun clearErrors() {
@@ -59,6 +61,7 @@ class AuthViewModel(
         _signupEmailError.value = null
         _signupPhoneError.value = null
         _signupPasswordError.value = null
+        _successMessage.value = null
     }
 
     // Login user
@@ -97,6 +100,7 @@ class AuthViewModel(
 
             result.onSuccess { user ->
                 sessionManager.saveUserSession(user.id)
+                _successMessage.value = "Login successful"
                 onSuccess()
             }.onFailure {
                 _loginError.value = "Invalid email/phone number or password"
@@ -135,20 +139,20 @@ class AuthViewModel(
 
             result.onSuccess { user ->
                 sessionManager.saveUserSession(user.id)
+                _successMessage.value = "Account created successfully"
                 onSuccess()
             }.onFailure { error ->
-                // Map Supabase's unique-constraint / auth errors back to the right field
                 val message = error.message.orEmpty()
                 when {
-                    message.contains("username", ignoreCase = true) ->
+                    message == "CONFLICT_USERNAME" ->
                         _signupUsernameError.value = "Username is already taken"
-                    message.contains("email", ignoreCase = true) ||
-                            message.contains("already registered", ignoreCase = true) ->
+                    message == "CONFLICT_EMAIL" ||
+                            message.equals("User already registered", ignoreCase = true) ->
                         _signupEmailError.value = "Email is already registered"
-                    message.contains("phone", ignoreCase = true) ->
+                    message == "CONFLICT_PHONE" ->
                         _signupPhoneError.value = "Phone number is already registered"
                     else ->
-                        _signupEmailError.value = "Signup failed: $message"
+                        _signupEmailError.value = "Signup failed. Please try again."
                 }
             }
         }
