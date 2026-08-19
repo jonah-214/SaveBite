@@ -9,17 +9,19 @@ import com.example.savebite.data.local.dao.InventoryDao
 import com.example.savebite.data.local.dao.ShoppingDao
 import com.example.savebite.data.local.dao.StorageDao
 import com.example.savebite.data.local.dao.UserDao
+import com.example.savebite.data.local.dao.WastedItemDao
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.ShoppingItem
 import com.example.savebite.model.Storage
 import com.example.savebite.model.User
+import com.example.savebite.model.WastedItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Database(
-    entities = [Inventory::class, Storage::class, User::class, ShoppingItem::class],
-    version = 5,
+    entities = [Inventory::class, Storage::class, User::class, ShoppingItem::class, WastedItem::class],
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -28,6 +30,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun storageDao(): StorageDao
     abstract fun userDao(): UserDao
     abstract fun shoppingDao(): ShoppingDao
+
+    abstract fun wastedItemDao(): WastedItemDao
 
     companion object {
         @Volatile
