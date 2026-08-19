@@ -180,6 +180,7 @@ fun AddInventoryScreen(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Category") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth(),
@@ -217,6 +218,7 @@ fun AddInventoryScreen(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Storage") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth(),
@@ -306,6 +308,7 @@ fun AddInventoryScreen(
                                 value = unit,
                                 onValueChange = {},
                                 readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
                                 modifier = Modifier.menuAnchor(),
                                 shape = RoundedCornerShape(8.dp),
                                 singleLine = true,

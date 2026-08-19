@@ -103,7 +103,8 @@ fun AddShoppingItemScreen(
                 label = { Text("Item Name") },
                 placeholder = { Text("e.g. Fresh Milk") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
