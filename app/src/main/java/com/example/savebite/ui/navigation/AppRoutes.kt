@@ -37,6 +37,18 @@ object AppRoutes {
 
     // Change Password screen
     const val CHANGE_PASSWORD = "change_password"
+
+    // Routes with arguments
+    const val ADD_INVENTORY = "add_inventory"
+    const val ADD_INVENTORY_PATTERN = "add_inventory?itemId={itemId}"
+
+    const val INVENTORY_DETAILS = "inventory_details"
+    const val INVENTORY_DETAILS_PATTERN = "inventory_details/{itemId}"
+
+    const val ADD_SHOPPING_ITEM = "add_shopping_item"
+    const val ADD_SHOPPING_ITEM_PATTERN = "add_shopping_item?itemId={itemId}"
+
+    const val ADD_TO_INVENTORY = "add_to_inventory"
 }
 
 // Navigation items

@@ -71,7 +71,7 @@ fun DashboardScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp)
-            .padding(top = 24.dp, bottom = 16.dp) // Adjusted for status bar alignment
+            .padding(top = 24.dp, bottom = 16.dp)
     ) {
         DashboardHeader(
             username = dashboardViewModel.username.value,
@@ -90,7 +90,7 @@ fun DashboardScreen(
 
         StatsRow(
             inventoryCount = dashboardViewModel.inventoryCount.collectAsState().value,
-            shoppingCount = dashboardViewModel.shoppingListCount,
+            shoppingCount = dashboardViewModel.shoppingListCount.collectAsState().value,
             onInventoryClick = { navController.navigate(AppRoutes.INVENTORY) },
             onShoppingClick = { navController.navigate(AppRoutes.SHOPPING) }
         )

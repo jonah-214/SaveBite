@@ -1,10 +1,7 @@
 package com.example.savebite.ui.navigation
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -14,7 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -24,7 +22,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
-import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.ui.screen.AddInventoryScreen
 import com.example.savebite.ui.screen.AddShoppingItemScreen
@@ -56,13 +53,14 @@ fun AppNavigation(
     navController: NavHostController,
     viewModel: AuthViewModel,
     sessionManager: SessionManager,
-    userRepository: UserRepository,
+    dashboardViewModelFactory: DashboardViewModelFactory,
     profileViewModelFactory: ProfileViewModelFactory,
     modifier: Modifier = Modifier
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
+    // Define which screens should show the Bottom Navigation Bar
     val routesWithBottomBar = listOf(
         AppRoutes.DASHBOARD,
         AppRoutes.INVENTORY,
@@ -89,13 +87,11 @@ fun AppNavigation(
             composable(AppRoutes.SPLASH) {
                 SplashScreen(
                     sessionManager = sessionManager,
-                    // If a session is found, navigate to the dashboard
                     onSessionFound = {
                         navController.navigate(AppRoutes.DASHBOARD) {
                             popUpTo(AppRoutes.SPLASH) { inclusive = true }
                         }
                     },
-                    // If no session is found, navigate to the login screen
                     onNoSession = {
                         navController.navigate(AppRoutes.LOGIN) {
                             popUpTo(AppRoutes.SPLASH) { inclusive = true }
@@ -108,15 +104,12 @@ fun AppNavigation(
             composable(AppRoutes.LOGIN) {
                 LoginScreen(
                     viewModel = viewModel,
-                    // If login is successful, navigate to the dashboard
                     onLoginSuccess = {
                         navController.navigate(AppRoutes.DASHBOARD) {
                             popUpTo(AppRoutes.LOGIN) { inclusive = true }
                         }
                     },
-                    // If login is canceled, navigate to the signup screen
                     onNavigateToSignup = {
-                        // Clear stale errors before leaving, so Signup opens clean
                         viewModel.clearErrors()
                         navController.navigate(AppRoutes.SIGNUP) {
                             popUpTo(AppRoutes.LOGIN) { inclusive = true }
@@ -130,15 +123,12 @@ fun AppNavigation(
             composable(AppRoutes.SIGNUP) {
                 SignUpScreen(
                     viewModel = viewModel,
-                    // If signup is successful, navigate to the dashboard
                     onSignUpSuccess = {
                         navController.navigate(AppRoutes.DASHBOARD) {
                             popUpTo(AppRoutes.SIGNUP) { inclusive = true }
                         }
                     },
-                    // If signup is canceled, navigate to the login screen
                     onNavigateToLogin = {
-                        // Clear stale errors before leaving, so Login opens clean
                         viewModel.clearErrors()
                         navController.navigate(AppRoutes.LOGIN) {
                             popUpTo(AppRoutes.SIGNUP) { inclusive = true }
@@ -150,14 +140,8 @@ fun AppNavigation(
 
             // Dashboard screen route
             composable(AppRoutes.DASHBOARD) {
-                val db = AppDatabase.getDatabase(navController.context)
-                val inventoryRepository = InventoryRepository(
-                    db.inventoryDao(),
-                    db.storageDao(),
-                    db.wastedItemDao()
-                )
                 val dashboardViewModel: DashboardViewModel = viewModel(
-                    factory = DashboardViewModelFactory(userRepository, inventoryRepository, sessionManager)
+                    factory = dashboardViewModelFactory
                 )
                 DashboardScreen(
                     navController = navController,
@@ -166,7 +150,7 @@ fun AppNavigation(
             }
 
             composable(AppRoutes.REMINDER) {
-                PlaceholderScreen("Reminders", viewModel, navController)
+                PlaceholderScreen("Reminders")
             }
 
             composable(AppRoutes.INVENTORY) {
@@ -183,16 +167,16 @@ fun AppNavigation(
                     onQueryChange = { inventoryViewModel.searchQuery.value = it },
                     selectedStorage = selectedStorage,
                     onStorageSelected = { inventoryViewModel.selectedStorage.value = it },
-                    onNavigateToAddInventory = { navController.navigate("add_inventory") },
-                    onItemClick = { item -> navController.navigate("inventory_details/${item.id}") },
-                    onEditClick = { item -> navController.navigate("add_inventory?itemId=${item.id}") },
+                    onNavigateToAddInventory = { navController.navigate(AppRoutes.ADD_INVENTORY) },
+                    onItemClick = { item -> navController.navigate("${AppRoutes.INVENTORY_DETAILS}/${item.id}") },
+                    onEditClick = { item -> navController.navigate("${AppRoutes.ADD_INVENTORY}?itemId=${item.id}") },
                     onDeleteClick = { item -> inventoryViewModel.deleteItem(item) },
                     onNavigateToManageStorage = { navController.navigate(AppRoutes.MANAGE_STORAGE) }
                 )
             }
 
             composable(
-                route = "add_inventory?itemId={itemId}",
+                route = AppRoutes.ADD_INVENTORY_PATTERN,
                 arguments = listOf(navArgument("itemId") {
                     type = NavType.StringType
                     nullable = true
@@ -216,7 +200,7 @@ fun AppNavigation(
             }
 
             composable(
-                route = "inventory_details/{itemId}",
+                route = AppRoutes.INVENTORY_DETAILS_PATTERN,
                 arguments = listOf(navArgument("itemId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val inventoryViewModel: InventoryViewModel = viewModel()
@@ -227,7 +211,7 @@ fun AppNavigation(
                     InventoryDetailScreen(
                         detail = item,
                         onBackClick = { navController.popBackStack() },
-                        onEditClick = { navController.navigate("add_inventory?itemId=${item.id}") },
+                        onEditClick = { navController.navigate("${AppRoutes.ADD_INVENTORY}?itemId=${item.id}") },
                         onDeleteClick = {
                             inventoryViewModel.deleteItem(item)
                             navController.popBackStack()
@@ -258,8 +242,9 @@ fun AppNavigation(
                 val shoppingRepository = remember { ShoppingRepository(db.shoppingDao()) }
 
                 val shoppingViewModel: ShoppingViewModel = viewModel(
-                    factory = object : androidx.lifecycle.ViewModelProvider.Factory {
-                        override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                    factory = object : ViewModelProvider.Factory {
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                            @Suppress("UNCHECKED_CAST")
                             return ShoppingViewModel(shoppingRepository, inventoryRepository) as T
                         }
                     }
@@ -267,14 +252,14 @@ fun AppNavigation(
 
                 ShoppingListScreen(
                     viewModel = shoppingViewModel,
-                    onNavigateToAddItem = { navController.navigate("add_shopping_item") },
-                    onNavigateToEditItem = { item -> navController.navigate("add_shopping_item?itemId=${item.id}") },
-                    onNavigateToAddToInventory = { navController.navigate("add_to_inventory") }
+                    onNavigateToAddItem = { navController.navigate(AppRoutes.ADD_SHOPPING_ITEM) },
+                    onNavigateToEditItem = { item -> navController.navigate("${AppRoutes.ADD_SHOPPING_ITEM}?itemId=${item.id}") },
+                    onNavigateToAddToInventory = { navController.navigate(AppRoutes.ADD_TO_INVENTORY) }
                 )
             }
 
             composable(
-                route = "add_shopping_item?itemId={itemId}",
+                route = AppRoutes.ADD_SHOPPING_ITEM_PATTERN,
                 arguments = listOf(navArgument("itemId") {
                     type = NavType.StringType
                     nullable = true
@@ -292,13 +277,11 @@ fun AppNavigation(
                 )
             }
 
-            composable("add_to_inventory") {
-                val parentEntry = remember(it) {
-                    navController.getBackStackEntry(AppRoutes.SHOPPING)
-                }
+            composable(AppRoutes.ADD_TO_INVENTORY) {
+                val parentEntry = remember(it) { navController.getBackStackEntry(AppRoutes.SHOPPING) }
                 val shoppingViewModel: ShoppingViewModel = viewModel(viewModelStoreOwner = parentEntry)
 
-                ShoppingItemToInventoryScreen (
+                ShoppingItemToInventoryScreen(
                     viewModel = shoppingViewModel,
                     onBackClick = { navController.popBackStack() },
                     onSuccess = {
@@ -311,15 +294,15 @@ fun AppNavigation(
             }
 
             composable(AppRoutes.RECIPE) {
-                PlaceholderScreen("Recipes", viewModel, navController)
+                PlaceholderScreen("Recipes")
             }
 
             composable(AppRoutes.REPORTS) {
                 val context = navController.context
                 val db = AppDatabase.getDatabase(context)
                 val reportViewModel: ReportViewModel = viewModel(
-                    factory = object : androidx.lifecycle.ViewModelProvider.Factory {
-                        override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                    factory = object : ViewModelProvider.Factory {
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
                             return ReportViewModel(db.wastedItemDao()) as T
                         }
                     }
@@ -352,10 +335,8 @@ fun AppNavigation(
                 )
             }
 
-            composable(AppRoutes.CHANGE_PASSWORD) {
-                val parentEntry = remember(it) {
-                    navController.getBackStackEntry(AppRoutes.PROFILE)
-                }
+            composable(AppRoutes.CHANGE_PASSWORD) { backStackEntry ->
+                val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(AppRoutes.PROFILE) }
                 val profileViewModel: ProfileViewModel = viewModel(
                     viewModelStoreOwner = parentEntry,
                     factory = profileViewModelFactory
@@ -369,20 +350,12 @@ fun AppNavigation(
     }
 }
 
-// Temporary placeholder screen for each module
 @Composable
-fun PlaceholderScreen(
-    title: String,
-    viewModel: AuthViewModel,
-    navController: NavHostController
-) {
+fun PlaceholderScreen(title: String) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("✅ $title reached — navigation works!")
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+        Text("✅ $title reached — navigation works!")
     }
 }

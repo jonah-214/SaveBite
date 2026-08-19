@@ -1,9 +1,13 @@
 package com.example.savebite.utils
 
 object Validators {
+    // Check for email format (something@domain.com)
     private val EMAIL_REGEX = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
+    
+    // Check for letters, numbers, and underscores only
     private val USERNAME_REGEX = Regex("^[A-Za-z0-9_]+$")
 
+    // Check for Malaysian phone format starting with 60 (e.g., 60123456789)
     private val MY_PHONE_REGEX = Regex("^60[0-9]{8,9}$")
 
     // Validation for username

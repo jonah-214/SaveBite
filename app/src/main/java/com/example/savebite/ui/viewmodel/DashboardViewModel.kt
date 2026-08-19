@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savebite.data.repo.InventoryRepository
+import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.ui.screen.ExpiryItem
 import com.example.savebite.ui.screen.RecipeSuggestion
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 class DashboardViewModel(
     private val userRepository: UserRepository,
     private val inventoryRepository: InventoryRepository,
+    private val shoppingRepository: ShoppingRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
     private val _username = mutableStateOf("User")
@@ -39,11 +41,6 @@ class DashboardViewModel(
         }
     }
 
-    // Inventory count KPI
-    val inventoryCount = inventoryRepository.allInventory
-        .map { it.size }
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
-
     // Expiring Item Section
     val expiringItems = inventoryRepository.allInventory
         .map { list ->
@@ -59,8 +56,16 @@ class DashboardViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    // Inventory count KPI
+    val inventoryCount = inventoryRepository.allInventory
+        .map { it.size }
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
+    val shoppingListCount = shoppingRepository.allShoppingItems
+        .map { it.size }
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
     // Hardcoded values - waiting on Shopping/Waste/Recipe modules
-    val shoppingListCount = 5
     val savedThisMonth = 45
 
     val recipeSuggestions = listOf(
