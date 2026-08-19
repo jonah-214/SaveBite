@@ -36,6 +36,7 @@ import com.example.savebite.ui.screen.InventoryList
 import com.example.savebite.ui.screen.LoginScreen
 import com.example.savebite.ui.screen.ManageStorageScreen
 import com.example.savebite.ui.screen.ProfileScreen
+import com.example.savebite.ui.screen.ReportScreen
 import com.example.savebite.ui.screen.ShoppingItemToInventoryScreen
 import com.example.savebite.ui.screen.ShoppingListScreen
 import com.example.savebite.ui.screen.SignUpScreen
@@ -46,6 +47,7 @@ import com.example.savebite.ui.viewmodel.DashboardViewModelFactory
 import com.example.savebite.ui.viewmodel.InventoryViewModel
 import com.example.savebite.ui.viewmodel.ProfileViewModel
 import com.example.savebite.ui.viewmodel.ProfileViewModelFactory
+import com.example.savebite.ui.viewmodel.ReportViewModel
 import com.example.savebite.ui.viewmodel.ShoppingViewModel
 import com.example.savebite.utils.SessionManager
 
@@ -148,9 +150,11 @@ fun AppNavigation(
 
             // Dashboard screen route
             composable(AppRoutes.DASHBOARD) {
+                val db = AppDatabase.getDatabase(navController.context)
                 val inventoryRepository = InventoryRepository(
-                    AppDatabase.getDatabase(navController.context).inventoryDao(),
-                    AppDatabase.getDatabase(navController.context).storageDao()
+                    db.inventoryDao(),
+                    db.storageDao(),
+                    db.wastedItemDao()
                 )
                 val dashboardViewModel: DashboardViewModel = viewModel(
                     factory = DashboardViewModelFactory(userRepository, inventoryRepository, sessionManager)
@@ -229,7 +233,7 @@ fun AppNavigation(
                             navController.popBackStack()
                         },
                         onWasteClick = {
-                            inventoryViewModel.deleteItem(item)
+                            inventoryViewModel.markAsWaste(item)
                             navController.popBackStack()
                         }
                     )
@@ -250,7 +254,7 @@ fun AppNavigation(
             composable(AppRoutes.SHOPPING) {
                 val context = navController.context
                 val db = AppDatabase.getDatabase(context)
-                val inventoryRepository = remember { InventoryRepository(db.inventoryDao(), db.storageDao()) }
+                val inventoryRepository = remember { InventoryRepository(db.inventoryDao(), db.storageDao(), db.wastedItemDao()) }
                 val shoppingRepository = remember { ShoppingRepository(db.shoppingDao()) }
 
                 val shoppingViewModel: ShoppingViewModel = viewModel(
@@ -311,7 +315,16 @@ fun AppNavigation(
             }
 
             composable(AppRoutes.REPORTS) {
-                PlaceholderScreen("Reports", viewModel, navController)
+                val context = navController.context
+                val db = AppDatabase.getDatabase(context)
+                val reportViewModel: ReportViewModel = viewModel(
+                    factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+                        override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                            return ReportViewModel(db.wastedItemDao()) as T
+                        }
+                    }
+                )
+                ReportScreen(viewModel = reportViewModel)
             }
 
             composable(AppRoutes.PROFILE) {

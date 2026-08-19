@@ -2,13 +2,16 @@ package com.example.savebite.data.repo
 
 import com.example.savebite.data.local.dao.InventoryDao
 import com.example.savebite.data.local.dao.StorageDao
+import com.example.savebite.data.local.dao.WastedItemDao
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.Storage
+import com.example.savebite.model.WastedItem
 import kotlinx.coroutines.flow.Flow
 
 class InventoryRepository(
     private val inventoryDao: InventoryDao,
-    private val storageDao: StorageDao
+    private val storageDao: StorageDao,
+    private val wastedItemDao: WastedItemDao
 ) {
 
     val allInventory: Flow<List<Inventory>> = inventoryDao.getAllInventory()
@@ -36,5 +39,16 @@ class InventoryRepository(
     suspend fun deleteStorageAndReassign(name: String, defaultStorage: String = "Refrigerator") {
         inventoryDao.reassignStorage(name, defaultStorage)
         storageDao.deleteStorage(Storage(name))
+    }
+
+    suspend fun markAsWaste(item: Inventory) {
+        val wastedItem = WastedItem(
+            name = item.name,
+            category = item.category,
+            quantity = item.quantity,
+            unit = item.unit
+        )
+        wastedItemDao.insertWastedItem(wastedItem)
+        inventoryDao.deleteItem(item)
     }
 }

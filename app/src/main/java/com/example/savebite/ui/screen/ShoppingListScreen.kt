@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.model.ShoppingItem
+import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ShoppingViewModel
 
 @Composable
@@ -63,15 +64,10 @@ fun ShoppingListScreen(
 
     Scaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Shopping List", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            }
+            AppTopBar(
+                title = "Shopping List",
+                showBackButton = false
+            )
         }
     ) { innerPadding ->
         Column(
