@@ -21,7 +21,7 @@ import com.example.savebite.ui.viewmodel.DashboardViewModelFactory
 import com.example.savebite.ui.viewmodel.ProfileViewModelFactory
 import com.example.savebite.utils.SessionManager
 
-class MainActivity : ComponentActivity() {
+class  MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

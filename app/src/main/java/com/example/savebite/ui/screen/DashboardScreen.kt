@@ -76,7 +76,9 @@ fun DashboardScreen(
         DashboardHeader(
             username = dashboardViewModel.username.value,
             onProfileClick = {
-                navController.navigate(AppRoutes.PROFILE)
+                navController.navigate(AppRoutes.PROFILE) {
+                    launchSingleTop = true
+                }
             }
         )
 
@@ -84,15 +86,27 @@ fun DashboardScreen(
 
         ExpiryReminderCard(
             items = dashboardViewModel.expiringItems.collectAsState().value,
-            onSeeAllClick = { navController.navigate(AppRoutes.REMINDER) }
+            onSeeAllClick = {
+                navController.navigate(AppRoutes.REMINDER) {
+                    launchSingleTop = true
+                }
+            }
         )
         Spacer(modifier = Modifier.height(20.dp))
 
         StatsRow(
             inventoryCount = dashboardViewModel.inventoryCount.collectAsState().value,
             shoppingCount = dashboardViewModel.shoppingListCount.collectAsState().value,
-            onInventoryClick = { navController.navigate(AppRoutes.INVENTORY) },
-            onShoppingClick = { navController.navigate(AppRoutes.SHOPPING) }
+            onInventoryClick = {
+                navController.navigate(AppRoutes.INVENTORY) {
+                    launchSingleTop = true
+                }
+            },
+            onShoppingClick = {
+                navController.navigate(AppRoutes.SHOPPING) {
+                    launchSingleTop = true
+                }
+            }
         )
         Spacer(modifier = Modifier.height(20.dp))
 

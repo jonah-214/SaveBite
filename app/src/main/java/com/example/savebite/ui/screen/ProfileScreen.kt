@@ -86,10 +86,14 @@ fun ProfileScreen(
             SectionLabel("Account Settings")
             AccountSettingsCard(
                 onEditProfileClick = {
-                    navController.navigate(AppRoutes.EDIT_PROFILE)
+                    navController.navigate(AppRoutes.EDIT_PROFILE) {
+                        launchSingleTop = true
+                    }
                 },
                 onChangePasswordClick = {
-                    navController.navigate(AppRoutes.CHANGE_PASSWORD)
+                    navController.navigate(AppRoutes.CHANGE_PASSWORD) {
+                        launchSingleTop = true
+                    }
                 }
             )
 

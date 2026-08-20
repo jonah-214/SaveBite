@@ -167,11 +167,27 @@ fun AppNavigation(
                     onQueryChange = { inventoryViewModel.searchQuery.value = it },
                     selectedStorage = selectedStorage,
                     onStorageSelected = { inventoryViewModel.selectedStorage.value = it },
-                    onNavigateToAddInventory = { navController.navigate(AppRoutes.ADD_INVENTORY) },
-                    onItemClick = { item -> navController.navigate("${AppRoutes.INVENTORY_DETAILS}/${item.id}") },
-                    onEditClick = { item -> navController.navigate("${AppRoutes.ADD_INVENTORY}?itemId=${item.id}") },
+                    onNavigateToAddInventory = {
+                        navController.navigate(AppRoutes.ADD_INVENTORY) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onItemClick = { item ->
+                        navController.navigate("${AppRoutes.INVENTORY_DETAILS}/${item.id}") {
+                            launchSingleTop = true
+                        }
+                    },
+                    onEditClick = { item ->
+                        navController.navigate("${AppRoutes.ADD_INVENTORY}?itemId=${item.id}") {
+                            launchSingleTop = true
+                        }
+                    },
                     onDeleteClick = { item -> inventoryViewModel.deleteItem(item) },
-                    onNavigateToManageStorage = { navController.navigate(AppRoutes.MANAGE_STORAGE) }
+                    onNavigateToManageStorage = {
+                        navController.navigate(AppRoutes.MANAGE_STORAGE) {
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
 
@@ -211,7 +227,11 @@ fun AppNavigation(
                     InventoryDetailScreen(
                         detail = item,
                         onBackClick = { navController.popBackStack() },
-                        onEditClick = { navController.navigate("${AppRoutes.ADD_INVENTORY}?itemId=${item.id}") },
+                        onEditClick = {
+                            navController.navigate("${AppRoutes.ADD_INVENTORY}?itemId=${item.id}") {
+                                launchSingleTop = true
+                            }
+                        },
                         onDeleteClick = {
                             inventoryViewModel.deleteItem(item)
                             navController.popBackStack()
@@ -252,9 +272,21 @@ fun AppNavigation(
 
                 ShoppingListScreen(
                     viewModel = shoppingViewModel,
-                    onNavigateToAddItem = { navController.navigate(AppRoutes.ADD_SHOPPING_ITEM) },
-                    onNavigateToEditItem = { item -> navController.navigate("${AppRoutes.ADD_SHOPPING_ITEM}?itemId=${item.id}") },
-                    onNavigateToAddToInventory = { navController.navigate(AppRoutes.ADD_TO_INVENTORY) }
+                    onNavigateToAddItem = {
+                        navController.navigate(AppRoutes.ADD_SHOPPING_ITEM) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateToEditItem = { item ->
+                        navController.navigate("${AppRoutes.ADD_SHOPPING_ITEM}?itemId=${item.id}") {
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateToAddToInventory = {
+                        navController.navigate(AppRoutes.ADD_TO_INVENTORY) {
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
 
