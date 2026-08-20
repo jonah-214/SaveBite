@@ -22,8 +22,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -38,6 +42,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,13 +57,17 @@ import androidx.navigation.NavHostController
 import com.example.savebite.ui.navigation.AppRoutes
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ProfileViewModel
+import com.example.savebite.ui.viewmodel.ThemeViewModel
+import com.example.savebite.utils.ThemeMode
 
 @Composable
 fun ProfileScreen(
     navController: NavHostController,
-    profileViewModel: ProfileViewModel
+    profileViewModel: ProfileViewModel,
+    themeViewModel: ThemeViewModel
 ) {
     var notificationEnabled by remember { mutableStateOf(true) }
+    val themeMode by themeViewModel.themeMode.collectAsState()
     val user = profileViewModel.user.value
 
     Scaffold(
@@ -109,6 +118,8 @@ fun ProfileScreen(
             PreferencesCard(
                 notificationEnabled = notificationEnabled,
                 onNotificationToggle = { notificationEnabled = it },
+                themeMode = themeMode,
+                onThemeModeChange = { themeViewModel.setThemeMode(it) }
             )
 
             // Support tab
@@ -143,7 +154,9 @@ fun ProfileHeaderCard(
     phone: String
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(0.dp),
         border = BorderStroke(
@@ -204,7 +217,9 @@ fun AccountSettingsCard(
     onChangePasswordClick: () -> Unit
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(0.dp),
         border = BorderStroke(
@@ -238,6 +253,8 @@ fun AccountSettingsCard(
 fun PreferencesCard(
     notificationEnabled: Boolean,
     onNotificationToggle: (Boolean) -> Unit,
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -246,7 +263,6 @@ fun PreferencesCard(
         border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
-        // Notification Preference
         Column(modifier = Modifier.padding(16.dp)) {
             SettingsRow(
                 icon = Icons.Default.Notifications,
@@ -260,6 +276,111 @@ fun PreferencesCard(
                     )
                 }
             )
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+            AppearanceExpandableRow(
+                themeMode = themeMode,
+                onThemeModeChange = onThemeModeChange
+            )
+        }
+    }
+}
+
+@Composable
+fun AppearanceExpandableRow(
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Collapsed row - same look as other SettingsRow entries
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.DarkMode,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = "Appearance",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = themeMode.displayName(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Expanded options list
+        if (expanded) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 34.dp, bottom = 8.dp)
+            ) {
+                ThemeMode.entries.forEach { mode ->
+                    ThemeOptionRow(
+                        label = mode.displayName(),
+                        selected = mode == themeMode,
+                        onClick = {
+                            onThemeModeChange(mode)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ThemeOptionRow(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (selected) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.onSurface
+        )
+        if (selected) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = "Selected",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp)
+            )
         }
     }
 }
@@ -269,7 +390,9 @@ fun SupportCard(
     onAboutUsClick: () -> Unit
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(0.dp),
         border = BorderStroke(

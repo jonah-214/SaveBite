@@ -48,6 +48,7 @@ import com.example.savebite.ui.viewmodel.ProfileViewModel
 import com.example.savebite.ui.viewmodel.ProfileViewModelFactory
 import com.example.savebite.ui.viewmodel.ReportViewModel
 import com.example.savebite.ui.viewmodel.ShoppingViewModel
+import com.example.savebite.ui.viewmodel.ThemeViewModel
 import com.example.savebite.utils.SessionManager
 
 @Composable
@@ -57,6 +58,7 @@ fun AppNavigation(
     sessionManager: SessionManager,
     dashboardViewModelFactory: DashboardViewModelFactory,
     profileViewModelFactory: ProfileViewModelFactory,
+    themeViewModel: ThemeViewModel,
     modifier: Modifier = Modifier
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -152,10 +154,12 @@ fun AppNavigation(
                 )
             }
 
+            // Expiry Reminder route
             composable(AppRoutes.REMINDER) {
                 PlaceholderScreen("Reminders")
             }
 
+            // Food Inventory route
             composable(AppRoutes.INVENTORY) {
                 val inventoryViewModel: InventoryViewModel = viewModel()
                 val inventoryList by inventoryViewModel.inventoryList.collectAsState()
@@ -194,6 +198,7 @@ fun AppNavigation(
                 )
             }
 
+            // Add Food Inventory route
             composable(
                 route = AppRoutes.ADD_INVENTORY_PATTERN,
                 arguments = listOf(navArgument("itemId") {
@@ -218,6 +223,7 @@ fun AppNavigation(
                 )
             }
 
+            // Food Inventory Details route
             composable(
                 route = AppRoutes.INVENTORY_DETAILS_PATTERN,
                 arguments = listOf(navArgument("itemId") { type = NavType.StringType })
@@ -247,6 +253,7 @@ fun AppNavigation(
                 }
             }
 
+            // Manage Food Storage route
             composable(AppRoutes.MANAGE_STORAGE) {
                 val inventoryViewModel: InventoryViewModel = viewModel()
                 val storageList by inventoryViewModel.storageList.collectAsState()
@@ -258,6 +265,7 @@ fun AppNavigation(
                 )
             }
 
+            // Shopping Items Routes
             composable(AppRoutes.SHOPPING) {
                 val context = navController.context
                 val db = AppDatabase.getDatabase(context)
@@ -293,6 +301,7 @@ fun AppNavigation(
                 )
             }
 
+            // Add Shopping Items route
             composable(
                 route = AppRoutes.ADD_SHOPPING_ITEM_PATTERN,
                 arguments = listOf(navArgument("itemId") {
@@ -312,6 +321,7 @@ fun AppNavigation(
                 )
             }
 
+            // Add Shopping Item into Inventory Route
             composable(AppRoutes.ADD_TO_INVENTORY) {
                 val parentEntry = remember(it) { navController.getBackStackEntry(AppRoutes.SHOPPING) }
                 val shoppingViewModel: ShoppingViewModel = viewModel(viewModelStoreOwner = parentEntry)
@@ -328,10 +338,12 @@ fun AppNavigation(
                 )
             }
 
+            // Recipe Suggestions route
             composable(AppRoutes.RECIPE) {
                 PlaceholderScreen("Recipes")
             }
 
+            // Waster Tracker Report route
             composable(AppRoutes.REPORTS) {
                 val context = navController.context
                 val db = AppDatabase.getDatabase(context)
@@ -345,16 +357,19 @@ fun AppNavigation(
                 ReportScreen(viewModel = reportViewModel)
             }
 
+            // Profile & Settings route
             composable(AppRoutes.PROFILE) {
                 val profileViewModel: ProfileViewModel = viewModel(
                     factory = profileViewModelFactory
                 )
                 ProfileScreen(
                     navController = navController,
-                    profileViewModel = profileViewModel
+                    profileViewModel = profileViewModel,
+                    themeViewModel = themeViewModel
                 )
             }
 
+            // Edit Profile route
             composable(AppRoutes.EDIT_PROFILE) { backStackEntry ->
                 // Share ProfileViewModel with ProfileScreen
                 val parentEntry = remember(backStackEntry) {
@@ -370,6 +385,7 @@ fun AppNavigation(
                 )
             }
 
+            // Change Password route
             composable(AppRoutes.CHANGE_PASSWORD) { backStackEntry ->
                 val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(AppRoutes.PROFILE) }
                 val profileViewModel: ProfileViewModel = viewModel(
@@ -382,6 +398,7 @@ fun AppNavigation(
                 )
             }
 
+            // About Us route
             composable(AppRoutes.ABOUT_US) {
                 AboutUsScreen(navController = navController)
             }
