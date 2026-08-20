@@ -57,7 +57,6 @@ fun LoginScreen(
     val passwordError by viewModel.loginPasswordError
     val loginError by viewModel.loginError
 
-    val scrollState = rememberScrollState()
     val context = LocalContext.current
     val successMessage by viewModel.successMessage
 
@@ -79,7 +78,7 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp)
-            .verticalScroll(scrollState)
+            .verticalScroll(rememberScrollState())
             .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

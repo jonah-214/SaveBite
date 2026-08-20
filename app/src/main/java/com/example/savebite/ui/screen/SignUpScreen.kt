@@ -60,7 +60,6 @@ fun SignUpScreen(
     val phoneError by viewModel.signupPhoneError
     val passwordError by viewModel.signupPasswordError
 
-    val scrollState = rememberScrollState()
     val context = LocalContext.current
     val successMessage by viewModel.successMessage
 
@@ -82,7 +81,7 @@ fun SignUpScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp)
-            .verticalScroll(scrollState)
+            .verticalScroll(rememberScrollState())
             .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

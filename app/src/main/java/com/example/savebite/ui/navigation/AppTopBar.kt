@@ -30,7 +30,8 @@ fun AppTopBar(
             )
         },
         navigationIcon = {
-            // Dashboard, Login, Sign Up, Splash screen should not have a back button, while others need instead
+            /* Splash, Login, Signup, Dashboard, Inventory, Shopping, Recipe, Reports screen
+            should not have a back button, while others need instead */
             if (showBackButton) {
                 IconButton(onClick = onBackClick) {
                     Icon(
@@ -44,6 +45,7 @@ fun AppTopBar(
         },
         // Optional Trailing icons (E.g. Settings Icon on some screen)
         actions = { actions() },
+        windowInsets = TopAppBarDefaults.windowInsets,
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary
         )
