@@ -34,9 +34,10 @@ object AppRoutes {
     const val PROFILE = "profile"
     // Edit Profile screen
     const val EDIT_PROFILE = "edit_profile"
-
     // Change Password screen
     const val CHANGE_PASSWORD = "change_password"
+    // About Us screen
+    const val ABOUT_US = "about_us"
 
     // Routes with arguments
     const val ADD_INVENTORY = "add_inventory"

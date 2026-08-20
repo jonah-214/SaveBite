@@ -24,6 +24,7 @@ import androidx.navigation.navArgument
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.repo.ShoppingRepository
+import com.example.savebite.ui.screen.AboutUsScreen
 import com.example.savebite.ui.screen.AddInventoryScreen
 import com.example.savebite.ui.screen.AddShoppingItemScreen
 import com.example.savebite.ui.screen.ChangePasswordScreen
@@ -379,6 +380,10 @@ fun AppNavigation(
                     navController = navController,
                     profileViewModel = profileViewModel
                 )
+            }
+
+            composable(AppRoutes.ABOUT_US) {
+                AboutUsScreen(navController = navController)
             }
         }
     }

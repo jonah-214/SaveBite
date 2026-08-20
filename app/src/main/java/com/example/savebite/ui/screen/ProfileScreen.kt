@@ -115,7 +115,11 @@ fun ProfileScreen(
             Spacer(Modifier.height(12.dp))
             SectionLabel("Support")
             SupportCard(
-                onAboutUsClick = { /* TODO */ }
+                onAboutUsClick = {
+                    navController.navigate(AppRoutes.ABOUT_US) {
+                        launchSingleTop = true
+                    }
+                }
             )
 
             Spacer(Modifier.height(24.dp))
