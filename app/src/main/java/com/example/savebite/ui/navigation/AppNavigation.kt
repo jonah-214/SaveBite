@@ -30,6 +30,7 @@ import com.example.savebite.ui.screen.AddShoppingItemScreen
 import com.example.savebite.ui.screen.ChangePasswordScreen
 import com.example.savebite.ui.screen.DashboardScreen
 import com.example.savebite.ui.screen.EditProfileScreen
+import com.example.savebite.ui.screen.ForgotPasswordScreen
 import com.example.savebite.ui.screen.InventoryDetailScreen
 import com.example.savebite.ui.screen.InventoryList
 import com.example.savebite.ui.screen.LoginScreen
@@ -120,6 +121,22 @@ fun AppNavigation(
                             popUpTo(AppRoutes.LOGIN) { inclusive = true }
                             launchSingleTop = true
                         }
+                    },
+                    onNavigateToForgotPassword = {
+                        navController.navigate(AppRoutes.FORGOT_PASSWORD) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
+            // Forgot Password screen route
+            composable(AppRoutes.FORGOT_PASSWORD) {
+                ForgotPasswordScreen(
+                    viewModel = viewModel,
+                    onBackToLogin = {
+                        viewModel.clearErrors()
+                        navController.popBackStack()
                     }
                 )
             }

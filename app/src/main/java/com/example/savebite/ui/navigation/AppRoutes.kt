@@ -14,6 +14,8 @@ object AppRoutes {
     const val SPLASH = "splash"
     // Login screen
     const val LOGIN = "login"
+    // Forgot Password screen
+    const val FORGOT_PASSWORD = "forgot_password"
     // Signup screen
     const val SIGNUP = "signup"
     // Home screen

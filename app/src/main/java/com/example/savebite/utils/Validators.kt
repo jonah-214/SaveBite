@@ -13,10 +13,9 @@ object Validators {
     // Validation for username
     fun validateUsername(username: String): String? {
         if (username.isBlank()) return "Username is required"
-        if (username != username.trim()) return "Username cannot start or end with spaces"
         if (username.length < 3 || username.length > 20) return "Username must be 3-20 characters"
         if (!USERNAME_REGEX.matches(username)) return "Username can only contain letters, numbers, and underscores"
-        if (username.contains("__")) return "Username cannot contain spaces"
+        if (username.contains("__")) return "Username cannot contain consecutive underscores"
         return null
     }
 
@@ -30,8 +29,7 @@ object Validators {
     // Validation for phone number
     fun validatePhone(phone: String): String? {
         if (phone.isBlank()) return "Phone number is required"
-        val cleaned = phone.replace(" ", "").replace("-", "")
-        if (!MY_PHONE_REGEX.matches(cleaned)) {
+        if (!MY_PHONE_REGEX.matches(phone)) {
             return "Enter a valid Malaysian phone number (e.g. 60123456789)"
         }
         return null

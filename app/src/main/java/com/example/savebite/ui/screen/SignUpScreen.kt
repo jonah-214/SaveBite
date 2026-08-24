@@ -18,6 +18,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -59,6 +61,7 @@ fun SignUpScreen(
     val emailError by viewModel.signupEmailError
     val phoneError by viewModel.signupPhoneError
     val passwordError by viewModel.signupPasswordError
+    val isLoading by viewModel.isLoading
 
     val context = LocalContext.current
     val successMessage by viewModel.successMessage
@@ -111,6 +114,7 @@ fun SignUpScreen(
             placeholder = { Text("John_Doe") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
+            enabled = !isLoading,
             isError = usernameError != null,
             supportingText = {
                 Text(
@@ -136,6 +140,7 @@ fun SignUpScreen(
             placeholder = { Text("johndoe@example.com") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
+            enabled = !isLoading,
             isError = emailError != null,
             supportingText = {
                 if (emailError != null) {
@@ -159,6 +164,7 @@ fun SignUpScreen(
             placeholder = { Text("60123456789") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
+            enabled = !isLoading,
             isError = phoneError != null,
             supportingText = {
                 Text(
@@ -184,6 +190,7 @@ fun SignUpScreen(
             placeholder = { Text("Enter your password") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
+            enabled = !isLoading,
             isError = passwordError != null,
             supportingText = {
                 Text(
@@ -195,7 +202,7 @@ fun SignUpScreen(
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
+                imeAction = ImeAction.Next
             ),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
@@ -213,15 +220,24 @@ fun SignUpScreen(
             onClick = {
                 viewModel.signup(username, email, phone, password, onSignUpSuccess)
             },
+            enabled = !isLoading,
             shape = RoundedCornerShape(50),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)
         ) {
-            Text(
-                text = "Sign Up",
-                fontWeight = FontWeight.Bold,
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = "Sign Up",
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))

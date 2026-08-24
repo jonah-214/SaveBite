@@ -97,6 +97,7 @@ class SupabaseAuthRepository(
         }
     }
 
+    // Map known Supabase/Postgres sign-up exceptions to user-friendly error codes
     private fun mapSignUpException(error: Exception): Exception {
         val message = error.message.orEmpty()
         val normalized = message.lowercase()
@@ -198,6 +199,20 @@ class SupabaseAuthRepository(
         }
     }
 
+    // Resolve a phone number login to its registered email via Supabase
+    suspend fun getEmailByPhone(phone: String): String? {
+        return try {
+            client.postgrest.rpc(
+                function = "get_email_by_phone",
+                parameters = buildJsonObject {
+                    put("phone_val", phone)
+                }
+            ).decodeAs<String?>()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     // Update profile fields in the Supabase 'profiles' table
     suspend fun updateProfile(
         uid: String,
@@ -236,6 +251,16 @@ class SupabaseAuthRepository(
             client.auth.updateUser {
                 password = newPassword
             }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Send a password reset email via Supabase Auth
+    suspend fun sendPasswordReset(email: String): Result<Unit> {
+        return try {
+            client.auth.resetPasswordForEmail(email)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

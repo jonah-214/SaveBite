@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,7 +49,8 @@ import androidx.compose.ui.unit.sp
 fun LoginScreen(
     viewModel: AuthViewModel,
     onLoginSuccess: () -> Unit,
-    onNavigateToSignup: () -> Unit
+    onNavigateToSignup: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit
 ) {
     var identifier by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -56,12 +59,12 @@ fun LoginScreen(
     val identifierError by viewModel.loginIdentifierError
     val passwordError by viewModel.loginPasswordError
     val loginError by viewModel.loginError
+    val isLoading by viewModel.isLoading
 
     val context = LocalContext.current
     val successMessage by viewModel.successMessage
 
-    /* Reset any leftover errors whenever this screen is (re)entered
-    which covers both button navigation and the system back button. */
+    // Clear errors when the screen is first displayed
     LaunchedEffect(Unit) {
         viewModel.clearErrors()
     }
@@ -98,9 +101,9 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(Modifier.height(32.dp))
 
-        // Email/Phone field
+        // Email/Phone Input field
         OutlinedTextField(
             value = identifier,
             onValueChange = { identifier = it },
@@ -108,6 +111,7 @@ fun LoginScreen(
             placeholder = { Text("Enter your email or phone number") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
+            enabled = !isLoading,
             isError = identifierError != null,
             supportingText = {
                 if (identifierError != null) {
@@ -121,9 +125,9 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(Modifier.height(4.dp))
 
-        // Password field
+        // Password Input field
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -131,6 +135,7 @@ fun LoginScreen(
             placeholder = { Text("Enter your password") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
+            enabled = !isLoading,
             isError = passwordError != null,
             supportingText = {
                 if (passwordError != null) {
@@ -151,7 +156,20 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        // General "invalid credentials" error - not tied to a specific field
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // "Forgot Password?" clickable text
+        Text(
+            text = "Forgot Password?",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onNavigateToForgotPassword() },
+            textAlign = TextAlign.End
+        )
+
+        // Display login error if present
         if (loginError != null) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -160,25 +178,36 @@ fun LoginScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(Modifier.height(20.dp))
 
+        // Login Button
         Button(
             onClick = {
                 viewModel.login(identifier, password, onLoginSuccess)
             },
+            enabled = !isLoading,
             shape = RoundedCornerShape(50),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)
         ) {
-            Text(
-                text = "Login",
-                fontWeight = FontWeight.Bold,
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = "Login",
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(Modifier.height(16.dp))
 
+        // Sign Up Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,

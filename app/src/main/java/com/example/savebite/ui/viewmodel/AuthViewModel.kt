@@ -28,6 +28,14 @@ class AuthViewModel(
     private val _loginError = mutableStateOf<String?>(null)
     val loginError: State<String?> = _loginError
 
+    // Forgot Password Errors - Email field error
+    private val _forgotPasswordEmailError = mutableStateOf<String?>(null)
+    val forgotPasswordEmailError: State<String?> = _forgotPasswordEmailError
+
+    // Forgot Password - Reset email sent success message
+    private val _resetEmailSent = mutableStateOf(false)
+    val resetEmailSent: State<Boolean> = _resetEmailSent
+
     // Sign Up Errors - Username
     private val _signupUsernameError = mutableStateOf<String?>(null)
     val signupUsernameError: State<String?> = _signupUsernameError
@@ -62,17 +70,22 @@ class AuthViewModel(
         _signupPhoneError.value = null
         _signupPasswordError.value = null
         _successMessage.value = null
+        _forgotPasswordEmailError .value = null
+        _resetEmailSent.value = false
     }
 
     // Login user
     fun login(identifier: String, password: String, onSuccess: () -> Unit) {
+        if (_isLoading.value) return
+
+        val trimmedIdentifier = identifier.trim()
+
         viewModelScope.launch {
             _loginIdentifierError.value = null
             _loginPasswordError.value = null
             _loginError.value = null
 
-            // Email or Phone and Password blank check
-            val identifierErr = if (identifier.isBlank()) "Email or phone number is required" else null
+            val identifierErr = if (trimmedIdentifier.isBlank()) "Email or phone number is required" else null
             val passwordErr = if (password.isBlank()) "Password is required" else null
 
             _loginIdentifierError.value = identifierErr
@@ -82,19 +95,26 @@ class AuthViewModel(
                 return@launch
             }
 
+            _isLoading.value = true
+
             // Supabase Auth only accepts email, so resolve phone -> email locally first
-            val email = if (identifier.contains("@")) {
-                identifier
+            val email = if (trimmedIdentifier.contains("@")) {
+                trimmedIdentifier
             } else {
-                val localUser = userRepository.getUserByPhone(identifier)
-                if (localUser == null) {
-                    _loginError.value = "Invalid email/phone number or password"
-                    return@launch
+                val localUser = userRepository.getUserByPhone(trimmedIdentifier)
+                if (localUser != null) {
+                    localUser.email
+                } else {
+                    val remoteEmail = supabaseAuthRepository.getEmailByPhone(trimmedIdentifier)
+                    if (remoteEmail == null) {
+                        _isLoading.value = false
+                        _loginError.value = "Invalid email/phone number or password"
+                        return@launch
+                    }
+                    remoteEmail
                 }
-                localUser.email
             }
 
-            _isLoading.value = true
             val result = supabaseAuthRepository.login(email, password)
             _isLoading.value = false
 
@@ -108,8 +128,44 @@ class AuthViewModel(
         }
     }
 
+    // Reset Password
+    fun sendPasswordReset(email: String) {
+        viewModelScope.launch {
+            _forgotPasswordEmailError.value = null
+            _resetEmailSent.value = false
+
+            val emailFormatError = Validators.validateEmail(email)
+            if (emailFormatError != null) {
+                _forgotPasswordEmailError.value = emailFormatError
+                return@launch
+            }
+
+            _isLoading.value = true
+            val result = supabaseAuthRepository.sendPasswordReset(email)
+            _isLoading.value = false
+
+            result.onSuccess {
+                _resetEmailSent.value = true
+            }.onFailure {
+                _forgotPasswordEmailError.value = "Failed to send password reset email. Please try again."
+            }
+        }
+    }
+
     // Signup user
-    fun signup(username: String, email: String, phone: String, password: String, onSuccess: () -> Unit) {
+    fun signup(
+        username: String,
+        email: String,
+        phone: String,
+        password: String,
+        onSuccess: () -> Unit
+    ) {
+        if (_isLoading.value) return
+
+        val trimmedUsername = username.trim()
+        val trimmedEmail = email.trim()
+        val trimmedPhone = phone.trim().replace(" ", "").replace("-", "")
+
         viewModelScope.launch {
             _signupUsernameError.value = null
             _signupEmailError.value = null
@@ -117,9 +173,9 @@ class AuthViewModel(
             _signupPasswordError.value = null
 
             // Validation checks all fields (format only - uniqueness is enforced by Supabase)
-            val usernameFormatError = Validators.validateUsername(username)
-            val emailFormatError = Validators.validateEmail(email)
-            val phoneFormatError = Validators.validatePhone(phone)
+            val usernameFormatError = Validators.validateUsername(trimmedUsername)
+            val emailFormatError = Validators.validateEmail(trimmedEmail)
+            val phoneFormatError = Validators.validatePhone(trimmedPhone)
             val passwordFormatError = Validators.validatePassword(password)
 
             _signupUsernameError.value = usernameFormatError
@@ -134,7 +190,7 @@ class AuthViewModel(
             }
 
             _isLoading.value = true
-            val result = supabaseAuthRepository.signUp(username, email, phone, password)
+            val result = supabaseAuthRepository.signUp(trimmedUsername, trimmedEmail, trimmedPhone, password)
             _isLoading.value = false
 
             result.onSuccess { user ->
