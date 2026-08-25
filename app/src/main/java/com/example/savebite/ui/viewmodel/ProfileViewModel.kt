@@ -95,60 +95,58 @@ class ProfileViewModel(
             _emailError.value = null
             _phoneError.value = null
 
-            // Validation checks all fields
-            val usernameFormatError = Validators.validateUsername(newUserName)
-            val emailFormatError = Validators.validateEmail(newEmail)
-            val phoneFormatError = Validators.validatePhone(newPhone)
+            // Validate inputs
+            val usernameError = Validators.validateUsername(newUserName)
+            val emailError = Validators.validateEmail(newEmail)
+            val phoneError = Validators.validatePhone(newPhone)
 
-            _usernameError.value = usernameFormatError
-            _emailError.value = emailFormatError
-            _phoneError.value = phoneFormatError
+            _usernameError.value = usernameError
+            _emailError.value = emailError
+            _phoneError.value = phoneError
 
-            if ((usernameFormatError != null) || (emailFormatError != null) ||
-                (phoneFormatError != null)
-            ) {
+            if ((usernameError != null || emailError != null ||
+                phoneError != null)
+                ) {
                 _isLoading.value = false
                 return@launch
             }
 
-            // Username, Email and Phone check
-            if (userRepository.getUserByUsernameExcludingId(newUserName, _user.value?.id ?: -1) != null) {
-                _usernameError.value = "Username is already taken"
-                _isLoading.value = false
-                return@launch
-            }
-            if (userRepository.getUserByEmailExcludingId(newEmail, _user.value?.id ?: -1) != null) {
-                _emailError.value = "Email is already taken"
-                _isLoading.value = false
-                return@launch
-            }
-            if (userRepository.getUserByPhoneExcludingId(newPhone, _user.value?.id ?: -1) != null) {
-                _phoneError.value = "Phone number is already taken"
+            val currentUser = _user.value
+            val uid = currentUser?.supabaseUid
+            if (currentUser == null || uid == null) {
+                _emailError.value = "User not loaded. Please try again."
                 _isLoading.value = false
                 return@launch
             }
 
-            // Update user locally first
-            val updatedUser = _user.value?.copy(
-                username = newUserName,
-                email = newEmail,
-                phone = newPhone
+            // Supabase is the source of truth: check + update there first
+            val result = supabaseAuthRepository.updateProfile(
+                uid,
+                newUserName,
+                newEmail,
+                newPhone
             )
-            updatedUser?.let {
-                userRepository.updateUser(it)
-                _user.value = it
-                _updateSuccess.value = true
 
-                // Update user in Supabase
-                it.supabaseUid?.let { uid ->
-                    supabaseAuthRepository.updateProfile(
-                        uid,
-                        newUserName,
-                        newEmail,
-                        newPhone
-                    )
+            result.onSuccess {
+                // Only mirror into Room once Supabase confirms the update was successful
+                val updatedUser = currentUser.copy(
+                    username = newUserName,
+                    email = newEmail,
+                    phone = newPhone
+                )
+                userRepository.updateUser(updatedUser)
+                _user.value = updatedUser
+                _updateSuccess.value = true
+            }.onFailure { error ->
+                val message = error.message.orEmpty()
+                when (message) {
+                    "CONFLICT_USERNAME" -> _usernameError.value = "Username is already taken"
+                    "CONFLICT_EMAIL" -> _emailError.value = "Email is already taken"
+                    "CONFLICT_PHONE" -> _phoneError.value = "Phone number is already taken"
+                    else -> _emailError.value = "Failed to update profile. Please try again."
                 }
             }
+
             _isLoading.value = false
         }
     }

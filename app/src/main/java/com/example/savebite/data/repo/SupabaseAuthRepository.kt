@@ -221,6 +221,26 @@ class SupabaseAuthRepository(
         phone: String
     ): Result<Unit> {
         return try {
+            val availability = client.postgrest.rpc(
+                function = "check_availability",
+                parameters = buildJsonObject {
+                    put("username_val", username)
+                    put("email_val", email)
+                    put("phone_val", phone)
+                    put("exclude_id", uid)
+                }
+            ).decodeSingle<AvailabilityResponse>()
+
+            if (availability.username_taken) {
+                return Result.failure(Exception("CONFLICT_USERNAME"))
+            }
+            if (availability.email_taken) {
+                return Result.failure(Exception("CONFLICT_EMAIL"))
+            }
+            if (availability.phone_taken) {
+                return Result.failure(Exception("CONFLICT_PHONE"))
+            }
+
             client.postgrest.from("profiles").update(
                 ProfileUpdate(
                     username = username,
@@ -232,7 +252,7 @@ class SupabaseAuthRepository(
             }
             Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(mapSignUpException(e))
         }
     }
 
