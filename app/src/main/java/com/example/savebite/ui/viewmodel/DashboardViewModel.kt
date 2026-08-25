@@ -4,12 +4,14 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.savebite.data.remote.SupabaseClientProvider
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.ui.screen.ExpiryItem
 import com.example.savebite.ui.screen.RecipeSuggestion
 import com.example.savebite.utils.SessionManager
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -28,18 +30,36 @@ class DashboardViewModel(
         loadUsername()
     }
 
-    // Load username from session
+    // Load username from Supabase or fallback to local Room database (Offline mode)
     private fun loadUsername() {
         viewModelScope.launch {
-            val userId = sessionManager.getLoggedInUserId()
-            if (userId != -1) {
-                val user = userRepository.getUserById(userId)
+            try {
+                val supabaseUid = SupabaseClientProvider.client.auth.currentUserOrNull()?.id
+
+                val user = if (supabaseUid != null) {
+                    userRepository.getUserBySupabaseUid(supabaseUid)
+                } else {
+                    null
+                }
+
                 if (user != null) {
                     _username.value = user.username
+                    return@launch
                 }
+
+                // Fallback: Local Room Int ID (Offline, not yet synced)
+                val userId = sessionManager.getLoggedInUserId()
+                if (userId != -1) {
+                    userRepository.getUserById(userId)?.let {
+                        _username.value = it.username
+                    }
+                }
+            } catch (e: Exception) {
+                // Keep default "User" rather than crashing the dashboard
             }
         }
     }
+
 
     // Expiring Item Section
     val expiringItems = inventoryRepository.allInventory

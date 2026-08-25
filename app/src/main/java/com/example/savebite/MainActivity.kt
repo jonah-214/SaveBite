@@ -28,7 +28,7 @@ import com.example.savebite.utils.SessionManager
 import com.example.savebite.utils.ThemeMode
 import com.example.savebite.utils.ThemePreferenceManager
 
-class  MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -37,7 +37,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -75,6 +74,7 @@ fun DashboardScreen(
             .padding(horizontal = 16.dp)
             .padding(bottom = 16.dp)
     ) {
+        // Greeting user Header Area
         DashboardHeader(
             username = dashboardViewModel.username.value,
             onProfileClick = {
@@ -86,6 +86,7 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Expiry Reminder Card Area
         ExpiryReminderCard(
             items = dashboardViewModel.expiringItems.collectAsState().value,
             onSeeAllClick = {
@@ -96,6 +97,7 @@ fun DashboardScreen(
         )
         Spacer(modifier = Modifier.height(20.dp))
 
+        // Inventory & Shopping List Stats Area
         StatsRow(
             inventoryCount = dashboardViewModel.inventoryCount.collectAsState().value,
             shoppingCount = dashboardViewModel.shoppingListCount.collectAsState().value,
@@ -112,6 +114,7 @@ fun DashboardScreen(
         )
         Spacer(modifier = Modifier.height(20.dp))
 
+        // Waste Tracker Report Area
         WasteReportSection(
             savedAmount = dashboardViewModel.savedThisMonth,
             wasteByWeek = dashboardViewModel.wasteTrackerData,
@@ -119,6 +122,7 @@ fun DashboardScreen(
         )
         Spacer(modifier = Modifier.height(20.dp))
 
+        // Recipe Suggestions Area
         RecipeSuggestionsRow(
             recipes = dashboardViewModel.recipeSuggestions,
             onSeeAllClick = { /* navigate to Recipe tab */ }
@@ -193,17 +197,24 @@ fun ExpiryReminderCard(
                 onSeeAllClick = onSeeAllClick
             )
 
-            Text(
-                text = "${items.size} items expiring soon",
-                fontSize = 14.sp,
-                modifier = Modifier
-                    .padding(vertical = 4.dp)
-            )
+            if (items.isEmpty()) {
+                Text(
+                    text = "No items expiring soon",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+            } else {
+                Text(
+                    text = "${items.size} item${if (items.size == 1) "" else "s"} expiring soon",
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
 
-            items.forEach { item ->
-                ExpiryItemRow(item)
-
-                Spacer(modifier = Modifier.height(8.dp))
+                items.forEach { item ->
+                    ExpiryItemRow(item)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
     }
@@ -371,7 +382,7 @@ fun WasteReportSection(
         Text(
             "Items wasted, last 4 weeks",
             fontSize = 12.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
         )
@@ -416,7 +427,7 @@ fun RecipeCard(
             Icon(Icons.Default.RestaurantMenu, contentDescription = null)
             Spacer(modifier = Modifier.height(8.dp))
             Text(recipe.name, fontWeight = FontWeight.Bold)
-            Text(recipe.usesText, fontSize = 12.sp, color = Color.Gray)
+            Text(recipe.usesText, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
