@@ -179,7 +179,7 @@ private fun AppIdentityCard() {
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Version 0.8.6",
+            text = "Version 0.8.8",
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

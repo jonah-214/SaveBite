@@ -1,14 +1,13 @@
 package com.example.savebite.data.remote
 
-import com.example.savebite.BuildConfig
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 
 object SupabaseClientProvider {
     val client = createSupabaseClient(
-        supabaseUrl = BuildConfig.SUPABASE_URL,
-        supabaseKey = BuildConfig.SUPABASE_KEY
+        supabaseUrl = "https://ehjkuwpuwqthgzueezpi.supabase.co",
+        supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoamt1d3B1d3F0aGd6dWVlenBpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjIzODYsImV4cCI6MjEwMjUzODM4Nn0.66jElqHBveZlckQiWTt0TW1UIK6ilzds7qlKQ0bGopI"
     ) {
         install(Auth)
         install(Postgrest)
