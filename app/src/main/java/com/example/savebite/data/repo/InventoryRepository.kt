@@ -7,6 +7,10 @@ import com.example.savebite.model.Inventory
 import com.example.savebite.model.Storage
 import com.example.savebite.model.WastedItem
 import kotlinx.coroutines.flow.Flow
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class InventoryRepository(
     private val inventoryDao: InventoryDao,
@@ -50,5 +54,34 @@ class InventoryRepository(
         )
         wastedItemDao.insertWastedItem(wastedItem)
         inventoryDao.deleteItem(item)
+    }
+
+    suspend fun cleanupExpiredItems() {
+        val allItems = inventoryDao.getAllInventorySync()
+        val today = Date()
+        val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+
+        allItems.forEach { item ->
+            try {
+                val expiryDate = formatter.parse(item.expiry)
+                if (expiryDate != null) {
+                    val diffInMillis = expiryDate.time - today.time
+                    val days = TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS).toInt()
+
+                    if (days < 0) {
+                        // Expired
+                        markAsWaste(item)
+                    } else {
+                        // Update daysLeft if it changed
+                        val newDaysLeft = days + 1
+                        if (item.daysLeft != newDaysLeft) {
+                            inventoryDao.updateItem(item.copy(daysLeft = newDaysLeft))
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // Ignore parsing errors
+            }
+        }
     }
 }

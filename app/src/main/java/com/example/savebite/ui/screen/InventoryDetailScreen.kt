@@ -27,6 +27,7 @@ fun InventoryDetailScreen(
     onEditClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
     onWasteClick: () -> Unit = {}
+
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showWasteDialog by remember { mutableStateOf(false) }

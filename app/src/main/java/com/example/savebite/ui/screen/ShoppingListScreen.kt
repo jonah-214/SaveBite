@@ -1,5 +1,7 @@
 package com.example.savebite.ui.screen
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,6 +39,12 @@ fun ShoppingListScreen(
 
     // Track collapsed/expanded state for each category. Defaults to expanded (true).
     val categoryExpandedStates = remember { mutableStateMapOf<String, Boolean>() }
+
+    val progressAnim by animateFloatAsState(
+        targetValue = if (totalCount > 0) purchasedCount.toFloat() / totalCount else 0f,
+        animationSpec = tween(durationMillis = 300),
+        label = "progressAnimation"
+    )
 
     var itemToDelete by remember { mutableStateOf<ShoppingItem?>(null) }
 
@@ -88,18 +98,31 @@ fun ShoppingListScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("🧺", fontSize = 32.sp)
+                    Text(
+                        text = "🧺",
+                        fontSize = 32.sp,
+                        modifier = Modifier.semantics { contentDescription = "Shopping basket icon" }
+                    )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
+                        // Main Label: Handles empty list / zero items / singular / plural
                         Text(
-                            "$purchasedCount / $totalCount items purchased",
+                            text = when {
+                                totalCount == 0 -> "No items in list"
+                                purchasedCount == 0 -> "No items purchased"
+                                purchasedCount == 1 -> "1 / $totalCount item purchased"
+                                else -> "$purchasedCount / $totalCount items purchased"
+                            },
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
+
                         Spacer(modifier = Modifier.height(6.dp))
+
+                        // Smoothly animated progress bar
                         LinearProgressIndicator(
-                            progress = { if (totalCount > 0) purchasedCount.toFloat() / totalCount else 0f },
+                            progress = { progressAnim },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(6.dp)
@@ -107,9 +130,17 @@ fun ShoppingListScreen(
                             color = MaterialTheme.colorScheme.primary,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
+
                         Spacer(modifier = Modifier.height(4.dp))
+
+                        // Contextual encouragement subtext
                         Text(
-                            "Keep going! You're doing great!",
+                            text = when {
+                                totalCount == 0 -> "Add some items to get started!"
+                                purchasedCount == 0 -> "Ready to go? Start checking off your list!"
+                                purchasedCount == totalCount -> "All set! Everything has been purchased! 🎉"
+                                else -> "Keep going! You're making progress!"
+                            },
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

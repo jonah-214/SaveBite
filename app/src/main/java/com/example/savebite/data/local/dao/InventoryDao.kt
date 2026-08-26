@@ -18,6 +18,9 @@ interface InventoryDao {
     @Query("SELECT * FROM inventory_table ORDER BY daysLeft ASC")
     fun getAllInventory(): Flow<List<Inventory>>
 
+    @Query("SELECT * FROM inventory_table")
+    suspend fun getAllInventorySync(): List<Inventory>
+
     @Query("SELECT * FROM inventory_table WHERE id = :id")
     fun getInventoryById(id: String): Flow<Inventory?>
 

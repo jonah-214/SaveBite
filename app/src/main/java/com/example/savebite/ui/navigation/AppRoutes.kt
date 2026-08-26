@@ -42,6 +42,9 @@ object AppRoutes {
     const val INVENTORY_DETAILS = "inventory_details"
     const val INVENTORY_DETAILS_PATTERN = "inventory_details/{itemId}"
 
+    const val MOVE_TO_REPORT = "move_to_report"
+    const val MOVE_TO_REPORT_PATTERN = "move_to_report/{itemId}"
+
     const val ADD_SHOPPING_ITEM = "add_shopping_item"
     const val ADD_SHOPPING_ITEM_PATTERN = "add_shopping_item?itemId={itemId}"
 

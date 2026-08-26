@@ -44,6 +44,11 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
                 repository.searchAndFilter(query, storage)
             }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+        // Automatically clean up expired items on startup
+        viewModelScope.launch {
+            repository.cleanupExpiredItems()
+        }
     }
 
     fun saveItem(item: Inventory) = viewModelScope.launch {
