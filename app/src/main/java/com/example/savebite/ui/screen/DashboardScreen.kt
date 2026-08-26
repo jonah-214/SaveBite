@@ -21,12 +21,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.RestaurantMenu
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -37,12 +31,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.savebite.R
 import com.example.savebite.ui.navigation.AppRoutes
 import com.example.savebite.ui.theme.onWarningContainerLight
 import com.example.savebite.ui.theme.warningContainerLight
@@ -164,7 +159,7 @@ fun DashboardHeader(
                 .size(48.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.AccountCircle,
+                painter = painterResource(id = R.drawable.account_circle),
                 contentDescription = "Profile",
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.size(28.dp)
@@ -193,7 +188,7 @@ fun ExpiryReminderCard(
         ) {
             SectionHeader(
                 title = "Expiry Reminder",
-                icon = Icons.Default.Notifications,
+                icon = R.drawable.notifications,
                 onSeeAllClick = onSeeAllClick
             )
 
@@ -268,7 +263,7 @@ fun StatsRow(
         StatsCard(
             count = inventoryCount,
             label = "Inventory",
-            icon = Icons.Default.Inventory2,
+            icon = R.drawable.inventory_2,
             modifier = Modifier
                 .weight(1f),
             onClick = onInventoryClick
@@ -276,7 +271,7 @@ fun StatsRow(
         StatsCard(
             count = shoppingCount,
             label = "Shopping List",
-            icon = Icons.Default.ShoppingCart,
+            icon = R.drawable.shopping_cart,
             modifier = Modifier
                 .weight(1f),
             onClick = onShoppingClick
@@ -288,7 +283,7 @@ fun StatsRow(
 fun StatsCard(
     count: Int,
     label: String,
-    icon: ImageVector,
+    icon: Int,
     modifier: Modifier,
     onClick: () -> Unit
 ) {
@@ -303,9 +298,10 @@ fun StatsCard(
             .padding(16.dp)
         ) {
             Icon(
-                icon,
+                painter = painterResource(id = icon),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
             )
             Spacer(Modifier.height(8.dp))
             Text(
@@ -332,6 +328,7 @@ fun WasteReportSection(
     Column {
         SectionHeader(
             title = "Waste Report",
+            icon = R.drawable.assignment,
             onSeeAllClick = onSeeAllClick
         )
 
@@ -397,6 +394,7 @@ fun RecipeSuggestionsRow(
     Column {
         SectionHeader(
             title = "Recipe Suggestions",
+            icon = R.drawable.chef_hat,
             onSeeAllClick = onSeeAllClick
         )
 
@@ -424,7 +422,11 @@ fun RecipeCard(
         Column(modifier = Modifier
             .padding(12.dp)
         ) {
-            Icon(Icons.Default.RestaurantMenu, contentDescription = null)
+            Icon(
+                painter = painterResource(id = R.drawable.book_2),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(recipe.name, fontWeight = FontWeight.Bold)
             Text(recipe.usesText, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -448,7 +450,7 @@ fun SeeAllText(onClick: () -> Unit) {
 fun SectionHeader(
     title: String,
     modifier: Modifier = Modifier,
-    icon: ImageVector? = null,
+    icon: Int? = null,
     onSeeAllClick: () -> Unit
 ) {
     Row(
@@ -459,7 +461,7 @@ fun SectionHeader(
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (icon != null) {
                 Icon(
-                    imageVector = icon,
+                    painter = painterResource(id = icon),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)

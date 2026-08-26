@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Group
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -126,7 +124,7 @@ fun AboutUsScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     SettingsRow(
-                        icon = Icons.Default.Group,
+                        icon = R.drawable.group,
                         label = "Jonathan Nah",
                         subtitle = "Authentication, Dashboard, Expiry, Settings",
                         onClick = { },
@@ -134,7 +132,7 @@ fun AboutUsScreen(
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     SettingsRow(
-                        icon = Icons.Default.Group,
+                        icon = R.drawable.group,
                         label = "Xin Yi",
                         subtitle = "Inventory, Shopping, Recipe, Reports",
                         onClick = { },

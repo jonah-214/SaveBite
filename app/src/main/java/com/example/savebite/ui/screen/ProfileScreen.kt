@@ -19,18 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -49,11 +37,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.savebite.R
 import com.example.savebite.ui.navigation.AppRoutes
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ProfileViewModel
@@ -180,7 +169,7 @@ fun ProfileHeaderCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Default.AccountCircle,
+                    painter = painterResource(id = R.drawable.account_circle),
                     contentDescription = "Avatar",
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(40.dp)
@@ -228,10 +217,9 @@ fun AccountSettingsCard(
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
-        // Manage Profile & Password Settings
         Column(modifier = Modifier.padding(16.dp)) {
             SettingsRow(
-                icon = Icons.Default.Person,
+                icon = R.drawable.person,
                 label = "Edit Profile",
                 subtitle = "Change profile picture, number, E-mail",
                 onClick = onEditProfileClick
@@ -240,7 +228,7 @@ fun AccountSettingsCard(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
             SettingsRow(
-                icon = Icons.Default.Lock,
+                icon = R.drawable.lock,
                 label = "Change Password",
                 subtitle = "Update and strengthen account security",
                 onClick = onChangePasswordClick
@@ -265,7 +253,7 @@ fun PreferencesCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             SettingsRow(
-                icon = Icons.Default.Notifications,
+                icon = R.drawable.notification_settings,
                 label = "Notification",
                 subtitle = "Customize your notification preferences",
                 onClick = { onNotificationToggle(!notificationEnabled) },
@@ -306,7 +294,7 @@ fun AppearanceExpandableRow(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = Icons.Default.DarkMode,
+                    painter = painterResource(id = R.drawable.dark_mode),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(22.dp)
@@ -326,7 +314,7 @@ fun AppearanceExpandableRow(
                 }
             }
             Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                painterResource(id = if (expanded) R.drawable.arrow_up else R.drawable.arrow_down),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -376,7 +364,7 @@ fun ThemeOptionRow(
         )
         if (selected) {
             Icon(
-                imageVector = Icons.Default.Check,
+                painter = painterResource(id = R.drawable.check),
                 contentDescription = "Selected",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(18.dp)
@@ -404,7 +392,7 @@ fun SupportCard(
         // Support Settings
         Column(modifier = Modifier.padding(16.dp)) {
             SettingsRow(
-                icon = Icons.Default.Info,
+                icon = R.drawable.info,
                 label = "About Us",
                 subtitle = "Learn more about SaveBite",
                 onClick = onAboutUsClick
@@ -425,13 +413,13 @@ fun SectionLabel(text: String) {
 
 @Composable
 fun SettingsRow(
-    icon: ImageVector,
+    icon: Int,
     label: String,
     subtitle: String,
     onClick: () -> Unit,
     trailing: @Composable () -> Unit = {
         Icon(
-            Icons.Default.ChevronRight,
+            painterResource(id = R.drawable.arrow_right),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -449,7 +437,7 @@ fun SettingsRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = icon,
+                painter = painterResource(id = icon),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(22.dp)
@@ -491,7 +479,7 @@ fun LogoutButton(
             .height(52.dp)
     ) {
         Icon(
-            imageVector = Icons.AutoMirrored.Filled.Logout,
+            painter = painterResource(id = R.drawable.logout),
             contentDescription = null
         )
 

@@ -187,7 +187,7 @@ fun InventoryDetailScreen(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                painter = painterResource(R.drawable.inventory),
+                                painter = painterResource(R.drawable.inventory_2),
                                 contentDescription = "Quantity",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
@@ -282,7 +282,7 @@ fun InventoryDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.calendar),
+                            painter = painterResource(R.drawable.calender),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
@@ -310,7 +310,7 @@ fun InventoryDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.calendar_clock),
+                            painter = painterResource(R.drawable.calender_clock),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(20.dp)

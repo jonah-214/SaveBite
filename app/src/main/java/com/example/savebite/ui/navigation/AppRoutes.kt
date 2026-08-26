@@ -1,12 +1,6 @@
 package com.example.savebite.ui.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material.icons.filled.RestaurantMenu
-import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.savebite.R
 
 // Navigation routes
 object AppRoutes {
@@ -54,40 +48,40 @@ object AppRoutes {
     const val ADD_TO_INVENTORY = "add_to_inventory"
 }
 
-// Navigation items
+// Bottom Navigation items
 data class BottomNavItem(
     val route: String,
     val label: String,
-    val icon: ImageVector
+    val icon: Int
 )
 
-// List of navigation items
+// List of bottom navigation items
 object BottomNavItems {
     val bottomNavItems = listOf(
         BottomNavItem(
             AppRoutes.DASHBOARD,
             "Home",
-            Icons.Default.Home
+            R.drawable.home
         ),
         BottomNavItem(
             AppRoutes.INVENTORY,
             "Inventory",
-            Icons.Default.Inventory
+            R.drawable.inventory_2
         ),
         BottomNavItem(
             AppRoutes.SHOPPING,
             "Shopping",
-            Icons.Default.ShoppingBag
+            R.drawable.shopping_bag
         ),
         BottomNavItem(
             AppRoutes.RECIPE,
             "Recipe",
-            Icons.Default.RestaurantMenu
+            R.drawable.chef_hat
         ),
         BottomNavItem(
             AppRoutes.REPORTS,
             "Reports",
-            Icons.Default.BarChart
+            R.drawable.bar_chart
         )
     )
 }

@@ -353,7 +353,7 @@ fun AddInventoryScreen(
                         label = { Text("Purchase Date") },
                         trailingIcon = {
                             Icon(
-                                painter = painterResource(R.drawable.calendar),
+                                painter = painterResource(R.drawable.calender),
                                 contentDescription = "Purchase Date",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
@@ -385,7 +385,7 @@ fun AddInventoryScreen(
                         label = { Text("Expiry Date") },
                         trailingIcon = {
                             Icon(
-                                painter = painterResource(R.drawable.calendar_clock),
+                                painter = painterResource(R.drawable.calender_clock),
                                 contentDescription = "Expiry Date",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
