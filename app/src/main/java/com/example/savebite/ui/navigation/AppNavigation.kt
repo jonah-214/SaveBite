@@ -32,6 +32,7 @@ import com.example.savebite.ui.screen.DashboardScreen
 import com.example.savebite.ui.screen.EditProfileScreen
 import com.example.savebite.ui.screen.ForgotPasswordScreen
 import com.example.savebite.ui.screen.InventoryDetailScreen
+import com.example.savebite.ui.screen.InventoryItemToReportScreen // 确认此处类名与您项目一致
 import com.example.savebite.ui.screen.InventoryList
 import com.example.savebite.ui.screen.LoginScreen
 import com.example.savebite.ui.screen.ManageStorageScreen
@@ -210,6 +211,32 @@ fun AppNavigation(
                     onNavigateToManageStorage = {
                         navController.navigate(AppRoutes.MANAGE_STORAGE) {
                             launchSingleTop = true
+                        }
+                    },
+                    onToggleConsume = { item ->
+                        inventoryViewModel.toggleConsumed(item)
+                    },
+                    // 修改点 1：点击后导航至转入 Report 的中间确认页面，而非直接跳转到主 Report 页
+                    onMoveConsumedToReport = {
+                        navController.navigate(AppRoutes.INVENTORY_TO_REPORT) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
+            // 修改点 2：新增 Inventory To Report 路由注册
+            composable(AppRoutes.INVENTORY_TO_REPORT) {
+                val parentEntry = remember(it) { navController.getBackStackEntry(AppRoutes.INVENTORY) }
+                val inventoryViewModel: InventoryViewModel = viewModel(viewModelStoreOwner = parentEntry)
+
+                InventoryItemToReportScreen(
+                    viewModel = inventoryViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onSuccess = {
+                        // 在此界面处理完后再跳转去 Reports 报表页面
+                        navController.navigate(AppRoutes.REPORTS) {
+                            popUpTo(AppRoutes.INVENTORY)
                         }
                     }
                 )

@@ -84,4 +84,21 @@ class InventoryRepository(
             }
         }
     }
+
+    suspend fun toggleConsumed(item: Inventory) {
+        val updated = item.copy(isConsumed = !item.isConsumed)
+        inventoryDao.updateItem(updated)
+    }
+
+    // 批量移至 Report (已消耗)
+    suspend fun moveConsumedToReport() {
+        val consumedList = inventoryDao.getConsumedItems()
+        if (consumedList.isNotEmpty()) {
+            // 这里根据你的系统，可以将数据写入 ReportDao / ConsumedDao
+            // 例如: consumedItemDao.insertAll(consumedList.map { ... })
+
+            // 移完后从 Inventory 中清除
+            inventoryDao.deleteConsumedItems()
+        }
+    }
 }

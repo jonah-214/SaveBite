@@ -20,8 +20,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Database(
-    entities = [Inventory::class, Storage::class, User::class, ShoppingItem::class, WastedItem::class],
-    version = 6,
+    entities = [
+        Inventory::class,
+        Storage::class,
+        User::class,
+        ShoppingItem::class,
+        WastedItem::class
+    ],
+    version = 7, // 提升版本号至 7 以覆盖你之前的 schema 修改
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,7 +36,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun storageDao(): StorageDao
     abstract fun userDao(): UserDao
     abstract fun shoppingDao(): ShoppingDao
-
     abstract fun wastedItemDao(): WastedItemDao
 
     companion object {
@@ -48,11 +53,14 @@ abstract class AppDatabase : RoomDatabase() {
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
-                            CoroutineScope(Dispatchers.IO).launch {
-                                getDatabase(context).storageDao().apply {
-                                    insertStorage(Storage("Pantry"))
-                                    insertStorage(Storage("Refrigerator"))
-                                    insertStorage(Storage("Freezer"))
+                            // 修复点：直接使用已构建好的 instance 句柄，避免再次调用 getDatabase 导致死锁
+                            INSTANCE?.let { database ->
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    database.storageDao().apply {
+                                        insertStorage(Storage("Pantry"))
+                                        insertStorage(Storage("Refrigerator"))
+                                        insertStorage(Storage("Freezer"))
+                                    }
                                 }
                             }
                         }

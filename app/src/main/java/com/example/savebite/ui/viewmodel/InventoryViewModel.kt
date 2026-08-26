@@ -75,4 +75,13 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun getItemById(id: String) = repository.getItemById(id)
+
+    fun toggleConsumed(item: Inventory) = viewModelScope.launch {
+        repository.toggleConsumed(item)
+    }
+
+    fun transferSelectedToReport(onSuccess: () -> Unit) = viewModelScope.launch {
+        repository.moveConsumedToReport()
+        onSuccess()
+    }
 }

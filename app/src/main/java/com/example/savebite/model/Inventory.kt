@@ -17,5 +17,6 @@ data class Inventory(
     val daysLeft: Int,
     val purchaseDate: String = "",
     val expiry: String,
-    val notes: String = ""
+    val notes: String = "",
+    val isConsumed: Boolean = false
 )
