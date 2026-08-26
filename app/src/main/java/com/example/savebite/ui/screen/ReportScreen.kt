@@ -12,9 +12,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.outlined.CheckCircleOutline
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.EmojiEvents
-import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,15 +26,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ReportViewModel
 import java.text.DateFormatSymbols
-import java.text.SimpleDateFormat
-import java.util.*
 
 // Visualization Colors
 val VegGreen = Color(0xFF55823B)
@@ -81,29 +78,43 @@ fun ReportScreen(viewModel: ReportViewModel) {
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Calendar Selector Button (Month only)
-            OutlinedButton(
-                onClick = { showMonthPicker = true },
+            // 改动 1：Waste Summary 标题 + 放在右侧的小巧日历按钮
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.primary
-                )
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.CalendarMonth, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = dateDisplay, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "Waste Summary",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                // 精简版胶囊日历按钮
+                OutlinedButton(
+                    onClick = { showMonthPicker = true },
+                    shape = RoundedCornerShape(16.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                    modifier = Modifier.height(32.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = dateDisplay,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Summary Title
-            Text(
-                text = "Waste Summary",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onBackground
-            )
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -224,10 +235,11 @@ fun ReportScreen(viewModel: ReportViewModel) {
 
                     if (state.topItems.isNotEmpty()) {
                         state.topItems.take(5).forEach { item ->
-                            WastedItemRow(
+                            ItemStatRow(
                                 name = item.name,
                                 count = item.count,
-                                percentage = item.percentage
+                                percentage = item.percentage,
+                                progressColor = MaterialTheme.colorScheme.primary
                             )
                         }
                     } else {
@@ -235,6 +247,59 @@ fun ReportScreen(viewModel: ReportViewModel) {
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 改动 2：底部 Consumed Items 卡片
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Outlined.CheckCircleOutline,
+                                contentDescription = null,
+                                tint = VegGreen,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Consumed Items", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                        }
+                        TextButton(onClick = { /* View More */ }, contentPadding = PaddingValues(0.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("View More", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 绑定显示的 Consumed 食材列表
+                    if (state.topItems.isNotEmpty()) {
+                        state.topItems.take(5).forEach { item ->
+                            ItemStatRow(
+                                name = item.name,
+                                count = item.count,
+                                percentage = item.percentage,
+                                progressColor = VegGreen
+                            )
+                        }
+                    } else {
+                        Text("No consumed items recorded for this month", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 16.dp))
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -457,7 +522,12 @@ fun LegendRow(color: Color, label: String, count: Int, percentage: Int) {
 }
 
 @Composable
-fun WastedItemRow(name: String, count: Int, percentage: Float) {
+fun ItemStatRow(
+    name: String,
+    count: Int,
+    percentage: Float,
+    progressColor: Color = MaterialTheme.colorScheme.primary
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -478,7 +548,7 @@ fun WastedItemRow(name: String, count: Int, percentage: Float) {
 
         LinearProgressIndicator(
             progress = { (percentage / 100f).coerceIn(0f, 1f) },
-            color = MaterialTheme.colorScheme.primary,
+            color = progressColor,
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier
                 .weight(1f)
