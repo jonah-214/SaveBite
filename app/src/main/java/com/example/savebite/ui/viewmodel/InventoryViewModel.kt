@@ -32,7 +32,7 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
 
     init {
         val db = AppDatabase.getDatabase(application)
-        repository = InventoryRepository(db.inventoryDao(), db.storageDao(), db.wastedItemDao())
+        repository = InventoryRepository(db.inventoryDao(), db.storageDao(), db.reportDao())
 
         // Combine default storages with dynamic storages from Room DB
         storageList = repository.allStorageNames.map { dbStorages ->
@@ -59,8 +59,8 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
         repository.deleteItem(item)
     }
 
-    fun markAsWaste(item: Inventory) = viewModelScope.launch {
-        repository.markAsWaste(item)
+    fun markAsWaste(item: Inventory, reason: String = "Expired") = viewModelScope.launch {
+        repository.markAsWaste(item, reason)
     }
 
     fun addStorage(name: String) = viewModelScope.launch {

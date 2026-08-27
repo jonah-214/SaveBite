@@ -26,11 +26,13 @@ fun InventoryDetailScreen(
     onBackClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
-    onWasteClick: () -> Unit = {}
+    onWasteClick: (String) -> Unit = {}
 
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showWasteDialog by remember { mutableStateOf(false) }
+
+    var wasteReason by remember { mutableStateOf("") }
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -59,21 +61,47 @@ fun InventoryDetailScreen(
 
     if (showWasteDialog) {
         AlertDialog(
-            onDismissRequest = { showWasteDialog = false },
+            onDismissRequest = {
+                showWasteDialog = false
+                wasteReason = "" // 关闭弹窗时重置输入
+            },
             title = { Text(text = "Mark as Waste", color = MaterialTheme.colorScheme.onSurface) },
-            text = { Text(text = "Are you sure you want to mark ${detail.name} as waste?", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+            text = {
+                // 3. 将原来的纯文本扩展为 Column，加上输入框
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = "Are you sure you want to mark ${detail.name} as waste?",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    OutlinedTextField(
+                        value = wasteReason,
+                        onValueChange = { wasteReason = it },
+                        label = { Text("Reason (Optional)") },
+                        placeholder = { Text("e.g. Expired, Spoiled, Moldy") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                }
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onWasteClick()
+                        onWasteClick(wasteReason.ifBlank { "Expired" }) // 传递原因（若为空可给默认值）
                         showWasteDialog = false
+                        wasteReason = ""
                     }
                 ) {
                     Text("Waste", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showWasteDialog = false }) {
+                TextButton(
+                    onClick = {
+                        showWasteDialog = false
+                        wasteReason = ""
+                    }
+                ) {
                     Text("Cancel", color = MaterialTheme.colorScheme.outline)
                 }
             },

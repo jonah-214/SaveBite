@@ -6,15 +6,15 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.savebite.data.local.dao.InventoryDao
+import com.example.savebite.data.local.dao.ReportDao
 import com.example.savebite.data.local.dao.ShoppingDao
 import com.example.savebite.data.local.dao.StorageDao
 import com.example.savebite.data.local.dao.UserDao
-import com.example.savebite.data.local.dao.WastedItemDao
 import com.example.savebite.model.Inventory
+import com.example.savebite.model.ReportItem
 import com.example.savebite.model.ShoppingItem
 import com.example.savebite.model.Storage
 import com.example.savebite.model.User
-import com.example.savebite.model.WastedItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,9 +25,9 @@ import kotlinx.coroutines.launch
         Storage::class,
         User::class,
         ShoppingItem::class,
-        WastedItem::class
+        ReportItem::class
     ],
-    version = 7, // 提升版本号至 7 以覆盖你之前的 schema 修改
+    version = 8, // 修改点：提升版本号至 8 以更新数据库表结构
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -36,7 +36,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun storageDao(): StorageDao
     abstract fun userDao(): UserDao
     abstract fun shoppingDao(): ShoppingDao
-    abstract fun wastedItemDao(): WastedItemDao
+    abstract fun reportDao(): ReportDao
 
     companion object {
         @Volatile
@@ -53,7 +53,6 @@ abstract class AppDatabase : RoomDatabase() {
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
-                            // 修复点：直接使用已构建好的 instance 句柄，避免再次调用 getDatabase 导致死锁
                             INSTANCE?.let { database ->
                                 CoroutineScope(Dispatchers.IO).launch {
                                     database.storageDao().apply {

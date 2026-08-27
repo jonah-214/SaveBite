@@ -128,7 +128,7 @@ fun ReportScreen(viewModel: ReportViewModel) {
                     iconBg = MaterialTheme.colorScheme.primaryContainer,
                     iconTint = MaterialTheme.colorScheme.primary,
                     title = "Total Items",
-                    value = "${state.totalItems} items",
+                    value = "${state.totalWastedItems} items",
                     subtitle = "Wasted",
                     modifier = Modifier.weight(1f)
                 )
@@ -169,13 +169,13 @@ fun ReportScreen(viewModel: ReportViewModel) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    if (state.totalItems > 0) {
+                    if (state.totalWastedItems > 0) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             SolidPieChart(
-                                percentages = state.breakdowns.map { it.percentage },
+                                percentages = state.wastedBreakdowns.map { it.percentage },
                                 colors = CategoryColorsList,
                                 modifier = Modifier.size(140.dp)
                             )
@@ -186,7 +186,7 @@ fun ReportScreen(viewModel: ReportViewModel) {
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
                                 modifier = Modifier.weight(1f)
                             ) {
-                                state.breakdowns.forEachIndexed { index, item ->
+                                state.wastedBreakdowns.forEachIndexed { index, item ->
                                     LegendRow(
                                         color = CategoryColorsList.getOrElse(index) { Color.Gray },
                                         label = item.category,
@@ -196,7 +196,8 @@ fun ReportScreen(viewModel: ReportViewModel) {
                                 }
                             }
                         }
-                    } else {
+                    }
+else {
                         Box(
                             modifier = Modifier.fillMaxWidth().height(140.dp),
                             contentAlignment = Alignment.Center
@@ -233,8 +234,8 @@ fun ReportScreen(viewModel: ReportViewModel) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    if (state.topItems.isNotEmpty()) {
-                        state.topItems.take(5).forEach { item ->
+                    if (state.topWastedItems.isNotEmpty()) {
+                        state.topWastedItems.take(5).forEach { item ->
                             ItemStatRow(
                                 name = item.name,
                                 count = item.count,
@@ -244,6 +245,34 @@ fun ReportScreen(viewModel: ReportViewModel) {
                         }
                     } else {
                         Text("No items found", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 16.dp))
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Waste Reasons Card
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Waste Reasons", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (state.reasonBreakdowns.isNotEmpty()) {
+                        state.reasonBreakdowns.forEach { reason ->
+                            ReasonRow(
+                                reason = reason.reason,
+                                count = reason.count,
+                                percentage = reason.percentage
+                            )
+                        }
+                    } else {
+                        Text("No reasons recorded", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 16.dp))
                     }
                 }
             }
@@ -284,8 +313,8 @@ fun ReportScreen(viewModel: ReportViewModel) {
                     Spacer(modifier = Modifier.height(8.dp))
 
                     // 绑定显示的 Consumed 食材列表
-                    if (state.topItems.isNotEmpty()) {
-                        state.topItems.take(5).forEach { item ->
+                    if (state.topConsumedItems.isNotEmpty()) {
+                        state.topConsumedItems.take(5).forEach { item ->
                             ItemStatRow(
                                 name = item.name,
                                 count = item.count,
@@ -453,6 +482,40 @@ fun SolidPieChart(
 
             startAngle += sweepAngle
         }
+    }
+}
+
+@Composable
+fun ReasonRow(reason: String, count: Int, percentage: Float) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = reason,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            LinearProgressIndicator(
+                progress = { (percentage / 100f).coerceIn(0f, 1f) },
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp)),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        }
+        Text(
+            text = "$count items (${percentage.toInt()}%)",
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

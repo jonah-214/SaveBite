@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
         val themePreferenceManager = ThemePreferenceManager(this)
 
         val userRepository = UserRepository(database.userDao())
-        val inventoryRepository = InventoryRepository(database.inventoryDao(), database.storageDao(), database.wastedItemDao())
+        val inventoryRepository = InventoryRepository(database.inventoryDao(), database.storageDao(), database.reportDao())
         val shoppingRepository = ShoppingRepository(database.shoppingDao())
         val supabaseAuthRepository = SupabaseAuthRepository(userRepository)
 

@@ -2,10 +2,12 @@ package com.example.savebite.data.repo
 
 import com.example.savebite.data.local.dao.InventoryDao
 import com.example.savebite.data.local.dao.StorageDao
-import com.example.savebite.data.local.dao.WastedItemDao
+import com.example.savebite.data.local.dao.ReportDao
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.Storage
-import com.example.savebite.model.WastedItem
+import com.example.savebite.model.ReportItem
+import com.example.savebite.model.ReportStatus
+import com.example.savebite.model.ReportStatus.WASTED
 import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -15,7 +17,7 @@ import java.util.concurrent.TimeUnit
 class InventoryRepository(
     private val inventoryDao: InventoryDao,
     private val storageDao: StorageDao,
-    private val wastedItemDao: WastedItemDao
+    private val reportDao: ReportDao
 ) {
 
     val allInventory: Flow<List<Inventory>> = inventoryDao.getAllInventory()
@@ -45,15 +47,40 @@ class InventoryRepository(
         storageDao.deleteStorage(Storage(name))
     }
 
-    suspend fun markAsWaste(item: Inventory) {
-        val wastedItem = WastedItem(
+    suspend fun markAsWaste(item: Inventory, reason: String) {
+        val reportItem = ReportItem(
             name = item.name,
             category = item.category,
             quantity = item.quantity,
-            unit = item.unit
+            unit = item.unit,
+            status = WASTED,
+            reason = reason
         )
-        wastedItemDao.insertWastedItem(wastedItem)
+        this@InventoryRepository.reportDao.insertReportItem(reportItem)
         inventoryDao.deleteItem(item)
+    }
+
+    suspend fun toggleConsumed(item: Inventory) {
+        val updated = item.copy(isConsumed = !item.isConsumed)
+        inventoryDao.updateItem(updated)
+    }
+
+    suspend fun moveConsumedToReport() {
+        val consumedList = inventoryDao.getConsumedItems()
+        if (consumedList.isNotEmpty()) {
+            val reportItems = consumedList.map { item ->
+                ReportItem(
+                    name = item.name,
+                    category = item.category,
+                    quantity = item.quantity,
+                    unit = item.unit,
+                    status = ReportStatus.CONSUMED,
+                    reason = "Consumed"
+                )
+            }
+            this@InventoryRepository.reportDao.insertReportItems(reportItems) // 批量插入
+            inventoryDao.deleteConsumedItems()
+        }
     }
 
     suspend fun cleanupExpiredItems() {
@@ -70,7 +97,7 @@ class InventoryRepository(
 
                     if (days < 0) {
                         // Expired
-                        markAsWaste(item)
+                        markAsWaste(item, "Expired")
                     } else {
                         // Update daysLeft if it changed
                         val newDaysLeft = days + 1
@@ -82,23 +109,6 @@ class InventoryRepository(
             } catch (e: Exception) {
                 // Ignore parsing errors
             }
-        }
-    }
-
-    suspend fun toggleConsumed(item: Inventory) {
-        val updated = item.copy(isConsumed = !item.isConsumed)
-        inventoryDao.updateItem(updated)
-    }
-
-    // 批量移至 Report (已消耗)
-    suspend fun moveConsumedToReport() {
-        val consumedList = inventoryDao.getConsumedItems()
-        if (consumedList.isNotEmpty()) {
-            // 这里根据你的系统，可以将数据写入 ReportDao / ConsumedDao
-            // 例如: consumedItemDao.insertAll(consumedList.map { ... })
-
-            // 移完后从 Inventory 中清除
-            inventoryDao.deleteConsumedItems()
         }
     }
 }

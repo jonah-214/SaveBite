@@ -289,8 +289,8 @@ fun AppNavigation(
                             inventoryViewModel.deleteItem(item)
                             navController.popBackStack()
                         },
-                        onWasteClick = {
-                            inventoryViewModel.markAsWaste(item)
+                        onWasteClick = { reason ->
+                            inventoryViewModel.markAsWaste(item, reason)
                             navController.popBackStack()
                         }
                     )
@@ -313,7 +313,7 @@ fun AppNavigation(
             composable(AppRoutes.SHOPPING) {
                 val context = navController.context
                 val db = AppDatabase.getDatabase(context)
-                val inventoryRepository = remember { InventoryRepository(db.inventoryDao(), db.storageDao(), db.wastedItemDao()) }
+                val inventoryRepository = remember { InventoryRepository(db.inventoryDao(), db.storageDao(), db.reportDao()) }
                 val shoppingRepository = remember { ShoppingRepository(db.shoppingDao()) }
 
                 val shoppingViewModel: ShoppingViewModel = viewModel(
@@ -394,7 +394,7 @@ fun AppNavigation(
                 val reportViewModel: ReportViewModel = viewModel(
                     factory = object : ViewModelProvider.Factory {
                         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                            return ReportViewModel(db.wastedItemDao()) as T
+                            return ReportViewModel(db.reportDao()) as T
                         }
                     }
                 )

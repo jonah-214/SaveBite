@@ -2,25 +2,37 @@ package com.example.savebite.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.savebite.data.local.dao.WastedItemDao
-import com.example.savebite.model.WastedItem
+import com.example.savebite.data.local.dao.ReportDao
+import com.example.savebite.model.ReportItem
+import com.example.savebite.model.ReportStatus
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import java.util.*
 
 data class CategoryBreakdown(val category: String, val count: Int, val percentage: Float)
 data class TopWastedItem(val name: String, val count: Int, val percentage: Float)
+data class ReasonBreakdown(val reason: String, val count: Int, val percentage: Float)
 
 data class ReportUiState(
     val selectedMonth: Int = Calendar.getInstance().get(Calendar.MONTH),
     val selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR),
-    val totalItems: Int = 0,
+    
+    // Wasted Stats
+    val totalWastedItems: Int = 0,
     val mostWastedName: String = "-",
     val mostWastedCount: Int = 0,
-    val breakdowns: List<CategoryBreakdown> = emptyList(),
-    val topItems: List<TopWastedItem> = emptyList()
+    val wastedBreakdowns: List<CategoryBreakdown> = emptyList(),
+    val topWastedItems: List<TopWastedItem> = emptyList(),
+    val reasonBreakdowns: List<ReasonBreakdown> = emptyList(),
+
+    // Consumed Stats
+    val totalConsumedItems: Int = 0,
+    val consumedBreakdowns: List<CategoryBreakdown> = emptyList(),
+    val topConsumedItems: List<TopWastedItem> = emptyList()
 )
 
-class ReportViewModel(private val wastedDao: WastedItemDao) : ViewModel() {
+@OptIn(ExperimentalCoroutinesApi::class)
+class ReportViewModel(private val reportDao: ReportDao) : ViewModel() {
 
     private val _selectedMonthYear = MutableStateFlow(
         Pair(
@@ -33,7 +45,7 @@ class ReportViewModel(private val wastedDao: WastedItemDao) : ViewModel() {
     val uiState: StateFlow<ReportUiState> = _selectedMonthYear
         .flatMapLatest { (month, year) ->
             val range = getMonthRange(month, year)
-            wastedDao.getWastedInRange(range.first, range.second).map { items ->
+            reportDao.getReportItemsInRange(range.first, range.second).map { items ->
                 calculateReport(items, month, year)
             }
         }
@@ -57,42 +69,68 @@ class ReportViewModel(private val wastedDao: WastedItemDao) : ViewModel() {
         calendar.add(Calendar.MONTH, 1)
         calendar.add(Calendar.MILLISECOND, -1)
         val end = calendar.timeInMillis
-        
+
         return Pair(start, end)
     }
 
-    private fun calculateReport(items: List<WastedItem>, month: Int, year: Int): ReportUiState {
-        val totalCount = items.sumOf { it.quantity }
-        if (totalCount == 0) return ReportUiState(selectedMonth = month, selectedYear = year)
+    private fun calculateReport(items: List<ReportItem>, month: Int, year: Int): ReportUiState {
+        val wastedItems = items.filter { it.status == ReportStatus.WASTED }
+        val consumedItems = items.filter { it.status == ReportStatus.CONSUMED }
 
-        // Top Wasted Single Item
-        val topItem = items.groupBy { it.name }
+        val totalWasted = wastedItems.sumOf { it.quantity }
+        val totalConsumed = consumedItems.sumOf { it.quantity }
+
+        // Wasted Calculations
+        val topWasted = wastedItems.groupBy { it.name }
             .mapValues { entry -> entry.value.sumOf { it.quantity } }
             .maxByOrNull { it.value }
 
-        // Category Breakdown
-        val categories = items.groupBy { it.category }
+        val wastedCategories = wastedItems.groupBy { it.category }
             .map { (cat, list) ->
                 val catCount = list.sumOf { it.quantity }
-                CategoryBreakdown(cat, catCount, ((catCount.toFloat() / totalCount) * 100))
+                CategoryBreakdown(cat, catCount, if (totalWasted > 0) ((catCount.toFloat() / totalWasted) * 100) else 0f)
             }
 
-        // Item List
-        val topItems = items.groupBy { it.name }
+        val topWastedList = wastedItems.groupBy { it.name }
             .map { (name, list) ->
                 val itemCount = list.sumOf { it.quantity }
-                TopWastedItem(name, itemCount, ((itemCount.toFloat() / totalCount) * 100))
+                TopWastedItem(name, itemCount, if (totalWasted > 0) ((itemCount.toFloat() / totalWasted) * 100) else 0f)
+            }
+            .sortedByDescending { it.count }
+
+        val reasonBreakdown = wastedItems.groupBy { it.reason }
+            .map { (reason, list) ->
+                val reasonCount = list.sumOf { it.quantity }
+                ReasonBreakdown(reason, reasonCount, if (totalWasted > 0) ((reasonCount.toFloat() / totalWasted) * 100) else 0f)
+            }
+            .sortedByDescending { it.count }
+
+        // Consumed Calculations
+        val consumedCategories = consumedItems.groupBy { it.category }
+            .map { (cat, list) ->
+                val catCount = list.sumOf { it.quantity }
+                CategoryBreakdown(cat, catCount, if (totalConsumed > 0) ((catCount.toFloat() / totalConsumed) * 100) else 0f)
+            }
+
+        val topConsumedList = consumedItems.groupBy { it.name }
+            .map { (name, list) ->
+                val itemCount = list.sumOf { it.quantity }
+                TopWastedItem(name, itemCount, if (totalConsumed > 0) ((itemCount.toFloat() / totalConsumed) * 100) else 0f)
             }
             .sortedByDescending { it.count }
 
         return ReportUiState(
             selectedMonth = month,
             selectedYear = year,
-            totalItems = totalCount,
-            mostWastedName = topItem?.key ?: "-",
-            mostWastedCount = topItem?.value ?: 0,
-            breakdowns = categories,
-            topItems = topItems
+            totalWastedItems = totalWasted,
+            mostWastedName = topWasted?.key ?: "-",
+            mostWastedCount = topWasted?.value ?: 0,
+            wastedBreakdowns = wastedCategories,
+            topWastedItems = topWastedList,
+            reasonBreakdowns = reasonBreakdown,
+            totalConsumedItems = totalConsumed,
+            consumedBreakdowns = consumedCategories,
+            topConsumedItems = topConsumedList
         )
     }
 }
