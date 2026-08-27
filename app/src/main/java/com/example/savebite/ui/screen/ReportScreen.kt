@@ -41,7 +41,12 @@ val OtherPurple = Color(0xFF8E63B4)
 val CategoryColorsList = listOf(VegGreen, FruitOrange, GrainBlue, OtherPurple)
 
 @Composable
-fun ReportScreen(viewModel: ReportViewModel) {
+fun ReportScreen(
+    viewModel: ReportViewModel,
+    onNavigateToCategoryBreakdown: () -> Unit = {},
+    onNavigateToWastedItems: () -> Unit = {},
+    onNavigateToConsumedItems: () -> Unit = {}
+) {
     val state by viewModel.uiState.collectAsState()
     var showMonthPicker by remember { mutableStateOf(false) }
 
@@ -159,7 +164,7 @@ fun ReportScreen(viewModel: ReportViewModel) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Waste Breakdown", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
-                        TextButton(onClick = { /* View More */ }, contentPadding = PaddingValues(0.dp)) {
+                        TextButton(onClick = onNavigateToCategoryBreakdown, contentPadding = PaddingValues(0.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("View More", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                                 Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
@@ -224,7 +229,7 @@ else {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Most Wasted Items", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
-                        TextButton(onClick = { /* View More */ }, contentPadding = PaddingValues(0.dp)) {
+                        TextButton(onClick = onNavigateToWastedItems, contentPadding = PaddingValues(0.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("View More", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                                 Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
@@ -302,7 +307,7 @@ else {
                             Spacer(modifier = Modifier.width(6.dp))
                             Text("Consumed Items", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
                         }
-                        TextButton(onClick = { /* View More */ }, contentPadding = PaddingValues(0.dp)) {
+                        TextButton(onClick = onNavigateToConsumedItems, contentPadding = PaddingValues(0.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("View More", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                                 Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))

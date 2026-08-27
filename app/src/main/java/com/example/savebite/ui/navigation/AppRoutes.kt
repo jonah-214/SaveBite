@@ -35,6 +35,11 @@ object AppRoutes {
     // About Us screen
     const val ABOUT_US = "about_us"
 
+    // Report Detail screens
+    const val WASTE_BREAKDOWN = "waste_breakdown"
+    const val WASTED_ITEMS = "wasted_items"
+    const val CONSUMED_ITEMS = "consumed_items"
+
     // Routes with arguments
     const val ADD_INVENTORY = "add_inventory"
     const val ADD_INVENTORY_PATTERN = "add_inventory?itemId={itemId}"

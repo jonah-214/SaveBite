@@ -28,6 +28,7 @@ import com.example.savebite.ui.screen.AboutUsScreen
 import com.example.savebite.ui.screen.AddInventoryScreen
 import com.example.savebite.ui.screen.AddShoppingItemScreen
 import com.example.savebite.ui.screen.ChangePasswordScreen
+import com.example.savebite.ui.screen.ConsumedItemsListScreen
 import com.example.savebite.ui.screen.DashboardScreen
 import com.example.savebite.ui.screen.EditProfileScreen
 import com.example.savebite.ui.screen.ForgotPasswordScreen
@@ -42,6 +43,8 @@ import com.example.savebite.ui.screen.ShoppingItemToInventoryScreen
 import com.example.savebite.ui.screen.ShoppingListScreen
 import com.example.savebite.ui.screen.SignUpScreen
 import com.example.savebite.ui.screen.SplashScreen
+import com.example.savebite.ui.screen.WasteBreakdownDetailScreen
+import com.example.savebite.ui.screen.WastedItemsListScreen
 import com.example.savebite.ui.viewmodel.AuthViewModel
 import com.example.savebite.ui.viewmodel.DashboardViewModel
 import com.example.savebite.ui.viewmodel.DashboardViewModelFactory
@@ -388,9 +391,11 @@ fun AppNavigation(
             }
 
             // Waster Tracker Report route
-            composable(AppRoutes.REPORTS) {
+            composable(AppRoutes.REPORTS) { backStackEntry ->
                 val context = navController.context
                 val db = AppDatabase.getDatabase(context)
+
+                // 使用当前 backStackEntry 保证 ViewModel 作用域正确
                 val reportViewModel: ReportViewModel = viewModel(
                     factory = object : ViewModelProvider.Factory {
                         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -398,7 +403,50 @@ fun AppNavigation(
                         }
                     }
                 )
-                ReportScreen(viewModel = reportViewModel)
+
+                ReportScreen(
+                    viewModel = reportViewModel,
+                    onNavigateToCategoryBreakdown = { navController.navigate(AppRoutes.WASTE_BREAKDOWN) },
+                    onNavigateToWastedItems = { navController.navigate(AppRoutes.WASTED_ITEMS) },
+                    onNavigateToConsumedItems = { navController.navigate(AppRoutes.CONSUMED_ITEMS) }
+                )
+            }
+
+            composable(AppRoutes.WASTE_BREAKDOWN) { backStackEntry ->
+                // 共享父路由/同级别的 ReportViewModel
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(AppRoutes.REPORTS)
+                }
+                val reportViewModel: ReportViewModel = viewModel(parentEntry)
+
+                WasteBreakdownDetailScreen(
+                    viewModel = reportViewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable(AppRoutes.WASTED_ITEMS) { backStackEntry ->
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(AppRoutes.REPORTS)
+                }
+                val reportViewModel: ReportViewModel = viewModel(parentEntry)
+
+                WastedItemsListScreen(
+                    viewModel = reportViewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable(AppRoutes.CONSUMED_ITEMS) { backStackEntry ->
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(AppRoutes.REPORTS)
+                }
+                val reportViewModel: ReportViewModel = viewModel(parentEntry)
+
+                ConsumedItemsListScreen(
+                    viewModel = reportViewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
 
             // Profile & Settings route

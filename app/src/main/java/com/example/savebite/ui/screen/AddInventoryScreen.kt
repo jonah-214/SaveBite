@@ -61,7 +61,7 @@ fun AddInventoryScreen(
     // Form Input States
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("Dairy") }
+    var category by remember { mutableStateOf("Dairy & Eggs") }
     var storage by remember(storageLocations) {
         mutableStateOf(storageLocations.firstOrNull() ?: "Refrigerator")
     }
