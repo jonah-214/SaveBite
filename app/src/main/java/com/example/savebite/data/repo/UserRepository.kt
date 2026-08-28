@@ -39,21 +39,6 @@ class UserRepository(private val userDao: UserDao) {
         return userDao.getUserById(id)
     }
 
-    // Get user by username, excluding a specific ID
-    suspend fun getUserByUsernameExcludingId(username: String, excludeId: Int): User? {
-        return userDao.getUserByUsernameExcludingId(username, excludeId)
-    }
-
-    // Get user by email, excluding a specific ID
-    suspend fun getUserByEmailExcludingId(email: String, excludeId: Int): User? {
-        return userDao.getUserByEmailExcludingId(email, excludeId)
-    }
-
-    // Get user by phone, excluding a specific ID
-    suspend fun getUserByPhoneExcludingId(phone: String, excludeId: Int): User? {
-        return userDao.getUserByPhoneExcludingId(phone, excludeId)
-    }
-
     // Update user
     suspend fun updateUser(user: User): Int {
         return userDao.updateUser(user)

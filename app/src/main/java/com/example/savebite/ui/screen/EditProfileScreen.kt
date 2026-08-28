@@ -124,17 +124,20 @@ fun EditProfileScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Edit Profile Field - UserName
+            // Edit Profile Field - Username
             Text(
-                text = "Name",
+                text = "Username",
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
 
             OutlinedTextField(
                 value = username,
-                onValueChange = { username = it },
-                placeholder = { Text("Enter your new name") },
+                onValueChange = {
+                    username = it
+                    profileViewModel.clearUsernameError()
+                },
+                placeholder = { Text("Enter your new username") },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -161,7 +164,10 @@ fun EditProfileScreen(
 
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = {
+                    email = it
+                    profileViewModel.clearEmailError()
+                },
                 placeholder = { Text("Enter your new email address") },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
@@ -189,7 +195,10 @@ fun EditProfileScreen(
 
             OutlinedTextField(
                 value = phone,
-                onValueChange = { phone = it },
+                onValueChange = {
+                    phone = it
+                    profileViewModel.clearPhoneError()
+                },
                 placeholder = { Text("Enter your new phone number") },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,

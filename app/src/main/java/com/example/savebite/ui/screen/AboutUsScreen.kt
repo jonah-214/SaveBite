@@ -127,7 +127,6 @@ fun AboutUsScreen(
                         icon = R.drawable.group,
                         label = "Jonathan Nah",
                         subtitle = "Authentication, Dashboard, Expiry, Settings",
-                        onClick = { },
                         trailing = { }
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -135,7 +134,6 @@ fun AboutUsScreen(
                         icon = R.drawable.group,
                         label = "Xin Yi",
                         subtitle = "Inventory, Shopping, Recipe, Reports",
-                        onClick = { },
                         trailing = { }
                     )
                 }
@@ -179,7 +177,7 @@ private fun AppIdentityCard() {
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Version 0.8.8",
+            text = "Version 0.9.6",
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

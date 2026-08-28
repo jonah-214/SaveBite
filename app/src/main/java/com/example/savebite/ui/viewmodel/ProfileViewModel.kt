@@ -83,6 +83,16 @@ class ProfileViewModel(
         _confirmNewPasswordError.value = null
     }
 
+    // Clear individual Edit Profile errors as the user retypes
+    fun clearUsernameError() { _usernameError.value = null }
+    fun clearEmailError() { _emailError.value = null }
+    fun clearPhoneError() { _phoneError.value = null }
+
+    // Clear individual Change Password errors as the user retypes
+    fun clearCurrentPasswordError() { _currentPasswordError.value = null }
+    fun clearNewPasswordError() { _newPasswordError.value = null }
+    fun clearConfirmNewPasswordError() { _confirmNewPasswordError.value = null }
+
     // Edit User Profile
     fun updateProfile(
         newUserName: String,
@@ -91,14 +101,19 @@ class ProfileViewModel(
     ) {
         viewModelScope.launch {
             _isLoading.value = true
+
+            val trimmedUsername = newUserName.trim()
+            val trimmedEmail = newEmail.trim()
+            val trimmedPhone = newPhone.trim()
+
             _usernameError.value = null
             _emailError.value = null
             _phoneError.value = null
 
             // Validate inputs
-            val usernameError = Validators.validateUsername(newUserName)
-            val emailError = Validators.validateEmail(newEmail)
-            val phoneError = Validators.validatePhone(newPhone)
+            val usernameError = Validators.validateUsername(trimmedUsername)
+            val emailError = Validators.validateEmail(trimmedEmail)
+            val phoneError = Validators.validatePhone(trimmedPhone)
 
             _usernameError.value = usernameError
             _emailError.value = emailError
@@ -122,17 +137,17 @@ class ProfileViewModel(
             // Supabase is the source of truth: check + update there first
             val result = supabaseAuthRepository.updateProfile(
                 uid,
-                newUserName,
-                newEmail,
-                newPhone
+                trimmedUsername,
+                trimmedEmail,
+                trimmedPhone
             )
 
             result.onSuccess {
                 // Only mirror into Room once Supabase confirms the update was successful
                 val updatedUser = currentUser.copy(
-                    username = newUserName,
-                    email = newEmail,
-                    phone = newPhone
+                    username = trimmedUsername,
+                    email = trimmedEmail,
+                    phone = trimmedPhone
                 )
                 userRepository.updateUser(updatedUser)
                 _user.value = updatedUser

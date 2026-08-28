@@ -35,18 +35,6 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE id = :id LIMIT 1")
     suspend fun getUserById(id: Int): User?
 
-    // Get a user by their username, excluding a specific ID
-    @Query("SELECT * FROM users WHERE username = :username AND id != :excludeId LIMIT 1")
-    suspend fun getUserByUsernameExcludingId(username: String, excludeId: Int): User?
-
-    // Get a user by their email, excluding a specific ID
-    @Query("SELECT * FROM users WHERE email = :email AND id != :excludeId LIMIT 1")
-    suspend fun getUserByEmailExcludingId(email: String, excludeId: Int): User?
-
-    // Get a user by their phone number, excluding a specific ID
-    @Query("SELECT * FROM users WHERE phone = :phone AND id != :excludeId LIMIT 1")
-    suspend fun getUserByPhoneExcludingId(phone: String, excludeId: Int): User?
-
     // Update a user's information
     @Update
     suspend fun updateUser(user: User): Int

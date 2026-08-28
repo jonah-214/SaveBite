@@ -99,7 +99,10 @@ fun ChangePasswordScreen(
 
             OutlinedTextField(
                 value = currentPassword,
-                onValueChange = { currentPassword = it },
+                onValueChange = {
+                    currentPassword = it
+                    profileViewModel.clearCurrentPasswordError()
+                },
                 placeholder = { Text("Enter your current password") },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
@@ -145,7 +148,10 @@ fun ChangePasswordScreen(
 
             OutlinedTextField(
                 value = newPassword,
-                onValueChange = { newPassword = it },
+                onValueChange = {
+                    newPassword = it
+                    profileViewModel.clearNewPasswordError()
+                },
                 placeholder = { Text("Enter your new password") },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
@@ -191,7 +197,10 @@ fun ChangePasswordScreen(
 
             OutlinedTextField(
                 value = confirmNewPassword,
-                onValueChange = { confirmNewPassword = it },
+                onValueChange = {
+                    confirmNewPassword = it
+                    profileViewModel.clearConfirmNewPasswordError()
+                },
                 placeholder = { Text("Confirm your new password") },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,

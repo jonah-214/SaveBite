@@ -416,7 +416,7 @@ fun SettingsRow(
     icon: Int,
     label: String,
     subtitle: String,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)? = null,
     trailing: @Composable () -> Unit = {
         Icon(
             painterResource(id = R.drawable.arrow_right),
@@ -428,7 +428,7 @@ fun SettingsRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .let { if (onClick != null) it.clickable { onClick() } else it }
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
