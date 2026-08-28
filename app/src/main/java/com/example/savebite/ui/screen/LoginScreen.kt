@@ -147,7 +147,7 @@ fun LoginScreen(
             ),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                val iconRes = if (passwordVisible) R.drawable.visibility_off else R.drawable.visibility
+                val iconRes = if (passwordVisible) R.drawable.visibility else R.drawable.visibility_off
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         painter = painterResource(id = iconRes),

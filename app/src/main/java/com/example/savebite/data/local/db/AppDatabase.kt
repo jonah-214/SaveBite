@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
         ShoppingItem::class,
         ReportItem::class
     ],
-    version = 8, // 修改点：提升版本号至 8 以更新数据库表结构
+    version = 8, // Bumped to version 8 to update the database table schema
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

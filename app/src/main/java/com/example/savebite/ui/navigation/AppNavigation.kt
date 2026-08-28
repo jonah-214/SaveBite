@@ -33,7 +33,7 @@ import com.example.savebite.ui.screen.DashboardScreen
 import com.example.savebite.ui.screen.EditProfileScreen
 import com.example.savebite.ui.screen.ForgotPasswordScreen
 import com.example.savebite.ui.screen.InventoryDetailScreen
-import com.example.savebite.ui.screen.InventoryItemToReportScreen // 确认此处类名与您项目一致
+import com.example.savebite.ui.screen.InventoryItemToReportScreen
 import com.example.savebite.ui.screen.InventoryList
 import com.example.savebite.ui.screen.LoginScreen
 import com.example.savebite.ui.screen.ManageStorageScreen
@@ -228,7 +228,7 @@ fun AppNavigation(
                 )
             }
 
-            // 修改点 2：新增 Inventory To Report 路由注册
+            // Inventory to Report Confirmation route
             composable(AppRoutes.INVENTORY_TO_REPORT) {
                 val parentEntry = remember(it) { navController.getBackStackEntry(AppRoutes.INVENTORY) }
                 val inventoryViewModel: InventoryViewModel = viewModel(viewModelStoreOwner = parentEntry)
@@ -237,7 +237,6 @@ fun AppNavigation(
                     viewModel = inventoryViewModel,
                     onBackClick = { navController.popBackStack() },
                     onSuccess = {
-                        // 在此界面处理完后再跳转去 Reports 报表页面
                         navController.navigate(AppRoutes.REPORTS) {
                             popUpTo(AppRoutes.INVENTORY)
                         }
@@ -395,7 +394,7 @@ fun AppNavigation(
                 val context = navController.context
                 val db = AppDatabase.getDatabase(context)
 
-                // 使用当前 backStackEntry 保证 ViewModel 作用域正确
+                // Use the current backStackEntry to keep the ViewModel scoped correctly
                 val reportViewModel: ReportViewModel = viewModel(
                     factory = object : ViewModelProvider.Factory {
                         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -413,7 +412,7 @@ fun AppNavigation(
             }
 
             composable(AppRoutes.WASTE_BREAKDOWN) { backStackEntry ->
-                // 共享父路由/同级别的 ReportViewModel
+                // Share the parent route/level ReportViewModel
                 val parentEntry = remember(backStackEntry) {
                     navController.getBackStackEntry(AppRoutes.REPORTS)
                 }

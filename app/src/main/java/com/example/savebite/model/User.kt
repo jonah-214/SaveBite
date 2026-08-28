@@ -8,9 +8,9 @@ import androidx.room.PrimaryKey
 data class User(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val supabaseUid: String? = null, // Maps to Supabase Auth UUID
+    val supabaseUid: String? = null, // Supabase Auth UUID
     val username: String,
     val email: String,
     val phone: String,
-    val passwordHash: String // Keep for offline fallback
+    val passwordHash: String // Reserved for a possible future offline-login fallback
 )

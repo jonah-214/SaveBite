@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import com.example.savebite.data.remote.SupabaseClientProvider
 import com.example.savebite.utils.SessionManager
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun SplashScreen(
@@ -19,8 +21,10 @@ fun SplashScreen(
 ) {
     // Check for an existing user session
     LaunchedEffect(Unit) {
-        val supabaseUser = SupabaseClientProvider.client.auth.currentUserOrNull()
-        if (supabaseUser != null) {
+        val status = SupabaseClientProvider.client.auth.sessionStatus
+            .first { it !is SessionStatus.Initializing }
+
+        if (status is SessionStatus.Authenticated) {
             onSessionFound()
         } else {
             sessionManager.clearUserSession()

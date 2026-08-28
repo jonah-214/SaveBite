@@ -66,6 +66,10 @@ class SupabaseAuthRepository(
             val signUpResult = client.auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
+                data = buildJsonObject {
+                    put("username", username)
+                    put("phone", phone)
+                }
             }
 
             // Supabase returns an empty identities list (no exception) when the email is already registered, to prevent email enumeration.
@@ -78,10 +82,6 @@ class SupabaseAuthRepository(
                 // No session but identities were present -> likely "Confirm email" is enabled and a confirmation email was just sent.
                 return Result.failure(Exception("EMAIL_CONFIRMATION_REQUIRED"))
             }
-
-            client.postgrest.from("profiles").insert(
-                ProfileRow(id = uid, username = username, email = email, phone = phone)
-            )
 
             val localUser = User(
                 supabaseUid = uid,
