@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.ui.navigation.AppTopBar
+import com.example.savebite.ui.theme.getCategoryColor
 import com.example.savebite.ui.viewmodel.ReportViewModel
 
 @Composable
@@ -145,7 +146,7 @@ fun WasteBreakdownDetailScreen(
                     if (state.totalWastedItems > 0) {
                         SolidPieChart(
                             percentages = state.wastedBreakdowns.map { it.percentage },
-                            colors = CategoryColorsList,
+                            colors = state.wastedBreakdowns.map { getCategoryColor(it.category) },
                             modifier = Modifier.size(210.dp)
                         )
                     } else {
@@ -173,7 +174,7 @@ fun WasteBreakdownDetailScreen(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 state.wastedBreakdowns.forEachIndexed { index, item ->
                     val isSelected = selectedCategoryIndex == index
-                    val itemColor = CategoryColorsList.getOrElse(index) { Color.Gray }
+                    val itemColor = getCategoryColor(item.category)
 
                     CategoryDetailCard(
                         category = item.category,
@@ -201,7 +202,6 @@ private fun CategoryDetailCard(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    // 平滑进度条加载动画
     val animatedProgress by animateFloatAsState(
         targetValue = (percentage / 100f).coerceIn(0f, 1f),
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),

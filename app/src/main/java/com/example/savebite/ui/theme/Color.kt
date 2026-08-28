@@ -1,6 +1,7 @@
 package com.example.savebite.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import kotlin.math.absoluteValue
 
 val primaryLight = Color(0xFF3C6838)
 val onPrimaryLight = Color(0xFFFFFFFF)
@@ -223,3 +224,40 @@ val warningContainerLight = Color(0xFFFFE8B0)
 val onWarningContainerLight = Color(0xFF6B4E00)
 val warningContainerDark = Color(0xFF5C4400)
 val onWarningContainerDark = Color(0xFFFFE8B0)
+
+// Visualization Colors
+val VegGreen = Color(0xFF55823B)
+val FruitOrange = Color(0xFFECA338)
+val GrainBlue = Color(0xFF4A84C4)
+val OtherPurple = Color(0xFF8E63B4)
+
+val CategoryColorsList = listOf(
+    VegGreen, FruitOrange, GrainBlue, OtherPurple,
+    Color(0xFFD32F2F), Color(0xFF8D6E63), Color(0xFF0288D1),
+    Color(0xFF795548), Color(0xFF3949AB), Color(0xFFC2185B),
+    Color(0xFF00796B), Color(0xFF607D8B), Color(0xFF8BC34A),
+    Color(0xFFFF5722)
+)
+
+val CategoryColorsMap = mapOf(
+    "Dairy & Eggs" to Color(0xFF55823B),
+    "Produce" to Color(0xFFECA338),
+    "Meat & Seafood" to Color(0xFFD32F2F),
+    "Bakery & Bread" to Color(0xFF8D6E63),
+    "Beverages" to Color(0xFF0288D1),
+    "Pantry & Dry Goods" to Color(0xFF795548),
+    "Frozen Foods" to Color(0xFF3949AB),
+    "Snacks & Sweets" to Color(0xFFC2185B),
+    "Condiments & Sauces" to Color(0xFF00796B),
+    "Canned Goods" to Color(0xFF607D8B),
+    "Leftovers & Prepared" to Color(0xFF8BC34A),
+    "Spices & Baking" to Color(0xFFFF5722),
+    "Dairy" to Color(0xFF5C6BC0)
+)
+
+fun getCategoryColor(category: String): Color {
+    return CategoryColorsMap[category] ?: run {
+        val hash = category.hashCode().absoluteValue
+        CategoryColorsList[hash % CategoryColorsList.size]
+    }
+}

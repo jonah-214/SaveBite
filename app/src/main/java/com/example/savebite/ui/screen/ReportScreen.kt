@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.CheckCircleOutline
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -30,15 +32,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.savebite.ui.navigation.AppTopBar
+import com.example.savebite.ui.theme.VegGreen
+import com.example.savebite.ui.theme.getCategoryColor
 import com.example.savebite.ui.viewmodel.ReportViewModel
+import com.example.savebite.utils.PdfReportGenerator
 import java.text.DateFormatSymbols
-
-// Visualization Colors
-val VegGreen = Color(0xFF55823B)
-val FruitOrange = Color(0xFFECA338)
-val GrainBlue = Color(0xFF4A84C4)
-val OtherPurple = Color(0xFF8E63B4)
-val CategoryColorsList = listOf(VegGreen, FruitOrange, GrainBlue, OtherPurple)
 
 @Composable
 fun ReportScreen(
@@ -49,6 +47,7 @@ fun ReportScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var showMonthPicker by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     if (showMonthPicker) {
         MonthYearPicker(
@@ -70,7 +69,20 @@ fun ReportScreen(
         topBar = {
             AppTopBar(
                 title = "Food Waste Report",
-                showBackButton = false
+                showBackButton = false,
+                actions = {
+                    IconButton(
+                        onClick = {
+                            PdfReportGenerator.generateAndSharePdf(context, state)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.PictureAsPdf,
+                            contentDescription = "Export PDF Report",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
             )
         }
     ) { padding ->
@@ -181,7 +193,7 @@ fun ReportScreen(
                         ) {
                             SolidPieChart(
                                 percentages = state.wastedBreakdowns.map { it.percentage },
-                                colors = CategoryColorsList,
+                                colors = state.wastedBreakdowns.map { getCategoryColor(it.category) },
                                 modifier = Modifier.size(140.dp)
                             )
 
@@ -191,9 +203,9 @@ fun ReportScreen(
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
                                 modifier = Modifier.weight(1f)
                             ) {
-                                state.wastedBreakdowns.forEachIndexed { index, item ->
+                                state.wastedBreakdowns.forEach { item ->
                                     LegendRow(
-                                        color = CategoryColorsList.getOrElse(index) { Color.Gray },
+                                        color = getCategoryColor(item.category),
                                         label = item.category,
                                         count = item.count,
                                         percentage = item.percentage.toInt()
@@ -265,8 +277,6 @@ else {
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Waste Reasons", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
-                    
-                    Spacer(modifier = Modifier.height(12.dp))
 
                     if (state.reasonBreakdowns.isNotEmpty()) {
                         state.reasonBreakdowns.forEach { reason ->
@@ -284,7 +294,6 @@ else {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 改动 2：底部 Consumed Items 卡片
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -317,7 +326,6 @@ else {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // 绑定显示的 Consumed 食材列表
                     if (state.topConsumedItems.isNotEmpty()) {
                         state.topConsumedItems.take(5).forEach { item ->
                             ItemStatRow(

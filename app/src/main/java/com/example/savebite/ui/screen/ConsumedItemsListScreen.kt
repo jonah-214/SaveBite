@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.ui.navigation.AppTopBar
+import com.example.savebite.ui.theme.VegGreen
 import com.example.savebite.ui.viewmodel.ReportViewModel
 
 @Composable
