@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -21,6 +22,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.example.savebite.data.ai.GeminiRecipeService
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.repo.ShoppingRepository
@@ -38,6 +40,7 @@ import com.example.savebite.ui.screen.InventoryList
 import com.example.savebite.ui.screen.LoginScreen
 import com.example.savebite.ui.screen.ManageStorageScreen
 import com.example.savebite.ui.screen.ProfileScreen
+import com.example.savebite.ui.screen.RecipeScreen
 import com.example.savebite.ui.screen.ReportScreen
 import com.example.savebite.ui.screen.ShoppingItemToInventoryScreen
 import com.example.savebite.ui.screen.ShoppingListScreen
@@ -51,6 +54,7 @@ import com.example.savebite.ui.viewmodel.DashboardViewModelFactory
 import com.example.savebite.ui.viewmodel.InventoryViewModel
 import com.example.savebite.ui.viewmodel.ProfileViewModel
 import com.example.savebite.ui.viewmodel.ProfileViewModelFactory
+import com.example.savebite.ui.viewmodel.RecipeViewModel
 import com.example.savebite.ui.viewmodel.ReportViewModel
 import com.example.savebite.ui.viewmodel.ShoppingViewModel
 import com.example.savebite.ui.viewmodel.ThemeViewModel
@@ -384,17 +388,37 @@ fun AppNavigation(
                 )
             }
 
-            // Recipe Suggestions route
             composable(AppRoutes.RECIPE) {
-                PlaceholderScreen("Recipes")
+                val context = navController.context
+                val db = AppDatabase.getDatabase(context)
+
+                val inventoryDao = db.inventoryDao()
+                val allInventoryItems by inventoryDao.getAllInventory().collectAsState(initial = emptyList())
+
+                val aiService = remember {
+                    GeminiRecipeService(apiKey = com.example.savebite.BuildConfig.GEMINI_API_KEY)
+                }
+
+                val recipeViewModel: RecipeViewModel = viewModel(
+                    factory = object : ViewModelProvider.Factory {
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                            @Suppress("UNCHECKED_CAST")
+                            return RecipeViewModel(aiService) as T
+                        }
+                    }
+                )
+
+                LaunchedEffect(allInventoryItems) {
+                    recipeViewModel.fetchAIRecipes(allInventoryItems)
+                }
+
+                RecipeScreen(viewModel = recipeViewModel)
             }
 
-            // Waster Tracker Report route
             composable(AppRoutes.REPORTS) { backStackEntry ->
                 val context = navController.context
                 val db = AppDatabase.getDatabase(context)
 
-                // Use the current backStackEntry to keep the ViewModel scoped correctly
                 val reportViewModel: ReportViewModel = viewModel(
                     factory = object : ViewModelProvider.Factory {
                         override fun <T : ViewModel> create(modelClass: Class<T>): T {
