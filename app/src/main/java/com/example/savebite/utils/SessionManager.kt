@@ -1,48 +1,43 @@
 package com.example.savebite.utils
 
 import android.content.Context
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
+import android.content.SharedPreferences
+import androidx.core.content.edit
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-
-// Session Manager - Manage user sessions using DataStore
-private val Context.dataStore by preferencesDataStore(name = "session_preferences")
+import kotlinx.coroutines.flow.flow
 
 class SessionManager(
-    // Inject the application context
     private val context: Context
 ) {
-    // Define keys for user session data
+    private val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("session_preferences", Context.MODE_PRIVATE)
+
     companion object {
-        // Define a key for the logged-in user's ID
-        private val USER_ID_KEY = intPreferencesKey("logged_in_user_id")
-        // Define a value indicating no user is logged in
+        private const val USER_ID_KEY = "logged_in_user_id"
         private const val NO_USER = -1
     }
 
-    // Save the user's ID in the DataStore
+    // Save the user's ID in SharedPreferences
     suspend fun saveUserSession(userId: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[USER_ID_KEY] = userId
+        sharedPreferences.edit {
+            putInt(USER_ID_KEY, userId)
         }
     }
 
-    // Clear the user's session data from the DataStore
+    // Clear the user's session data from SharedPreferences
     suspend fun clearUserSession() {
-        context.dataStore.edit { preferences ->
-            preferences.remove(USER_ID_KEY)
+        sharedPreferences.edit {
+            remove(USER_ID_KEY)
         }
     }
 
-    val userIdFlow: Flow<Int> = context.dataStore.data.map { preferences ->
-        preferences[USER_ID_KEY] ?: NO_USER
+    // Flow for user ID - maintained for compatibility
+    val userIdFlow: Flow<Int> = flow {
+        emit(sharedPreferences.getInt(USER_ID_KEY, NO_USER))
     }
 
-    // Get the ID of the currently logged-in user from the DataStore
+    // Get the ID of the currently logged-in user from SharedPreferences
     suspend fun getLoggedInUserId(): Int {
-        return userIdFlow.first()
+        return sharedPreferences.getInt(USER_ID_KEY, NO_USER)
     }
 }
