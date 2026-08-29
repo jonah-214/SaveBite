@@ -20,6 +20,7 @@ android {
 
     val supabaseUrl = localProperties.getProperty("supabase.url") ?: ""
     val supabaseKey = localProperties.getProperty("supabase.key") ?: ""
+    val geminiApiKey = localProperties.getProperty("gemini.api.key") ?: ""
 
     defaultConfig {
         applicationId = "com.example.savebite"
@@ -30,6 +31,7 @@ android {
 
         buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
         buildConfigField("String", "SUPABASE_KEY", "\"$supabaseKey\"")
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -52,6 +54,8 @@ android {
 }
 
 dependencies {
+    // Gemini SDK
+    implementation(libs.generativeai)
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.room.runtime)
@@ -70,7 +74,10 @@ dependencies {
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.auth)
     implementation(libs.supabase.postgrest)
-    implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
