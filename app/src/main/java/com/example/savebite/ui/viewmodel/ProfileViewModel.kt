@@ -84,6 +84,8 @@ class ProfileViewModel(
         _currentPasswordError.value = null
         _newPasswordError.value = null
         _confirmNewPasswordError.value = null
+        _updateSuccess.value = false
+        _passwordChangeSuccess.value = false
     }
 
     // Clear individual Edit Profile errors as the user retypes

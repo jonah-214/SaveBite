@@ -22,12 +22,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,6 +52,7 @@ fun EditProfileScreen(
     var username by remember { mutableStateOf(user?.username ?: "") }
     var email by remember { mutableStateOf(user?.email ?: "") }
     var phone by remember { mutableStateOf(user?.phone ?: "") }
+    var showDiscardDialog by remember { mutableStateOf(false) }
 
     // Check if details were changed and fields are not blank
     val isChanged = username != (user?.username ?: "") ||
@@ -79,9 +84,38 @@ fun EditProfileScreen(
         profileViewModel.updateSuccess.value
     ) {
         if (profileViewModel.updateSuccess.value) {
-            profileViewModel.resetUpdateSuccess()
             navController.popBackStack()
         }
+    }
+
+    // Intercept back button by showing discard dialog if changes were made
+    BackHandler(enabled = isChanged) {
+        showDiscardDialog = true
+    }
+
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text(text = "Discard Changes?") },
+            text = { Text(text = "You have unsaved changes. Are you sure you want to discard them and go back?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDiscardDialog = false
+                        navController.popBackStack()
+                    }
+                ) {
+                    Text("Discard", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 
     // Edit Profile Screen
@@ -90,7 +124,13 @@ fun EditProfileScreen(
             AppTopBar(
                 title = "Edit Profile",
                 showBackButton = true,
-                onBackClick = { navController.popBackStack() }
+                onBackClick = {
+                    if (isChanged) {
+                        showDiscardDialog = true
+                    } else {
+                        navController.popBackStack()
+                    }
+                }
             )
         }
     ) { innerPadding ->
@@ -235,16 +275,24 @@ fun EditProfileScreen(
                         phone
                     )
                 },
-                enabled = canSave,
+                enabled = canSave && !profileViewModel.isLoading.value,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Text(
-                    text = "Save Changes",
-                    fontWeight = FontWeight.Bold
-                )
+                if (profileViewModel.isLoading.value) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(
+                        text = "Save Changes",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
