@@ -9,6 +9,7 @@ import android.graphics.RectF
 import android.graphics.pdf.PdfDocument
 import androidx.core.content.FileProvider
 import com.example.savebite.ui.viewmodel.ReportUiState
+import com.example.savebite.ui.viewmodel.TimeFrame
 import java.io.File
 import java.io.FileOutputStream
 import java.text.DateFormatSymbols
@@ -21,9 +22,9 @@ object PdfReportGenerator {
 
         val pageWidth = 595
 
-        val topWastedList = state.topWastedItems
+        val topWastedList = state.topWastedItems.take(5)
         val reasonList = state.reasonBreakdowns
-        val consumedList = state.topConsumedItems
+        val consumedList = state.topConsumedItems.take(5)
 
         val topItemsCount = topWastedList.size
         val reasonsCount = reasonList.size
@@ -90,8 +91,12 @@ object PdfReportGenerator {
         paint.isFakeBoldText = true
         canvas.drawText("Food Waste & Consumption Report", startX, currentY + 16f, paint)
 
+        // 根据 selectedTimeFrame 组装 Date 显示字符串
         val monthName = DateFormatSymbols().months.getOrElse(state.selectedMonth) { "" }
-        val dateDisplay = "$monthName ${state.selectedYear}"
+        val dateDisplay = when (state.selectedTimeFrame) {
+            TimeFrame.WEEKLY -> "$monthName ${state.selectedYear} (Week ${state.selectedWeek})"
+            TimeFrame.MONTHLY -> "$monthName ${state.selectedYear}"
+        }
 
         paint.color = textMuted
         paint.textSize = 11f
@@ -111,24 +116,25 @@ object PdfReportGenerator {
         val metricCardWidth = (contentWidth - cardGap) / 2f
         val metricCardHeight = 55f
 
-        // Card 1: Total Items Wasted
+        // Card 1: Waste Cost
         drawRoundedRect(canvas, startX, currentY, metricCardWidth, metricCardHeight, 10f, bgCard, borderCard)
         paint.color = textMuted
         paint.textSize = 10f
         paint.isFakeBoldText = false
-        canvas.drawText("Total Items Wasted", startX + 14f, currentY + 18f, paint)
+        canvas.drawText("Waste Cost", startX + 14f, currentY + 18f, paint)
         paint.color = textDark
         paint.textSize = 15f
         paint.isFakeBoldText = true
-        canvas.drawText("${state.totalWastedItems} items", startX + 14f, currentY + 40f, paint)
+        val wastedCostText = String.format(Locale.getDefault(), "RM %.2f", state.totalWastedCost)
+        canvas.drawText(wastedCostText, startX + 14f, currentY + 40f, paint)
 
-        // Card 2: Saved Amount
+        // Card 2: Saved Value
         val card2X = startX + metricCardWidth + cardGap
         drawRoundedRect(canvas, card2X, currentY, metricCardWidth, metricCardHeight, 10f, bgCard, borderCard)
         paint.color = textMuted
         paint.textSize = 10f
         paint.isFakeBoldText = false
-        canvas.drawText("Saved Amount", card2X + 14f, currentY + 18f, paint)
+        canvas.drawText("Saved Value", card2X + 14f, currentY + 18f, paint)
         paint.color = primaryGreen
         paint.textSize = 15f
         paint.isFakeBoldText = true
@@ -191,14 +197,14 @@ object PdfReportGenerator {
                     paint.color = textMuted
                     paint.textSize = 9f
                     paint.isFakeBoldText = false
-                    canvas.drawText("${item.count} (${item.percentage.toInt()}%)", posX + 105f, posY, paint)
+                    canvas.drawText("${item.count} items (${item.percentage.toInt()}%)", posX + 105f, posY, paint)
                 }
             }
         } else {
             paint.color = textMuted
             paint.textSize = 10f
             paint.isFakeBoldText = false
-            canvas.drawText("No waste data for this month", startX + 14f, currentY + 75f, paint)
+            canvas.drawText("No waste data recorded", startX + 14f, currentY + 75f, paint)
         }
 
         currentY += breakdownCardHeight + 14f
@@ -209,13 +215,13 @@ object PdfReportGenerator {
         val cardRightPadding = 14f
         val colRightAlignX = startX + contentWidth - cardRightPadding
 
-        // 1. All Wasted Items Card
+        // 1. Most Wasted Items Card (与 UI 标题对应)
         drawRoundedRect(canvas, startX, currentY, contentWidth, wastedItemsCardHeight, 12f, Color.WHITE, borderCard)
 
         paint.color = textDark
         paint.textSize = 13f
         paint.isFakeBoldText = true
-        canvas.drawText("All Wasted Items (${topWastedList.size})", colNameX, currentY + 24f, paint)
+        canvas.drawText("Most Wasted Items", colNameX, currentY + 24f, paint)
 
         var itemY = currentY + 46f
         if (topWastedList.isNotEmpty()) {
@@ -224,7 +230,8 @@ object PdfReportGenerator {
                 paint.color = textDark
                 paint.textSize = 10f
                 paint.isFakeBoldText = false
-                canvas.drawText(item.name, colNameX, itemY, paint)
+                val displayName = item.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+                canvas.drawText(displayName, colNameX, itemY, paint)
 
                 // 统一背景进度条
                 paint.color = bgCard
@@ -241,9 +248,11 @@ object PdfReportGenerator {
                 paint.textSize = 9f
                 paint.isFakeBoldText = false
 
-                val countText = "${item.count} (${item.percentage.toInt()}%)"
-                val priceText = if (item.totalPrice > 0) String.format(Locale.getDefault(), "RM %.2f", item.totalPrice) else ""
-                val infoText = if (priceText.isNotEmpty()) "$priceText • $countText" else countText
+                val infoText = if (item.totalPrice > 0) {
+                    String.format(Locale.getDefault(), "RM %.2f (%d items)", item.totalPrice, item.count)
+                } else {
+                    "${item.count} items (${item.percentage.toInt()}%)"
+                }
 
                 val textWidth = paint.measureText(infoText)
                 canvas.drawText(infoText, colRightAlignX - textWidth, itemY, paint)
@@ -254,7 +263,7 @@ object PdfReportGenerator {
             paint.color = textMuted
             paint.textSize = 10f
             paint.isFakeBoldText = false
-            canvas.drawText("No wasted items found", colNameX, itemY, paint)
+            canvas.drawText("No items found", colNameX, itemY, paint)
         }
 
         currentY += wastedItemsCardHeight + 14f
@@ -291,7 +300,7 @@ object PdfReportGenerator {
                 paint.textSize = 9f
                 paint.isFakeBoldText = false
 
-                val infoText = "${reason.count} (${reason.percentage.toInt()}%)"
+                val infoText = "${reason.count} items (${reason.percentage.toInt()}%)"
                 val textWidth = paint.measureText(infoText)
                 canvas.drawText(infoText, colRightAlignX - textWidth, reasonY, paint)
 
@@ -301,18 +310,18 @@ object PdfReportGenerator {
             paint.color = textMuted
             paint.textSize = 10f
             paint.isFakeBoldText = false
-            canvas.drawText("No reasons recorded", colNameX, reasonY, paint)
+            canvas.drawText("No waste reasons recorded for this period", colNameX, reasonY, paint)
         }
 
         currentY += reasonsCardHeight + 14f
 
-        // 3. All Consumed Items Card
+        // 3. Consumed Items Card
         drawRoundedRect(canvas, startX, currentY, contentWidth, consumedCardHeight, 12f, Color.WHITE, borderCard)
 
         paint.color = primaryGreen
         paint.textSize = 13f
         paint.isFakeBoldText = true
-        canvas.drawText("All Consumed Items (${consumedList.size})", colNameX, currentY + 24f, paint)
+        canvas.drawText("Consumed Items", colNameX, currentY + 24f, paint)
 
         var consumedY = currentY + 46f
         if (consumedList.isNotEmpty()) {
@@ -321,7 +330,8 @@ object PdfReportGenerator {
                 paint.color = textDark
                 paint.textSize = 10f
                 paint.isFakeBoldText = false
-                canvas.drawText(item.name, colNameX, consumedY, paint)
+                val displayName = item.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+                canvas.drawText(displayName, colNameX, consumedY, paint)
 
                 // 统一背景进度条
                 paint.color = bgCard
@@ -338,9 +348,11 @@ object PdfReportGenerator {
                 paint.textSize = 9f
                 paint.isFakeBoldText = false
 
-                val countText = "${item.count} (${item.percentage.toInt()}%)"
-                val priceText = if (item.totalPrice > 0) String.format(Locale.getDefault(), "RM %.2f", item.totalPrice) else ""
-                val infoText = if (priceText.isNotEmpty()) "$priceText • $countText" else countText
+                val infoText = if (item.totalPrice > 0) {
+                    String.format(Locale.getDefault(), "RM %.2f (%d items)", item.totalPrice, item.count)
+                } else {
+                    "${item.count} items (${item.percentage.toInt()}%)"
+                }
 
                 val textWidth = paint.measureText(infoText)
                 canvas.drawText(infoText, colRightAlignX - textWidth, consumedY, paint)
@@ -351,7 +363,7 @@ object PdfReportGenerator {
             paint.color = textMuted
             paint.textSize = 10f
             paint.isFakeBoldText = false
-            canvas.drawText("No consumed items recorded for this month", colNameX, consumedY, paint)
+            canvas.drawText("No consumed items recorded", colNameX, consumedY, paint)
         }
 
         pdfDocument.finishPage(page)
@@ -385,7 +397,8 @@ object PdfReportGenerator {
     }
 
     private fun saveAndSharePdfFile(context: Context, pdfDocument: PdfDocument, dateTitle: String) {
-        val fileName = "Food_Waste_Report_${dateTitle.replace(" ", "_")}.pdf"
+        val sanitizedTitle = dateTitle.replace(" ", "_").replace("(", "").replace(")", "")
+        val fileName = "Food_Waste_Report_${sanitizedTitle}.pdf"
         val file = File(context.cacheDir, fileName)
 
         try {

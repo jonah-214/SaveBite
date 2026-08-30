@@ -3,7 +3,7 @@ package com.example.savebite.model
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "report_table") // 建议把表名也同步更新
+@Entity(tableName = "report_table")
 data class ReportItem(
     @PrimaryKey
     val id: String = java.util.UUID.randomUUID().toString(),
@@ -13,11 +13,11 @@ data class ReportItem(
     val unit: String,
     val price: Double = 0.0,
     val recordTimestamp: Long = System.currentTimeMillis(),
-    val status: ReportStatus = ReportStatus.WASTED, // 新增状态标识
+    val status: ReportStatus = ReportStatus.WASTED,
     val reason: String
 )
 
 enum class ReportStatus {
-    WASTED,    // 浪费/过期丢弃
-    CONSUMED   // 正常消耗/吃掉
+    WASTED,
+    CONSUMED
 }

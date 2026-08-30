@@ -48,6 +48,7 @@ import com.example.savebite.ui.screen.ShoppingListScreen
 import com.example.savebite.ui.screen.SignUpScreen
 import com.example.savebite.ui.screen.SplashScreen
 import com.example.savebite.ui.screen.WasteBreakdownDetailScreen
+import com.example.savebite.data.repo.ReportRepositoryImpl
 import com.example.savebite.ui.viewmodel.AuthViewModel
 import com.example.savebite.ui.viewmodel.DashboardViewModel
 import com.example.savebite.ui.viewmodel.DashboardViewModelFactory
@@ -468,7 +469,9 @@ fun AppNavigation(
                 val reportViewModel: ReportViewModel = viewModel(
                     factory = object : ViewModelProvider.Factory {
                         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                            return ReportViewModel(db.reportDao()) as T
+                            val repo = ReportRepositoryImpl(db.reportDao())
+                            @Suppress("UNCHECKED_CAST")
+                            return ReportViewModel(repo) as T
                         }
                     }
                 )

@@ -2,25 +2,27 @@ package com.example.savebite.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.savebite.data.local.dao.ReportDao
+import com.example.savebite.data.repo.ReportRepository
 import com.example.savebite.model.ReportItem
 import com.example.savebite.model.ReportStatus
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import java.util.*
 
+enum class TimeFrame { MONTHLY, WEEKLY }
+
 data class CategoryBreakdown(
     val category: String,
     val count: Int,
     val percentage: Float,
-    val totalPrice: Double = 0.0 // 可选：记录该分类的总金额
+    val totalPrice: Double = 0.0
 )
 
 data class TopWastedItem(
     val name: String,
     val count: Int,
     val percentage: Float,
-    val totalPrice: Double = 0.0 // 新增：该项食材的总金额
+    val totalPrice: Double = 0.0
 )
 
 data class ReasonBreakdown(
@@ -30,12 +32,14 @@ data class ReasonBreakdown(
 )
 
 data class ReportUiState(
+    val selectedTimeFrame: TimeFrame = TimeFrame.MONTHLY,
     val selectedMonth: Int = Calendar.getInstance().get(Calendar.MONTH),
     val selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR),
+    val selectedWeek: Int = 1,
 
     // Wasted Stats
     val totalWastedItems: Int = 0,
-    val totalWastedCost: Double = 0.0, // 新增：总浪费金额
+    val totalWastedCost: Double = 0.0,
     val mostWastedName: String = "-",
     val mostWastedCount: Int = 0,
     val wastedBreakdowns: List<CategoryBreakdown> = emptyList(),
@@ -44,51 +48,83 @@ data class ReportUiState(
 
     // Consumed Stats
     val totalConsumedItems: Int = 0,
-    val totalSavedCost: Double = 0.0, // 新增：通过消耗节省的总金额
+    val totalSavedCost: Double = 0.0,
     val consumedBreakdowns: List<CategoryBreakdown> = emptyList(),
     val topConsumedItems: List<TopWastedItem> = emptyList()
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ReportViewModel(private val reportDao: ReportDao) : ViewModel() {
+class ReportViewModel(private val repository: ReportRepository) : ViewModel() {
 
-    private val _selectedMonthYear = MutableStateFlow(
-        Pair(
-            Calendar.getInstance().get(Calendar.MONTH),
-            Calendar.getInstance().get(Calendar.YEAR)
+    private val _filterParams = MutableStateFlow(
+        Triple(
+            TimeFrame.MONTHLY,
+            Pair(Calendar.getInstance().get(Calendar.MONTH), Calendar.getInstance().get(Calendar.YEAR)),
+            1
         )
     )
-    val selectedMonthYear: StateFlow<Pair<Int, Int>> = _selectedMonthYear.asStateFlow()
 
-    val uiState: StateFlow<ReportUiState> = _selectedMonthYear
-        .flatMapLatest { (month, year) ->
-            val range = getMonthRange(month, year)
-            reportDao.getReportItemsInRange(range.first, range.second).map { items ->
-                calculateReport(items, month, year)
+    val uiState: StateFlow<ReportUiState> = _filterParams
+        .flatMapLatest { (timeFrame, monthYear, week) ->
+            val range = if (timeFrame == TimeFrame.WEEKLY) {
+                getWeekRange(monthYear.second, monthYear.first, week)
+            } else {
+                getMonthRange(monthYear.first, monthYear.second)
+            }
+            repository.getReportItemsInRange(range.first, range.second).map { items ->
+                calculateReport(items, timeFrame, monthYear.first, monthYear.second, week)
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ReportUiState())
 
-    fun selectMonth(month: Int, year: Int) {
-        _selectedMonthYear.value = Pair(month, year)
+    fun setTimeFrame(timeFrame: TimeFrame) {
+        val current = _filterParams.value
+        _filterParams.value = Triple(timeFrame, current.second, current.third)
+    }
+
+    fun selectMonthYear(month: Int, year: Int) {
+        val current = _filterParams.value
+        _filterParams.value = Triple(current.first, Pair(month, year), current.third)
+    }
+
+    fun selectWeek(week: Int) {
+        val current = _filterParams.value
+        _filterParams.value = Triple(current.first, current.second, week)
     }
 
     private fun getMonthRange(month: Int, year: Int): Pair<Long, Long> {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.YEAR, year)
-        calendar.set(Calendar.MONTH, month)
-        calendar.set(Calendar.DAY_OF_MONTH, 1)
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month)
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
         val start = calendar.timeInMillis
-
         calendar.add(Calendar.MONTH, 1)
         calendar.add(Calendar.MILLISECOND, -1)
-        val end = calendar.timeInMillis
+        return Pair(start, calendar.timeInMillis)
+    }
 
-        return Pair(start, end)
+    private fun getWeekRange(year: Int, month: Int, week: Int): Pair<Long, Long> {
+        val calendar = Calendar.getInstance().apply {
+            clear()
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month)
+            set(Calendar.WEEK_OF_MONTH, week)
+            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+        }
+        val start = calendar.timeInMillis
+        calendar.add(Calendar.DAY_OF_WEEK, 6)
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        calendar.set(Calendar.SECOND, 59)
+        return Pair(start, calendar.timeInMillis)
     }
 
     private fun normalizeName(name: String): String {
@@ -97,89 +133,61 @@ class ReportViewModel(private val reportDao: ReportDao) : ViewModel() {
         }
     }
 
-    private fun calculateReport(items: List<ReportItem>, month: Int, year: Int): ReportUiState {
+    private fun calculateReport(
+        items: List<ReportItem>,
+        timeFrame: TimeFrame,
+        month: Int,
+        year: Int,
+        week: Int
+    ): ReportUiState {
         val wastedItems = items.filter { it.status == ReportStatus.WASTED }
         val consumedItems = items.filter { it.status == ReportStatus.CONSUMED }
 
         val totalWasted = wastedItems.sumOf { it.quantity }
         val totalConsumed = consumedItems.sumOf { it.quantity }
 
-        // 计算总金额 (单价 * 数量)
         val wastedCost = wastedItems.sumOf { it.price * it.quantity }
         val savedCost = consumedItems.sumOf { it.price * it.quantity }
 
-        // 1. 最多浪费项目
         val topWasted = wastedItems.groupBy { normalizeName(it.name) }
             .mapValues { entry -> entry.value.sumOf { it.quantity } }
             .maxByOrNull { it.value }
 
-        // 2. 浪费类别占比
-        val wastedCategories = wastedItems.groupBy { it.category.ifBlank { "Others" } }
+        val wastedCategories = wastedItems.groupBy { it.category.trim() }
             .map { (cat, list) ->
                 val catCount = list.sumOf { it.quantity }
-                val catCost = list.sumOf { it.price * it.quantity }
-                CategoryBreakdown(
-                    category = cat,
-                    count = catCount,
-                    percentage = if (totalWasted > 0) ((catCount.toFloat() / totalWasted) * 100) else 0f,
-                    totalPrice = catCost
-                )
-            }
-            .sortedByDescending { it.count }
+                CategoryBreakdown(cat, catCount, if (totalWasted > 0) ((catCount.toFloat() / totalWasted) * 100) else 0f, list.sumOf { it.price * it.quantity })
+            }.sortedByDescending { it.count }
 
-        // 3. 浪费 Food List（带价格计算）
         val topWastedList = wastedItems.groupBy { normalizeName(it.name) }
             .map { (displayName, list) ->
                 val itemCount = list.sumOf { it.quantity }
-                val itemCost = list.sumOf { it.price * it.quantity }
-                TopWastedItem(
-                    name = displayName,
-                    count = itemCount,
-                    percentage = if (totalWasted > 0) ((itemCount.toFloat() / totalWasted) * 100) else 0f,
-                    totalPrice = itemCost
-                )
-            }
-            .sortedByDescending { it.count }
+                TopWastedItem(displayName, itemCount, if (totalWasted > 0) ((itemCount.toFloat() / totalWasted) * 100) else 0f, list.sumOf { it.price * it.quantity })
+            }.sortedByDescending { it.count }
 
-        // 4. 原因占比
         val reasonBreakdown = wastedItems.groupBy { it.reason.trim() }
             .map { (reason, list) ->
                 val reasonCount = list.sumOf { it.quantity }
                 ReasonBreakdown(reason, reasonCount, if (totalWasted > 0) ((reasonCount.toFloat() / totalWasted) * 100) else 0f)
-            }
-            .sortedByDescending { it.count }
+            }.sortedByDescending { it.count }
 
-        // 5. 消耗类别占比
         val consumedCategories = consumedItems.groupBy { it.category.trim() }
             .map { (cat, list) ->
                 val catCount = list.sumOf { it.quantity }
-                val catCost = list.sumOf { it.price * it.quantity }
-                CategoryBreakdown(
-                    category = cat,
-                    count = catCount,
-                    percentage = if (totalConsumed > 0) ((catCount.toFloat() / totalConsumed) * 100) else 0f,
-                    totalPrice = catCost
-                )
-            }
-            .sortedByDescending { it.count }
+                CategoryBreakdown(cat, catCount, if (totalConsumed > 0) ((catCount.toFloat() / totalConsumed) * 100) else 0f, list.sumOf { it.price * it.quantity })
+            }.sortedByDescending { it.count }
 
-        // 6. 消耗 Food List（带价格计算）
         val topConsumedList = consumedItems.groupBy { normalizeName(it.name) }
             .map { (displayName, list) ->
                 val itemCount = list.sumOf { it.quantity }
-                val itemCost = list.sumOf { it.price * it.quantity }
-                TopWastedItem(
-                    name = displayName,
-                    count = itemCount,
-                    percentage = if (totalConsumed > 0) ((itemCount.toFloat() / totalConsumed) * 100) else 0f,
-                    totalPrice = itemCost
-                )
-            }
-            .sortedByDescending { it.count }
+                TopWastedItem(displayName, itemCount, if (totalConsumed > 0) ((itemCount.toFloat() / totalConsumed) * 100) else 0f, list.sumOf { it.price * it.quantity })
+            }.sortedByDescending { it.count }
 
         return ReportUiState(
+            selectedTimeFrame = timeFrame,
             selectedMonth = month,
             selectedYear = year,
+            selectedWeek = week,
             totalWastedItems = totalWasted,
             totalWastedCost = wastedCost,
             mostWastedName = topWasted?.key ?: "-",
