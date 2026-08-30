@@ -6,6 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.savebite.data.local.dao.InventoryDao
+import com.example.savebite.data.local.dao.RecipeDao
+import com.example.savebite.data.local.dao.RecipeEntity
 import com.example.savebite.data.local.dao.ReportDao
 import com.example.savebite.data.local.dao.ShoppingDao
 import com.example.savebite.data.local.dao.StorageDao
@@ -25,9 +27,10 @@ import kotlinx.coroutines.launch
         Storage::class,
         User::class,
         ShoppingItem::class,
-        ReportItem::class
+        ReportItem::class,
+        RecipeEntity::class
     ],
-    version = 10, // Bumped to version 9 to resolve schema mismatch after merge
+    version = 11, // Bumped to version 11 to include cached_recipes table
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -37,6 +40,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun shoppingDao(): ShoppingDao
     abstract fun reportDao(): ReportDao
+    abstract fun recipeDao(): RecipeDao
 
     companion object {
         @Volatile

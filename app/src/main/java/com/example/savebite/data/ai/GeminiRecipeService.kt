@@ -2,17 +2,14 @@ package com.example.savebite.data.ai
 
 import android.util.Log
 import com.example.savebite.model.Inventory
+import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.content
+import com.google.ai.client.generativeai.type.generationConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.IOException
-import java.util.concurrent.TimeUnit
 
 @Serializable
 data class Recipe(
@@ -25,20 +22,21 @@ data class Recipe(
 
 class GeminiRecipeService(private val apiKey: String) {
 
-    // 使用官方稳定的模型名称
-    private val modelName = "gemini-1.5-flash"
-
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
-
-    private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
+    // 使用官方 SDK 实例，配合 JSON Schema 输出配置
+    private val generativeModel by lazy {
+        GenerativeModel(
+            modelName = "gemini-1.5-flash",
+            apiKey = apiKey.trim(),
+            generationConfig = generationConfig {
+                responseMimeType = "application/json"
+            }
+        )
+    }
 
     suspend fun generateRecipes(expiringItems: List<Inventory>): List<Recipe> = withContext(Dispatchers.IO) {
         if (apiKey.isBlank()) {
             Log.e("GeminiRecipeService", "API key is blank")
-            return@withContext emptyList()
+            throw Exception("MISSING_API_KEY")
         }
         if (expiringItems.isEmpty()) {
             return@withContext emptyList()
@@ -66,67 +64,27 @@ class GeminiRecipeService(private val apiKey: String) {
             ]
         """.trimIndent()
 
-        val requestBodyJson = JSONObject().apply {
-            put("contents", JSONArray().put(
-                JSONObject().put("parts", JSONArray().put(
-                    JSONObject().put("text", prompt)
-                ))
-            ))
-            put("generationConfig", JSONObject().put("response_mime_type", "application/json"))
-        }.toString()
-
-        val url = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
-
-        val request = Request.Builder()
-            .url(url)
-            .addHeader("x-goog-api-key", apiKey)
-            .addHeader("Content-Type", "application/json")
-            .post(requestBodyJson.toRequestBody(jsonMediaType))
-            .build()
-
         try {
-            client.newCall(request).execute().use { response ->
-                val bodyStr = response.body?.string().orEmpty()
+            // 调用官方 SDK 生成文本
+            val response = generativeModel.generateContent(prompt)
+            val responseText = response.text
 
-                if (!response.isSuccessful) {
-                    Log.e("GeminiRecipeService", "Gemini request failed: HTTP ${response.code} - $bodyStr")
-                    return@withContext emptyList()
-                }
-
-                if (bodyStr.isEmpty()) {
-                    Log.e("GeminiRecipeService", "Empty response body from Gemini")
-                    return@withContext emptyList()
-                }
-
-                val text = extractTextFromResponse(bodyStr)
-                if (text.isNullOrBlank()) {
-                    Log.e("GeminiRecipeService", "No text content in Gemini response: $bodyStr")
-                    return@withContext emptyList()
-                }
-
-                parseRecipesJson(cleanJsonString(text))
+            if (responseText.isNullOrBlank()) {
+                Log.e("GeminiRecipeService", "Empty response from Gemini SDK")
+                return@withContext emptyList()
             }
-        } catch (e: IOException) {
-            Log.e("GeminiRecipeService", "Network error calling Gemini: ${e.message}", e)
-            emptyList()
-        } catch (e: Exception) {
-            Log.e("GeminiRecipeService", "Error generating recipes: ${e.message}", e)
-            emptyList()
-        }
-    }
 
-    private fun extractTextFromResponse(bodyStr: String): String? {
-        return try {
-            val root = JSONObject(bodyStr)
-            root.getJSONArray("candidates")
-                .getJSONObject(0)
-                .getJSONObject("content")
-                .getJSONArray("parts")
-                .getJSONObject(0)
-                .optString("text", null)
+            parseRecipesJson(cleanJsonString(responseText))
         } catch (e: Exception) {
-            Log.e("GeminiRecipeService", "Error extracting text from response: ${e.message}", e)
-            null
+            Log.e("GeminiRecipeService", "Error calling Gemini SDK: ${e.message}", e)
+            val msg = e.message ?: ""
+            when {
+                msg.contains("API_KEY_INVALID", ignoreCase = true) ||
+                        msg.contains("invalid", ignoreCase = true) -> throw Exception("INVALID_API_KEY: ${e.message}")
+                msg.contains("Quota", ignoreCase = true) ||
+                        msg.contains("429", ignoreCase = true) -> throw Exception("RATE_LIMIT_EXCEEDED")
+                else -> throw Exception("SERVER_ERROR: ${e.message}")
+            }
         }
     }
 
@@ -181,6 +139,7 @@ class GeminiRecipeService(private val apiKey: String) {
             }
         } catch (e: Exception) {
             Log.e("GeminiRecipeService", "Error parsing JSON: ${e.message}", e)
+            throw Exception("PARSING_ERROR")
         }
         return recipeList
     }

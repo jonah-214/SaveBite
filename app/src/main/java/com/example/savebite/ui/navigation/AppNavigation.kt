@@ -25,6 +25,7 @@ import androidx.navigation.navArgument
 import com.example.savebite.data.ai.GeminiRecipeService
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
+import com.example.savebite.data.repo.RecipeRepository
 import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.model.ReportStatus
 import com.example.savebite.ui.screen.AboutUsScreen
@@ -440,17 +441,22 @@ fun AppNavigation(
                 val db = AppDatabase.getDatabase(context)
 
                 val inventoryDao = db.inventoryDao()
+                val recipeDao = db.recipeDao()
                 val allInventoryItems by inventoryDao.getAllInventory().collectAsState(initial = emptyList())
 
                 val aiService = remember {
                     GeminiRecipeService(apiKey = com.example.savebite.BuildConfig.GEMINI_API_KEY)
+                }
+                
+                val repository = remember {
+                    RecipeRepository(aiService, recipeDao)
                 }
 
                 val recipeViewModel: RecipeViewModel = viewModel(
                     factory = object : ViewModelProvider.Factory {
                         override fun <T : ViewModel> create(modelClass: Class<T>): T {
                             @Suppress("UNCHECKED_CAST")
-                            return RecipeViewModel(aiService) as T
+                            return RecipeViewModel(repository) as T
                         }
                     }
                 )

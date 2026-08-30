@@ -2,8 +2,8 @@ package com.example.savebite.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.savebite.data.ai.GeminiRecipeService
 import com.example.savebite.data.ai.Recipe
+import com.example.savebite.data.repo.RecipeRepository
 import com.example.savebite.model.Inventory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +18,7 @@ data class RecipeUiState(
 )
 
 class RecipeViewModel(
-    private val aiService: GeminiRecipeService
+    private val repository: RecipeRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RecipeUiState())
@@ -26,19 +26,24 @@ class RecipeViewModel(
 
     private var cachedInventory: List<Inventory> = emptyList()
 
+    init {
+        // ViewModel 初始化时立即监听 Room 缓存数据
+        viewModelScope.launch {
+            repository.cachedRecipes.collect { localRecipes ->
+                if (localRecipes.isNotEmpty() && _uiState.value.recipes.isEmpty()) {
+                    _uiState.value = _uiState.value.copy(recipes = localRecipes)
+                }
+            }
+        }
+    }
+
     fun fetchAIRecipes(allInventoryItems: List<Inventory>) {
         cachedInventory = allInventoryItems
         val urgentItems = allInventoryItems.filter { !it.isConsumed && it.daysLeft <= 3 }
 
-        if (urgentItems.isEmpty()) {
-            _uiState.value = RecipeUiState(
-                expiringItems = emptyList(),
-                recipes = emptyList(),
-                isLoading = false
-            )
-            return
-        }
+        _uiState.value = _uiState.value.copy(expiringItems = urgentItems)
 
+        // 如果已有数据且过期食材没变，不自动刷新
         if (_uiState.value.recipes.isNotEmpty() && _uiState.value.expiringItems == urgentItems) {
             return
         }
@@ -61,13 +66,32 @@ class RecipeViewModel(
                 errorMessage = null
             )
 
-            val generatedRecipes = aiService.generateRecipes(urgentItems)
+            try {
+                // 调用 repository，成功后会自动存入 Room
+                val fetchedRecipes = repository.fetchAndSaveRecipes(urgentItems)
 
-            _uiState.value = _uiState.value.copy(
-                recipes = generatedRecipes,
-                isLoading = false,
-                errorMessage = if (generatedRecipes.isEmpty()) "Failed to fetch recipes. Check API key or connection." else null
-            )
+                _uiState.value = _uiState.value.copy(
+                    recipes = fetchedRecipes,
+                    isLoading = false,
+                    errorMessage = if (fetchedRecipes.isEmpty()) "No recipes found. Try again later." else null
+                )
+            } catch (e: Exception) {
+                val msg = e.message ?: ""
+                val userMessage = when {
+                    msg.contains("MISSING_API_KEY") -> "Gemini API Key is missing in local.properties."
+                    msg.contains("INVALID_API_KEY") -> "The API Key is invalid or not authorized."
+                    msg.contains("NETWORK_ERROR") -> "Cannot reach Gemini. Showing cached data if available."
+                    msg.contains("RATE_LIMIT_EXCEEDED") -> "Too many requests. Please wait a moment."
+                    msg.contains("SERVER_ERROR") -> "Google server error. Please try again later."
+                    else -> "Error: ${e.localizedMessage ?: "Unknown error"}"
+                }
+
+                // 即使请求失败，依然保留已有的缓存 Recipe 页面显示
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = if (_uiState.value.recipes.isEmpty()) userMessage else null
+                )
+            }
         }
     }
 }
