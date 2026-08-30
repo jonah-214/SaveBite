@@ -6,11 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.model.Inventory
+import com.example.savebite.model.InventorySortOption
 import com.example.savebite.model.ReportStatus
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -23,6 +25,7 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     val searchQuery = MutableStateFlow("")
     val selectedStorage = MutableStateFlow("All")
 
+    val selectedSortOption = MutableStateFlow(InventorySortOption.PRIORITY)
     // Default Storage options
     private val defaultStorages = listOf("Refrigerator", "Pantry", "Freezer")
 
@@ -30,7 +33,6 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
 
     var selectedReportStatus = MutableStateFlow(ReportStatus.CONSUMED)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     val inventoryList: StateFlow<List<Inventory>>
 
     init {
@@ -42,9 +44,20 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
             (defaultStorages + dbStorages).distinct()
         }.stateIn(viewModelScope, SharingStarted.Lazily, defaultStorages)
 
-        inventoryList = searchQuery.flatMapLatest { query ->
-            selectedStorage.flatMapLatest { storage ->
-                repository.searchAndFilter(query, storage)
+        inventoryList = combine(
+            searchQuery.flatMapLatest { query ->
+                selectedStorage.flatMapLatest { storage ->
+                    repository.searchAndFilter(query, storage)
+                }
+            },
+            selectedSortOption
+        ) { filteredItems, sortOption ->
+            when (sortOption) {
+                InventorySortOption.PRIORITY -> filteredItems.sortedBy { it.daysLeft }
+                InventorySortOption.NAME_A_TO_Z -> filteredItems.sortedBy { it.name.lowercase() }
+                InventorySortOption.NAME_Z_TO_A -> filteredItems.sortedByDescending { it.name.lowercase() }
+                InventorySortOption.DATE_NEW_TO_OLD -> filteredItems.sortedByDescending { it.expiry }
+                InventorySortOption.DATE_OLD_TO_NEW -> filteredItems.sortedBy { it.expiry }
             }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -104,5 +117,9 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     ) = viewModelScope.launch {
         repository.moveItemsToReport(itemsWithQty, status, reason)
         onSuccess()
+    }
+
+    fun onSortOptionSelected(sortOption: InventorySortOption) {
+        selectedSortOption.value = sortOption
     }
 }

@@ -72,14 +72,14 @@ object BottomNavItems {
             R.drawable.home
         ),
         BottomNavItem(
-            AppRoutes.INVENTORY,
-            "Inventory",
-            R.drawable.inventory_2
-        ),
-        BottomNavItem(
             AppRoutes.SHOPPING,
             "Shopping",
             R.drawable.shopping_bag
+        ),
+        BottomNavItem(
+            AppRoutes.INVENTORY,
+            "Inventory",
+            R.drawable.inventory_2
         ),
         BottomNavItem(
             AppRoutes.RECIPE,

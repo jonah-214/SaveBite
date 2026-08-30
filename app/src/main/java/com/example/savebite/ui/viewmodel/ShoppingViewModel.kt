@@ -6,8 +6,10 @@ import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.ShoppingItem
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -19,8 +21,24 @@ class ShoppingViewModel(
     private val inventoryRepository: InventoryRepository
 ) : ViewModel() {
 
-    val items: StateFlow<List<ShoppingItem>> = shoppingRepository.allShoppingItems
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    // 搜索关键字状态
+    val searchQuery = MutableStateFlow("")
+
+    // 将数据库列表与 searchQuery 进行动态结合过滤
+    val items: StateFlow<List<ShoppingItem>> = combine(
+        shoppingRepository.allShoppingItems,
+        searchQuery
+    ) { itemList, query ->
+        if (query.isBlank()) {
+            itemList
+        } else {
+            itemList.filter { it.name.contains(query, ignoreCase = true) }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun onSearchQueryChange(newQuery: String) {
+        searchQuery.value = newQuery
+    }
 
     fun togglePurchased(item: ShoppingItem) {
         viewModelScope.launch {

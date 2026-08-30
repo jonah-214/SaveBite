@@ -14,7 +14,7 @@ data class Inventory(
     val storage: String,
     val quantity: Int,
     val unit: String,
-    val price: Double = 0.0, // 新增：采购价格/发票总金额
+    val price: Double = 0.0,
     val daysLeft: Int,
     val purchaseDate: String = "",
     val expiry: String,
@@ -26,4 +26,12 @@ data class Inventory(
         if (quantity <= 0) return 0.0
         return (wastedQty / quantity) * price
     }
+}
+
+enum class InventorySortOption(val label: String) {
+    PRIORITY("Priority (Expiring Soon)"),
+    NAME_A_TO_Z("Name (A - Z)"),
+    NAME_Z_TO_A("Name (Z - A)"),
+    DATE_NEW_TO_OLD("Date Added (Newest First)"),
+    DATE_OLD_TO_NEW("Date Added (Oldest First)")
 }

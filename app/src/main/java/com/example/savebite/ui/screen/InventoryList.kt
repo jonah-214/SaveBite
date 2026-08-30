@@ -21,10 +21,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -38,7 +41,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,6 +54,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
 import com.example.savebite.model.Inventory
+import com.example.savebite.model.InventorySortOption
+import com.example.savebite.ui.navigation.AppSearchBar
 import com.example.savebite.ui.navigation.AppTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,6 +67,8 @@ fun InventoryList(
     onQueryChange: (String) -> Unit = {},
     selectedStorage: String = "All",
     onStorageSelected: (String) -> Unit = {},
+    selectedSortOption: InventorySortOption = InventorySortOption.PRIORITY,
+    onSortOptionSelected: (InventorySortOption) -> Unit = {},
     onNavigateToAddInventory: () -> Unit = {},
     onItemClick: (Inventory) -> Unit = {},
     onEditClick: (Inventory) -> Unit = {},
@@ -90,7 +100,7 @@ fun InventoryList(
                 )
             }
         },
-        // 关键改动 1：利用 Scaffold 的 bottomBar 放置 Consume 提示卡片
+
         bottomBar = {
             if (consumedCount > 0) {
                 Card(
@@ -119,7 +129,6 @@ fun InventoryList(
                             )
                         }
 
-                        // 两个独立的动作按钮：带入不同的 targetStatus 参数跳转
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(
                                 onClick = { onMoveConsumedToReport("CONSUMED") },
@@ -157,14 +166,18 @@ fun InventoryList(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            SearchFoodBar(
+            AppSearchBar(
                 query = searchQuery,
-                onQueryChange = onQueryChange
+                onQueryChange = onQueryChange,
+                placeholderText = "Search food...",
+                sortOptions = InventorySortOption.values().toList(),
+                selectedSortOption = selectedSortOption,
+                onSortOptionSelected = onSortOptionSelected,
+                getSortOptionLabel = { it.label }
             )
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 关键改动 2：列表占满剩余控件，底部留出边距避免最后一张卡片被 FAB 挡住
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxSize()
@@ -251,54 +264,4 @@ fun StorageTab(
             )
         }
     }
-}
-
-@Composable
-fun SearchFoodBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(50.dp),
-        textStyle = MaterialTheme.typography.bodyMedium,
-        leadingIcon = {
-            Icon(
-                painter = painterResource(R.drawable.search),
-                contentDescription = "Search",
-                tint = Color.Gray,
-                modifier = Modifier.size(18.dp)
-            )
-        },
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(
-                        painter = painterResource(R.drawable.clear),
-                        contentDescription = "Clear search",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-        },
-        placeholder = {
-            Text(
-                text = "Search food...",
-                fontSize = 14.sp
-            )
-        },
-        shape = RoundedCornerShape(20.dp),
-        singleLine = true,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            focusedBorderColor = Color.Transparent,
-            unfocusedBorderColor = Color.Transparent
-        )
-    )
 }

@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.model.ShoppingItem
+import com.example.savebite.ui.navigation.AppSearchBar
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ShoppingViewModel
 
@@ -34,6 +35,7 @@ fun ShoppingListScreen(
     onNavigateToAddToInventory: () -> Unit = {}
 ) {
     val items by viewModel.items.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
     val purchasedCount = items.count { it.isPurchased }
     val totalCount = items.size
 
@@ -148,21 +150,13 @@ fun ShoppingListScreen(
                 }
             }
 
-            // Search Bar
-            OutlinedTextField(
-                value = "",
-                onValueChange = {},
-                placeholder = { Text("Search ingredients...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                trailingIcon = { Icon(Icons.Default.Tune, contentDescription = null) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                )
+            AppSearchBar<String>(
+                query = searchQuery,
+                onQueryChange = { viewModel.onSearchQueryChange(it) },
+                placeholderText = "Search shopping list..."
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Categorized List with Collapsible Logic
             val grouped = items.groupBy { it.category }
@@ -171,7 +165,7 @@ fun ShoppingListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 grouped.forEach { (category, list) ->
-                    val isExpanded = categoryExpandedStates.getOrDefault(category, true)
+                    val isExpanded = if (searchQuery.isNotEmpty()) true else categoryExpandedStates.getOrDefault(category, true)
 
                     item(key = "header_$category") {
                         CategoryHeader(
@@ -179,7 +173,9 @@ fun ShoppingListScreen(
                             count = list.size,
                             isExpanded = isExpanded,
                             onToggleExpand = {
-                                categoryExpandedStates[category] = !isExpanded
+                                if (searchQuery.isEmpty()) {
+                                    categoryExpandedStates[category] = !isExpanded
+                                }
                             }
                         )
                     }
