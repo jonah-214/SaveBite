@@ -80,7 +80,19 @@ fun AddInventoryScreen(
     var quantity by remember { mutableIntStateOf(1) }
     var unit by remember { mutableStateOf("pcs") }
     var price by remember { mutableStateOf("") }
-    val isPriceValid = price.isNotBlank() && price.toDoubleOrNull() != null && price.toDouble() >= 0.0
+    
+    // Helper function to clean and parse price string
+    val cleanPriceString = { input: String ->
+        input.trim()
+            .replace("RM", "", ignoreCase = true)
+            .replace(",", ".")
+            .replace(Regex("[^0-9.]"), "")
+    }
+
+    val isPriceValid = remember(price) {
+        val cleaned = cleanPriceString(price)
+        cleaned.isNotBlank() && cleaned.toDoubleOrNull() != null && cleaned.toDouble() >= 0.0
+    }
     var attemptedSave by remember { mutableStateOf(false) }
 
     // Default Dates (Today & 7 Days Later)
@@ -482,7 +494,8 @@ fun AddInventoryScreen(
                     onClick = {
                         attemptedSave = true
                         if (name.isNotBlank() && isPriceValid) {
-                            val parsedPrice = price.toDoubleOrNull() ?: 0.0
+                            val cleanedPrice = cleanPriceString(price)
+                            val parsedPrice = cleanedPrice.toDoubleOrNull() ?: 0.0
                             val calculatedDaysLeft = calculateDaysLeft(expiryDate)
                             
                             val newFood = Inventory(

@@ -31,7 +31,6 @@ import com.example.savebite.ui.screen.AboutUsScreen
 import com.example.savebite.ui.screen.AddInventoryScreen
 import com.example.savebite.ui.screen.AddShoppingItemScreen
 import com.example.savebite.ui.screen.ChangePasswordScreen
-import com.example.savebite.ui.screen.ConsumedItemsListScreen
 import com.example.savebite.ui.screen.DashboardScreen
 import com.example.savebite.ui.screen.EditProfileScreen
 import com.example.savebite.ui.screen.ForgotPasswordScreen
@@ -42,13 +41,13 @@ import com.example.savebite.ui.screen.LoginScreen
 import com.example.savebite.ui.screen.ManageStorageScreen
 import com.example.savebite.ui.screen.ProfileScreen
 import com.example.savebite.ui.screen.RecipeScreen
+import com.example.savebite.ui.screen.ReportItemListScreen
 import com.example.savebite.ui.screen.ReportScreen
 import com.example.savebite.ui.screen.ShoppingItemToInventoryScreen
 import com.example.savebite.ui.screen.ShoppingListScreen
 import com.example.savebite.ui.screen.SignUpScreen
 import com.example.savebite.ui.screen.SplashScreen
 import com.example.savebite.ui.screen.WasteBreakdownDetailScreen
-import com.example.savebite.ui.screen.WastedItemsListScreen
 import com.example.savebite.ui.viewmodel.AuthViewModel
 import com.example.savebite.ui.viewmodel.DashboardViewModel
 import com.example.savebite.ui.viewmodel.DashboardViewModelFactory
@@ -501,7 +500,8 @@ fun AppNavigation(
                 }
                 val reportViewModel: ReportViewModel = viewModel(parentEntry)
 
-                WastedItemsListScreen(
+                ReportItemListScreen(
+                    type = ReportStatus.WASTED,
                     viewModel = reportViewModel,
                     onBackClick = { navController.popBackStack() }
                 )
@@ -513,7 +513,8 @@ fun AppNavigation(
                 }
                 val reportViewModel: ReportViewModel = viewModel(parentEntry)
 
-                ConsumedItemsListScreen(
+                ReportItemListScreen(
+                    type = ReportStatus.CONSUMED,
                     viewModel = reportViewModel,
                     onBackClick = { navController.popBackStack() }
                 )

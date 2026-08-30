@@ -20,13 +20,7 @@ data class Inventory(
     val expiry: String,
     val notes: String = "",
     val isConsumed: Boolean = false
-) {
-
-    fun calculateLostCost(wastedQty: Double): Double {
-        if (quantity <= 0) return 0.0
-        return (wastedQty / quantity) * price
-    }
-}
+)
 
 enum class InventorySortOption(val label: String) {
     PRIORITY("Priority (Expiring Soon)"),

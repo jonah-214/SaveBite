@@ -1,0 +1,204 @@
+package com.example.savebite.ui.screen
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircleOutline
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.savebite.ui.navigation.AppTopBar
+import com.example.savebite.ui.theme.VegGreen
+import com.example.savebite.ui.viewmodel.ReportViewModel
+import com.example.savebite.model.ReportStatus
+import java.util.Locale
+
+@Composable
+fun ReportItemListScreen(
+    type: ReportStatus,
+    viewModel: ReportViewModel,
+    onBackClick: () -> Unit
+) {
+    val state by viewModel.uiState.collectAsState()
+
+    val isWasted = type == ReportStatus.WASTED
+    val title = if (isWasted) "Wasted Items History" else "Consumed Items History"
+    val items = if (isWasted) state.topWastedItems else state.topConsumedItems
+
+    // 动态计算该列表的总价值与总数量
+    val totalCount = items.sumOf { it.count }
+    val totalCost = items.sumOf { it.totalPrice }
+
+    val themeColor = if (isWasted) MaterialTheme.colorScheme.error else VegGreen
+    val headerBgColor = if (isWasted) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+    else VegGreen.copy(alpha = 0.15f)
+
+    Scaffold(
+        topBar = {
+            AppTopBar(
+                title = title,
+                showBackButton = true,
+                onBackClick = onBackClick
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 顶部汇总 Header 卡片
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = headerBgColor),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = if (isWasted) "Food Waste Cost" else "Consumed Food Value",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = String.format(Locale.getDefault(), "RM %.2f", totalCost),
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = themeColor
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = themeColor.copy(alpha = 0.2f)
+                    ) {
+                        Text(
+                            text = "$totalCount Items",
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = themeColor
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 列表部分
+            if (items.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No items found for this month",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(bottom = 24.dp)
+                ) {
+                    items(items) { item ->
+                        ReportItemRowCard(
+                            name = item.name,
+                            count = item.count,
+                            percentage = item.percentage,
+                            totalPrice = item.totalPrice,
+                            progressColor = themeColor
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ReportItemRowCard(
+    name: String,
+    count: Int,
+    percentage: Float,
+    totalPrice: Double,
+    progressColor: Color
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "$count items (${percentage.toInt()}%)",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                // 金额计算显示
+                Text(
+                    text = String.format(Locale.getDefault(), "RM %.2f", totalPrice),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = progressColor
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // 进度条
+            LinearProgressIndicator(
+                progress = { (percentage / 100f).coerceIn(0f, 1f) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp)),
+                color = progressColor,
+                trackColor = progressColor.copy(alpha = 0.15f)
+            )
+        }
+    }
+}

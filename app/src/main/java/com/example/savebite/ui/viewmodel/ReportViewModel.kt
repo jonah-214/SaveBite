@@ -114,7 +114,7 @@ class ReportViewModel(private val reportDao: ReportDao) : ViewModel() {
             .maxByOrNull { it.value }
 
         // 2. 浪费类别占比
-        val wastedCategories = wastedItems.groupBy { it.category.trim() }
+        val wastedCategories = wastedItems.groupBy { it.category.ifBlank { "Others" } }
             .map { (cat, list) ->
                 val catCount = list.sumOf { it.quantity }
                 val catCost = list.sumOf { it.price * it.quantity }

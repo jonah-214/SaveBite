@@ -12,6 +12,7 @@ import com.example.savebite.ui.viewmodel.ReportUiState
 import java.io.File
 import java.io.FileOutputStream
 import java.text.DateFormatSymbols
+import java.util.Locale
 
 object PdfReportGenerator {
 
@@ -28,9 +29,9 @@ object PdfReportGenerator {
         val reasonsCount = reasonList.size
         val consumedCount = consumedList.size
 
-        val wastedItemsCardHeight = 36f + (topItemsCount * 22f).coerceAtLeast(25f)
-        val reasonsCardHeight = 36f + (reasonsCount * 22f).coerceAtLeast(25f)
-        val consumedCardHeight = 36f + (consumedCount * 22f).coerceAtLeast(25f)
+        val wastedItemsCardHeight = 36f + (topItemsCount * 24f).coerceAtLeast(28f)
+        val reasonsCardHeight = 36f + (reasonsCount * 24f).coerceAtLeast(28f)
+        val consumedCardHeight = 36f + (consumedCount * 24f).coerceAtLeast(28f)
         val breakdownCardHeight = 150f
 
         val contentCalculatedHeight = 32f + 32f + 14f + 55f + 14f + breakdownCardHeight + 14f +
@@ -83,6 +84,7 @@ object PdfReportGenerator {
         val startX = 36f
         val contentWidth = pageWidth - (startX * 2)
 
+        // Title
         paint.color = primaryGreen
         paint.textSize = 20f
         paint.isFakeBoldText = true
@@ -113,27 +115,29 @@ object PdfReportGenerator {
         drawRoundedRect(canvas, startX, currentY, metricCardWidth, metricCardHeight, 10f, bgCard, borderCard)
         paint.color = textMuted
         paint.textSize = 10f
+        paint.isFakeBoldText = false
         canvas.drawText("Total Items Wasted", startX + 14f, currentY + 18f, paint)
         paint.color = textDark
         paint.textSize = 15f
         paint.isFakeBoldText = true
         canvas.drawText("${state.totalWastedItems} items", startX + 14f, currentY + 40f, paint)
 
-        // Card 2: Most Wasted Item
+        // Card 2: Saved Amount
         val card2X = startX + metricCardWidth + cardGap
         drawRoundedRect(canvas, card2X, currentY, metricCardWidth, metricCardHeight, 10f, bgCard, borderCard)
         paint.color = textMuted
         paint.textSize = 10f
         paint.isFakeBoldText = false
-        canvas.drawText("Most Wasted", card2X + 14f, currentY + 18f, paint)
-        paint.color = textDark
+        canvas.drawText("Saved Amount", card2X + 14f, currentY + 18f, paint)
+        paint.color = primaryGreen
         paint.textSize = 15f
         paint.isFakeBoldText = true
-        val mostWastedName = state.mostWastedName.ifEmpty { "-" }
-        canvas.drawText(mostWastedName, card2X + 14f, currentY + 40f, paint)
+        val savedText = String.format(Locale.getDefault(), "RM %.2f", state.totalSavedCost)
+        canvas.drawText(savedText, card2X + 14f, currentY + 40f, paint)
 
         currentY += metricCardHeight + 14f
 
+        // Waste Breakdown Card
         drawRoundedRect(canvas, startX, currentY, contentWidth, breakdownCardHeight, 12f, Color.WHITE, borderCard)
 
         paint.color = textDark
@@ -199,125 +203,155 @@ object PdfReportGenerator {
 
         currentY += breakdownCardHeight + 14f
 
+        val colNameX = startX + 14f
+        val colBarStartX = startX + 110f
+        val barMaxWidth = 180f
+        val cardRightPadding = 14f
+        val colRightAlignX = startX + contentWidth - cardRightPadding
+
+        // 1. All Wasted Items Card
         drawRoundedRect(canvas, startX, currentY, contentWidth, wastedItemsCardHeight, 12f, Color.WHITE, borderCard)
 
         paint.color = textDark
         paint.textSize = 13f
         paint.isFakeBoldText = true
-        canvas.drawText("All Wasted Items (${topWastedList.size})", startX + 14f, currentY + 24f, paint)
+        canvas.drawText("All Wasted Items (${topWastedList.size})", colNameX, currentY + 24f, paint)
 
-        var itemY = currentY + 45f
+        var itemY = currentY + 46f
         if (topWastedList.isNotEmpty()) {
             topWastedList.forEach { item ->
+                // 名称
                 paint.color = textDark
                 paint.textSize = 10f
                 paint.isFakeBoldText = false
-                canvas.drawText(item.name, startX + 14f, itemY, paint)
+                canvas.drawText(item.name, colNameX, itemY, paint)
 
-                val barStartX = startX + 130f
-                val barMaxWidth = 260f
-                val barHeight = 5f
+                // 统一背景进度条
                 paint.color = bgCard
                 paint.style = Paint.Style.FILL
-                canvas.drawRoundRect(RectF(barStartX, itemY - 6f, barStartX + barMaxWidth, itemY - 6f + barHeight), 2.5f, 2.5f, paint)
+                canvas.drawRoundRect(RectF(colBarStartX, itemY - 6f, colBarStartX + barMaxWidth, itemY - 6f + 5f), 2.5f, 2.5f, paint)
 
+                // 统一填充进度条
                 val fillWidth = (item.percentage / 100f).coerceIn(0f, 1f) * barMaxWidth
                 paint.color = primaryGreen
-                canvas.drawRoundRect(RectF(barStartX, itemY - 6f, barStartX + fillWidth, itemY - 6f + barHeight), 2.5f, 2.5f, paint)
+                canvas.drawRoundRect(RectF(colBarStartX, itemY - 6f, colBarStartX + fillWidth, itemY - 6f + 5f), 2.5f, 2.5f, paint)
 
+                // 右侧文本（右对齐算法）
                 paint.color = textMuted
                 paint.textSize = 9f
-                canvas.drawText("${item.count} items (${item.percentage.toInt()}%)", barStartX + barMaxWidth + 12f, itemY, paint)
+                paint.isFakeBoldText = false
 
-                itemY += 22f
+                val countText = "${item.count} (${item.percentage.toInt()}%)"
+                val priceText = if (item.totalPrice > 0) String.format(Locale.getDefault(), "RM %.2f", item.totalPrice) else ""
+                val infoText = if (priceText.isNotEmpty()) "$priceText • $countText" else countText
+
+                val textWidth = paint.measureText(infoText)
+                canvas.drawText(infoText, colRightAlignX - textWidth, itemY, paint)
+
+                itemY += 24f
             }
         } else {
             paint.color = textMuted
             paint.textSize = 10f
             paint.isFakeBoldText = false
-            canvas.drawText("No wasted items found", startX + 14f, itemY, paint)
+            canvas.drawText("No wasted items found", colNameX, itemY, paint)
         }
 
         currentY += wastedItemsCardHeight + 14f
 
+        // 2. Waste Reasons Card
         drawRoundedRect(canvas, startX, currentY, contentWidth, reasonsCardHeight, 12f, Color.WHITE, borderCard)
 
         paint.color = textDark
         paint.textSize = 13f
         paint.isFakeBoldText = true
-        canvas.drawText("Waste Reasons", startX + 14f, currentY + 24f, paint)
+        canvas.drawText("Waste Reasons", colNameX, currentY + 24f, paint)
 
-        var reasonY = currentY + 45f
+        var reasonY = currentY + 46f
         if (reasonList.isNotEmpty()) {
             reasonList.forEach { reason ->
+                // 名称
                 paint.color = textDark
                 paint.textSize = 10f
                 paint.isFakeBoldText = false
-                canvas.drawText(reason.reason, startX + 14f, reasonY, paint)
+                canvas.drawText(reason.reason, colNameX, reasonY, paint)
 
-                val barStartX = startX + 130f
-                val barMaxWidth = 260f
-                val barHeight = 5f
+                // 统一背景进度条
                 paint.color = bgCard
                 paint.style = Paint.Style.FILL
-                canvas.drawRoundRect(RectF(barStartX, reasonY - 6f, barStartX + barMaxWidth, reasonY - 6f + barHeight), 2.5f, 2.5f, paint)
+                canvas.drawRoundRect(RectF(colBarStartX, reasonY - 6f, colBarStartX + barMaxWidth, reasonY - 6f + 5f), 2.5f, 2.5f, paint)
 
+                // 统一填充进度条
                 val fillWidth = (reason.percentage / 100f).coerceIn(0f, 1f) * barMaxWidth
                 paint.color = primaryGreen
-                canvas.drawRoundRect(RectF(barStartX, reasonY - 6f, barStartX + fillWidth, reasonY - 6f + barHeight), 2.5f, 2.5f, paint)
+                canvas.drawRoundRect(RectF(colBarStartX, reasonY - 6f, colBarStartX + fillWidth, reasonY - 6f + 5f), 2.5f, 2.5f, paint)
 
+                // 右侧文本（右对齐算法）
                 paint.color = textMuted
                 paint.textSize = 9f
-                canvas.drawText("${reason.count} (${reason.percentage.toInt()}%)", barStartX + barMaxWidth + 12f, reasonY, paint)
+                paint.isFakeBoldText = false
 
-                reasonY += 22f
+                val infoText = "${reason.count} (${reason.percentage.toInt()}%)"
+                val textWidth = paint.measureText(infoText)
+                canvas.drawText(infoText, colRightAlignX - textWidth, reasonY, paint)
+
+                reasonY += 24f
             }
         } else {
             paint.color = textMuted
             paint.textSize = 10f
             paint.isFakeBoldText = false
-            canvas.drawText("No reasons recorded", startX + 14f, reasonY, paint)
+            canvas.drawText("No reasons recorded", colNameX, reasonY, paint)
         }
 
         currentY += reasonsCardHeight + 14f
 
+        // 3. All Consumed Items Card
         drawRoundedRect(canvas, startX, currentY, contentWidth, consumedCardHeight, 12f, Color.WHITE, borderCard)
 
         paint.color = primaryGreen
         paint.textSize = 13f
         paint.isFakeBoldText = true
-        canvas.drawText("All Consumed Items (${consumedList.size})", startX + 14f, currentY + 24f, paint)
+        canvas.drawText("All Consumed Items (${consumedList.size})", colNameX, currentY + 24f, paint)
 
-        var consumedY = currentY + 45f
+        var consumedY = currentY + 46f
         if (consumedList.isNotEmpty()) {
             consumedList.forEach { item ->
+                // 名称
                 paint.color = textDark
                 paint.textSize = 10f
                 paint.isFakeBoldText = false
-                canvas.drawText(item.name, startX + 14f, consumedY, paint)
+                canvas.drawText(item.name, colNameX, consumedY, paint)
 
-                val barStartX = startX + 130f
-                val barMaxWidth = 260f
-                val barHeight = 5f
+                // 统一背景进度条
                 paint.color = bgCard
                 paint.style = Paint.Style.FILL
-                canvas.drawRoundRect(RectF(barStartX, consumedY - 6f, barStartX + barMaxWidth, consumedY - 6f + barHeight), 2.5f, 2.5f, paint)
+                canvas.drawRoundRect(RectF(colBarStartX, consumedY - 6f, colBarStartX + barMaxWidth, consumedY - 6f + 5f), 2.5f, 2.5f, paint)
 
+                // 统一填充进度条
                 val fillWidth = (item.percentage / 100f).coerceIn(0f, 1f) * barMaxWidth
                 paint.color = primaryGreen
-                canvas.drawRoundRect(RectF(barStartX, consumedY - 6f, barStartX + fillWidth, consumedY - 6f + barHeight), 2.5f, 2.5f, paint)
+                canvas.drawRoundRect(RectF(colBarStartX, consumedY - 6f, colBarStartX + fillWidth, consumedY - 6f + 5f), 2.5f, 2.5f, paint)
 
+                // 右侧文本（右对齐算法）
                 paint.color = textMuted
                 paint.textSize = 9f
-                canvas.drawText("${item.count} items (${item.percentage.toInt()}%)", barStartX + barMaxWidth + 12f, consumedY, paint)
+                paint.isFakeBoldText = false
 
-                consumedY += 22f
+                val countText = "${item.count} (${item.percentage.toInt()}%)"
+                val priceText = if (item.totalPrice > 0) String.format(Locale.getDefault(), "RM %.2f", item.totalPrice) else ""
+                val infoText = if (priceText.isNotEmpty()) "$priceText • $countText" else countText
+
+                val textWidth = paint.measureText(infoText)
+                canvas.drawText(infoText, colRightAlignX - textWidth, consumedY, paint)
+
+                consumedY += 24f
             }
         } else {
             paint.color = textMuted
             paint.textSize = 10f
             paint.isFakeBoldText = false
-            canvas.drawText("No consumed items recorded for this month", startX + 14f, consumedY, paint)
+            canvas.drawText("No consumed items recorded for this month", colNameX, consumedY, paint)
         }
 
         pdfDocument.finishPage(page)

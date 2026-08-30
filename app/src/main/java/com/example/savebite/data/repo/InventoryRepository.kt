@@ -48,9 +48,11 @@ class InventoryRepository(
     }
 
     suspend fun markAsWaste(item: Inventory, reason: String) {
+        val unitPrice = if (item.quantity > 0) item.price / item.quantity else item.price
         val reportItem = ReportItem(
             name = item.name,
             category = item.category,
+            price = unitPrice,
             quantity = item.quantity,
             unit = item.unit,
             status = WASTED,
@@ -69,9 +71,11 @@ class InventoryRepository(
         val consumedList = inventoryDao.getConsumedItems()
         if (consumedList.isNotEmpty()) {
             val reportItems = consumedList.map { item ->
+                val unitPrice = if (item.quantity > 0) item.price / item.quantity else item.price
                 ReportItem(
                     name = item.name,
                     category = item.category,
+                    price = unitPrice,
                     quantity = item.quantity,
                     unit = item.unit,
                     status = ReportStatus.CONSUMED,
@@ -119,9 +123,11 @@ class InventoryRepository(
     ) {
         itemsWithQty.forEach { (item, moveQty) ->
             if (moveQty > 0) {
+                val unitPrice = if (item.quantity > 0) item.price / item.quantity else item.price
                 val reportItem = ReportItem(
                     name = item.name,
                     category = item.category,
+                    price = unitPrice,
                     quantity = moveQty,
                     unit = item.unit,
                     status = status,
@@ -133,7 +139,16 @@ class InventoryRepository(
                 if (remainingQty <= 0) {
                     inventoryDao.deleteItem(item)
                 } else {
-                    inventoryDao.updateItem(item.copy(quantity = remainingQty, isConsumed = false))
+                    // Update the remaining items' total price proportionally
+                    val newTotalPrice = (remainingQty.toDouble() / item.quantity.toDouble()) * item.price
+                    
+                    inventoryDao.updateItem(
+                        item.copy(
+                            quantity = remainingQty, 
+                            price = newTotalPrice,
+                            isConsumed = false
+                        )
+                    )
                 }
             }
         }
