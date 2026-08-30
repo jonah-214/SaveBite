@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.savebite.model.ShoppingItem
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ShoppingViewModel
 
@@ -25,7 +26,7 @@ import com.example.savebite.ui.viewmodel.ShoppingViewModel
 fun ShoppingItemToInventoryScreen(
     viewModel: ShoppingViewModel,
     onBackClick: () -> Unit,
-    onSuccess: () -> Unit
+    onStartBatchAdd: (List<ShoppingItem>) -> Unit
 ) {
     val items by viewModel.items.collectAsState()
     val purchasedItems = remember(items) { items.filter { it.isPurchased } }
@@ -125,17 +126,6 @@ fun ShoppingItemToInventoryScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Option Selection ("Add as")
-            Text(
-                "Add as",
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Start),
-                fontSize = 14.sp
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Notice Box
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
                 shape = RoundedCornerShape(12.dp),
@@ -152,7 +142,7 @@ fun ShoppingItemToInventoryScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "You can view and manage all your items in the Inventory page.",
+                        "You will fill in details step-by-step for each selected item next.",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onTertiaryContainer
                     )
@@ -161,13 +151,14 @@ fun ShoppingItemToInventoryScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Confirm Button
+            // Start Batch Add Button
             Button(
                 onClick = {
-                    viewModel.transferSelectedToInventory() {
-                        onSuccess()
+                    if (purchasedItems.isNotEmpty()) {
+                        onStartBatchAdd(purchasedItems)
                     }
                 },
+                enabled = purchasedItems.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
@@ -175,7 +166,7 @@ fun ShoppingItemToInventoryScreen(
                     .height(50.dp)
             ) {
                 Text(
-                    "Add to Inventory",
+                    "Start Moving (${purchasedItems.size} items)",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimary
@@ -190,60 +181,6 @@ fun ShoppingItemToInventoryScreen(
                     "Cancel",
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun StockOptionCard(
-    title: String,
-    subtitle: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
-        ),
-        border = BorderStroke(
-            width = if (isSelected) 1.5.dp else 1.dp,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
-        ),
-        shape = RoundedCornerShape(12.dp),
-        modifier = modifier.clickable { onClick() }
-    ) {
-        Box(modifier = Modifier.padding(12.dp)) {
-            if (isSelected) {
-                Box(
-                    modifier = Modifier
-                        .size(20.dp)
-                        .background(MaterialTheme.colorScheme.primary, CircleShape)
-                        .align(Alignment.TopEnd),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.Check,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(12.dp)
-                    )
-                }
-            }
-            Column {
-                Text(
-                    title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    subtitle,
-                    fontSize = 11.sp,
-                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

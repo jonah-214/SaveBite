@@ -261,14 +261,52 @@ fun AppNavigation(
                 val storageList by inventoryViewModel.storageList.collectAsState()
                 val itemId = backStackEntry.arguments?.getString("itemId")
 
+                // 获取从 Shopping 清单传过来的批量数据
+                val batchItems = navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<List<com.example.savebite.model.ShoppingItem>>("batch_items")
+
+                // 获取 ShoppingViewModel 用于保存后清理数据
+                val shoppingEntry = remember(backStackEntry) {
+                    try {
+                        navController.getBackStackEntry(AppRoutes.SHOPPING)
+                    } catch (e: Exception) {
+                        null
+                    }
+                }
+                val shoppingViewModel: ShoppingViewModel? = shoppingEntry?.let {
+                    viewModel(viewModelStoreOwner = it)
+                }
+
                 AddInventoryScreen(
                     itemId = itemId,
                     viewModel = inventoryViewModel,
+                    batchItems = batchItems,
                     storageLocations = storageList,
-                    onBackClick = { navController.popBackStack() },
-                    onSaveClick = { item ->
-                        inventoryViewModel.saveItem(item)
+                    onBackClick = {
+                        navController.previousBackStackEntry?.savedStateHandle?.remove<List<Any>>("batch_items")
                         navController.popBackStack()
+                    },
+                    onSaveClick = { itemList ->
+                        // 1. 保存物品到 Inventory
+                        itemList.forEach { item ->
+                            inventoryViewModel.saveItem(item)
+                        }
+
+                        // 2. 如果是从 Shopping 搬移过来的，移除对应 Shopping 清单中的项目
+                        if (!batchItems.isNullOrEmpty()) {
+                            batchItems.forEach { shoppingItem ->
+                                shoppingViewModel?.deleteItem(shoppingItem) // 或调用 shoppingViewModel?.clearPurchasedItems()
+                            }
+                            navController.previousBackStackEntry?.savedStateHandle?.remove<List<Any>>("batch_items")
+
+                            // 3. 搬移完成后跳转至 Inventory 并清空 Shopping 栈
+                            navController.navigate(AppRoutes.INVENTORY) {
+                                popUpTo(AppRoutes.SHOPPING) { inclusive = true }
+                            }
+                        } else {
+                            navController.popBackStack()
+                        }
                     }
                 )
             }
@@ -379,10 +417,11 @@ fun AppNavigation(
                 ShoppingItemToInventoryScreen(
                     viewModel = shoppingViewModel,
                     onBackClick = { navController.popBackStack() },
-                    onSuccess = {
-                        // Navigate straight to Inventory Screen and clear backstack up to Dashboard
-                        navController.navigate(AppRoutes.INVENTORY) {
-                            popUpTo(AppRoutes.SHOPPING) { inclusive = true }
+                    onStartBatchAdd = { batchItems ->
+                        // 将选中的购物项传递给 AddInventoryScreen，激活 Step-by-Step 模式
+                        navController.currentBackStackEntry?.savedStateHandle?.set("batch_items", batchItems)
+                        navController.navigate(AppRoutes.ADD_INVENTORY) {
+                            launchSingleTop = true
                         }
                     }
                 )

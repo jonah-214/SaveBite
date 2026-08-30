@@ -23,7 +23,7 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     val selectedStorage = MutableStateFlow("All")
 
     // Default Storage options
-    private val defaultStorages = listOf("Pantry", "Refrigerator", "Freezer")
+    private val defaultStorages = listOf("Refrigerator", "Pantry", "Freezer")
 
     val storageList: StateFlow<List<String>>
 

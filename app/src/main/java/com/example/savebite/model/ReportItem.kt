@@ -11,6 +11,7 @@ data class ReportItem(
     val category: String,
     val quantity: Int,
     val unit: String,
+    val price: Double = 0.0,
     val recordTimestamp: Long = System.currentTimeMillis(),
     val status: ReportStatus = ReportStatus.WASTED, // 新增状态标识
     val reason: String

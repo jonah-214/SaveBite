@@ -115,6 +115,7 @@ fun WastedItemsListScreen(
                                     name = item.name,
                                     count = item.count,
                                     percentage = item.percentage,
+                                    price = item.totalPrice,
                                     progressColor = MaterialTheme.colorScheme.error
                                 )
                             }

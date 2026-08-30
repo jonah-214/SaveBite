@@ -305,6 +305,33 @@ fun InventoryDetailScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
 
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.price),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Price",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = "RM ${String.format("%.2f", detail.price)}",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
+
                     // Purchase Date Row
                     Row(
                         modifier = Modifier.fillMaxWidth(),

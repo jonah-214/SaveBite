@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.CheckCircleOutline
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.PictureAsPdf
+import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,6 +38,7 @@ import com.example.savebite.ui.theme.getCategoryColor
 import com.example.savebite.ui.viewmodel.ReportViewModel
 import com.example.savebite.utils.PdfReportGenerator
 import java.text.DateFormatSymbols
+import java.util.Locale
 
 @Composable
 fun ReportScreen(
@@ -150,12 +152,12 @@ fun ReportScreen(
                     modifier = Modifier.weight(1f)
                 )
                 MetricCard(
-                    icon = Icons.Outlined.EmojiEvents,
-                    iconBg = MaterialTheme.colorScheme.tertiaryContainer,
-                    iconTint = MaterialTheme.colorScheme.onTertiaryContainer,
-                    title = "Most Wasted",
-                    value = state.mostWastedName.ifEmpty { "-" },
-                    subtitle = "${state.mostWastedCount} items",
+                    icon = Icons.Outlined.Savings,
+                    iconBg = VegGreen.copy(alpha = 0.2f),
+                    iconTint = VegGreen,
+                    title = "Saved Amount",
+                    value = String.format(Locale.getDefault(), "$%.2f", state.totalSavedCost),
+                    subtitle = "Saved",
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -602,6 +604,7 @@ fun ItemStatRow(
     name: String,
     count: Int,
     percentage: Float,
+    price: Double = 0.0,
     progressColor: Color = MaterialTheme.colorScheme.primary
 ) {
     Row(
@@ -634,12 +637,21 @@ fun ItemStatRow(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        Text(
-            "$count",
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium
-        )
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                "$count",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Medium
+            )
+            if (price > 0) {
+                Text(
+                    text = String.format(Locale.getDefault(), "$%.2f", price),
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.width(12.dp))
 

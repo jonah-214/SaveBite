@@ -9,9 +9,25 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import java.util.*
 
-data class CategoryBreakdown(val category: String, val count: Int, val percentage: Float)
-data class TopWastedItem(val name: String, val count: Int, val percentage: Float)
-data class ReasonBreakdown(val reason: String, val count: Int, val percentage: Float)
+data class CategoryBreakdown(
+    val category: String,
+    val count: Int,
+    val percentage: Float,
+    val totalPrice: Double = 0.0 // 可选：记录该分类的总金额
+)
+
+data class TopWastedItem(
+    val name: String,
+    val count: Int,
+    val percentage: Float,
+    val totalPrice: Double = 0.0 // 新增：该项食材的总金额
+)
+
+data class ReasonBreakdown(
+    val reason: String,
+    val count: Int,
+    val percentage: Float
+)
 
 data class ReportUiState(
     val selectedMonth: Int = Calendar.getInstance().get(Calendar.MONTH),
@@ -19,6 +35,7 @@ data class ReportUiState(
 
     // Wasted Stats
     val totalWastedItems: Int = 0,
+    val totalWastedCost: Double = 0.0, // 新增：总浪费金额
     val mostWastedName: String = "-",
     val mostWastedCount: Int = 0,
     val wastedBreakdowns: List<CategoryBreakdown> = emptyList(),
@@ -27,6 +44,7 @@ data class ReportUiState(
 
     // Consumed Stats
     val totalConsumedItems: Int = 0,
+    val totalSavedCost: Double = 0.0, // 新增：通过消耗节省的总金额
     val consumedBreakdowns: List<CategoryBreakdown> = emptyList(),
     val topConsumedItems: List<TopWastedItem> = emptyList()
 )
@@ -73,10 +91,6 @@ class ReportViewModel(private val reportDao: ReportDao) : ViewModel() {
         return Pair(start, end)
     }
 
-    /**
-     * 将名称统一去空、转小写，并输出首字母大写格式
-     * 例如：" egg " -> "Egg"
-     */
     private fun normalizeName(name: String): String {
         return name.trim().lowercase().replaceFirstChar {
             if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
@@ -90,28 +104,44 @@ class ReportViewModel(private val reportDao: ReportDao) : ViewModel() {
         val totalWasted = wastedItems.sumOf { it.quantity }
         val totalConsumed = consumedItems.sumOf { it.quantity }
 
-        // 1. 归一化后计算浪费最多的单个食材
+        // 计算总金额 (单价 * 数量)
+        val wastedCost = wastedItems.sumOf { it.price * it.quantity }
+        val savedCost = consumedItems.sumOf { it.price * it.quantity }
+
+        // 1. 最多浪费项目
         val topWasted = wastedItems.groupBy { normalizeName(it.name) }
             .mapValues { entry -> entry.value.sumOf { it.quantity } }
             .maxByOrNull { it.value }
 
-        // 2. 类别占比计算 (类别通常固定，亦做去空处理)
+        // 2. 浪费类别占比
         val wastedCategories = wastedItems.groupBy { it.category.trim() }
             .map { (cat, list) ->
                 val catCount = list.sumOf { it.quantity }
-                CategoryBreakdown(cat, catCount, if (totalWasted > 0) ((catCount.toFloat() / totalWasted) * 100) else 0f)
+                val catCost = list.sumOf { it.price * it.quantity }
+                CategoryBreakdown(
+                    category = cat,
+                    count = catCount,
+                    percentage = if (totalWasted > 0) ((catCount.toFloat() / totalWasted) * 100) else 0f,
+                    totalPrice = catCost
+                )
             }
             .sortedByDescending { it.count }
 
-        // 3. 归一化计算 topWastedItems 列表 (合并 Egg 和 egg)
+        // 3. 浪费 Food List（带价格计算）
         val topWastedList = wastedItems.groupBy { normalizeName(it.name) }
             .map { (displayName, list) ->
                 val itemCount = list.sumOf { it.quantity }
-                TopWastedItem(displayName, itemCount, if (totalWasted > 0) ((itemCount.toFloat() / totalWasted) * 100) else 0f)
+                val itemCost = list.sumOf { it.price * it.quantity }
+                TopWastedItem(
+                    name = displayName,
+                    count = itemCount,
+                    percentage = if (totalWasted > 0) ((itemCount.toFloat() / totalWasted) * 100) else 0f,
+                    totalPrice = itemCost
+                )
             }
             .sortedByDescending { it.count }
 
-        // 4. 浪费原因分析
+        // 4. 原因占比
         val reasonBreakdown = wastedItems.groupBy { it.reason.trim() }
             .map { (reason, list) ->
                 val reasonCount = list.sumOf { it.quantity }
@@ -119,19 +149,31 @@ class ReportViewModel(private val reportDao: ReportDao) : ViewModel() {
             }
             .sortedByDescending { it.count }
 
-        // 5. 已消耗 categories 计算
+        // 5. 消耗类别占比
         val consumedCategories = consumedItems.groupBy { it.category.trim() }
             .map { (cat, list) ->
                 val catCount = list.sumOf { it.quantity }
-                CategoryBreakdown(cat, catCount, if (totalConsumed > 0) ((catCount.toFloat() / totalConsumed) * 100) else 0f)
+                val catCost = list.sumOf { it.price * it.quantity }
+                CategoryBreakdown(
+                    category = cat,
+                    count = catCount,
+                    percentage = if (totalConsumed > 0) ((catCount.toFloat() / totalConsumed) * 100) else 0f,
+                    totalPrice = catCost
+                )
             }
             .sortedByDescending { it.count }
 
-        // 6. 归一化计算 topConsumedList 列表
+        // 6. 消耗 Food List（带价格计算）
         val topConsumedList = consumedItems.groupBy { normalizeName(it.name) }
             .map { (displayName, list) ->
                 val itemCount = list.sumOf { it.quantity }
-                TopWastedItem(displayName, itemCount, if (totalConsumed > 0) ((itemCount.toFloat() / totalConsumed) * 100) else 0f)
+                val itemCost = list.sumOf { it.price * it.quantity }
+                TopWastedItem(
+                    name = displayName,
+                    count = itemCount,
+                    percentage = if (totalConsumed > 0) ((itemCount.toFloat() / totalConsumed) * 100) else 0f,
+                    totalPrice = itemCost
+                )
             }
             .sortedByDescending { it.count }
 
@@ -139,12 +181,14 @@ class ReportViewModel(private val reportDao: ReportDao) : ViewModel() {
             selectedMonth = month,
             selectedYear = year,
             totalWastedItems = totalWasted,
+            totalWastedCost = wastedCost,
             mostWastedName = topWasted?.key ?: "-",
             mostWastedCount = topWasted?.value ?: 0,
             wastedBreakdowns = wastedCategories,
             topWastedItems = topWastedList,
             reasonBreakdowns = reasonBreakdown,
             totalConsumedItems = totalConsumed,
+            totalSavedCost = savedCost,
             consumedBreakdowns = consumedCategories,
             topConsumedItems = topConsumedList
         )

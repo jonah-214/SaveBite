@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
         ShoppingItem::class,
         ReportItem::class
     ],
-    version = 8, // Bumped to version 8 to update the database table schema
+    version = 10, // Bumped to version 9 to resolve schema mismatch after merge
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

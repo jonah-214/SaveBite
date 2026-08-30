@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.theme.VegGreen
 import com.example.savebite.ui.viewmodel.ReportViewModel
+import java.util.Locale
 
 @Composable
 fun ConsumedItemsListScreen(
@@ -49,7 +50,7 @@ fun ConsumedItemsListScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 1. Success Congratulation Banner
+            // 1. Success Congratulation Banner (新增节省金额展示)
             Surface(
                 shape = RoundedCornerShape(16.dp),
                 color = VegGreen.copy(alpha = 0.15f),
@@ -76,15 +77,16 @@ fun ConsumedItemsListScreen(
                                 color = VegGreen
                             )
                             Text(
-                                text = "Keep up the zero-waste habit",
-                                fontSize = 11.sp,
-                                color = VegGreen.copy(alpha = 0.8f)
+                                text = "You saved ${String.format(Locale.getDefault(), "$%.2f", state.totalSavedCost)} this month!",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = VegGreen
                             )
                         }
                     }
                     Text(
                         text = "$totalSavedCount Items",
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = VegGreen
                     )
@@ -132,6 +134,7 @@ fun ConsumedItemsListScreen(
                                     name = item.name,
                                     count = item.count,
                                     percentage = item.percentage,
+                                    price = item.totalPrice, // 带入单项节省金额
                                     progressColor = VegGreen
                                 )
                             }
