@@ -6,6 +6,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,7 +65,7 @@ fun InventoryList(
     onDeleteClick: (Inventory) -> Unit = {},
     onNavigateToManageStorage: () -> Unit = {},
     onToggleConsume: (Inventory) -> Unit = {},
-    onMoveConsumedToReport: () -> Unit = {}
+    onMoveConsumedToReport: (String) -> Unit = {}
 ) {
     val consumedCount = foods.count { it.isConsumed }
 
@@ -96,7 +99,6 @@ fun InventoryList(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .clickable { onMoveConsumedToReport() }
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -105,28 +107,35 @@ fun InventoryList(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Mark as Consumed ($consumedCount)",
+                                text = "Selected Items ($consumedCount)",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                             Text(
-                                text = "Move selected items to consumption report",
+                                text = "Choose status to report",
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
                             )
                         }
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .background(MaterialTheme.colorScheme.surface, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ChevronRight,
-                                contentDescription = "Proceed to report",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
+
+                        // 两个独立的动作按钮：带入不同的 targetStatus 参数跳转
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = { onMoveConsumedToReport("CONSUMED") },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text("Consumed", fontSize = 12.sp)
+                            }
+
+                            Button(
+                                onClick = { onMoveConsumedToReport("WASTED") },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text("Wasted", fontSize = 12.sp)
+                            }
                         }
                     }
                 }

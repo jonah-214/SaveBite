@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.model.Inventory
+import com.example.savebite.model.ReportStatus
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,6 +27,8 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     private val defaultStorages = listOf("Refrigerator", "Pantry", "Freezer")
 
     val storageList: StateFlow<List<String>>
+
+    var selectedReportStatus = MutableStateFlow(ReportStatus.CONSUMED)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val inventoryList: StateFlow<List<Inventory>>
@@ -59,8 +62,12 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
         repository.deleteItem(item)
     }
 
-    fun markAsWaste(item: Inventory, reason: String = "Expired") = viewModelScope.launch {
-        repository.markAsWaste(item, reason)
+    fun markAsWaste(item: Inventory, qty: Int, reason: String) = viewModelScope.launch {
+        repository.moveItemsToReport(listOf(item to qty), ReportStatus.WASTED, reason)
+    }
+
+    fun consumeItemQuantity(item: Inventory, qty: Int) = viewModelScope.launch {
+        repository.moveItemsToReport(listOf(item to qty), ReportStatus.CONSUMED, "Consumed")
     }
 
     fun addStorage(name: String) = viewModelScope.launch {
@@ -82,6 +89,20 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun transferSelectedToReport(onSuccess: () -> Unit) = viewModelScope.launch {
         repository.moveConsumedToReport()
+        onSuccess()
+    }
+
+    fun setReportStatus(status: ReportStatus) {
+        selectedReportStatus.value = status
+    }
+
+    fun processCustomTransfer(
+        itemsWithQty: List<Pair<Inventory, Int>>,
+        status: ReportStatus,
+        reason: String = "Normal Consumption",
+        onSuccess: () -> Unit
+    ) = viewModelScope.launch {
+        repository.moveItemsToReport(itemsWithQty, status, reason)
         onSuccess()
     }
 }

@@ -119,13 +119,7 @@ fun InventoryCard(
                         text = food.name,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (food.isConsumed)
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        else
-                            MaterialTheme.colorScheme.onSurface,
-                        textDecoration = if (food.isConsumed) TextDecoration.LineThrough else TextDecoration.None,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(2.dp))

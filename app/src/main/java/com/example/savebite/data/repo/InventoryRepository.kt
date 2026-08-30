@@ -111,4 +111,31 @@ class InventoryRepository(
             }
         }
     }
+
+    suspend fun moveItemsToReport(
+        itemsWithQty: List<Pair<Inventory, Int>>,
+        status: ReportStatus,
+        reason: String
+    ) {
+        itemsWithQty.forEach { (item, moveQty) ->
+            if (moveQty > 0) {
+                val reportItem = ReportItem(
+                    name = item.name,
+                    category = item.category,
+                    quantity = moveQty,
+                    unit = item.unit,
+                    status = status,
+                    reason = if (status == ReportStatus.WASTED) reason else "Consumed"
+                )
+                reportDao.insertReportItem(reportItem)
+
+                val remainingQty = item.quantity - moveQty
+                if (remainingQty <= 0) {
+                    inventoryDao.deleteItem(item)
+                } else {
+                    inventoryDao.updateItem(item.copy(quantity = remainingQty, isConsumed = false))
+                }
+            }
+        }
+    }
 }

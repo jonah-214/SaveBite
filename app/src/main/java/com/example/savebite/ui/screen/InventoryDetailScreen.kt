@@ -1,10 +1,15 @@
 package com.example.savebite.ui.screen
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,23 +22,30 @@ import androidx.compose.ui.unit.sp
 import com.example.savebite.R
 import com.example.savebite.model.Inventory
 import com.example.savebite.ui.navigation.AppTopBar
-import androidx.compose.material3.MaterialTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun InventoryDetailScreen(
     detail: Inventory,
     onBackClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
-    onWasteClick: (String) -> Unit = {}
-
+    onConsumedClick: (quantity: Int) -> Unit = {},
+    onWasteClick: (quantity: Int, reason: String) -> Unit = { _, _ -> }
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showConsumeDialog by remember { mutableStateOf(false) }
     var showWasteDialog by remember { mutableStateOf(false) }
 
-    var wasteReason by remember { mutableStateOf("") }
+    // 数量选择与原因状态
+    var consumeQuantity by remember { mutableIntStateOf(1) }
+    var wasteQuantity by remember { mutableIntStateOf(1) }
 
+    val quickReasons = listOf("Expired", "Spoiled", "Leftover", "Damaged", "Other")
+    var selectedReason by remember { mutableStateOf("Expired") }
+    var customReason by remember { mutableStateOf("") }
+
+    // 1. Delete Confirm Dialog
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -59,47 +71,209 @@ fun InventoryDetailScreen(
         )
     }
 
+    // 2. Mark as Consumed Dialog (带数量选择)
+    if (showConsumeDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showConsumeDialog = false
+                consumeQuantity = 1
+            },
+            title = { Text(text = "Mark as Consumed", color = MaterialTheme.colorScheme.onSurface) },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "How many ${detail.unit} of ${detail.name} did you consume?",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp
+                    )
+
+                    // 数量选择加减器
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clickable { if (consumeQuantity > 1) consumeQuantity-- }
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                            }
+                        }
+
+                        Text(
+                            text = "$consumeQuantity / ${detail.quantity} ${detail.unit}",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clickable { if (consumeQuantity < detail.quantity) consumeQuantity++ }
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.Add, contentDescription = "Increase")
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onConsumedClick(consumeQuantity)
+                        showConsumeDialog = false
+                        consumeQuantity = 1
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+                ) {
+                    Text("Confirm", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showConsumeDialog = false
+                        consumeQuantity = 1
+                    }
+                ) {
+                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+    // 3. Mark as Waste Dialog (带数量选择 & 原因选择)
     if (showWasteDialog) {
         AlertDialog(
             onDismissRequest = {
                 showWasteDialog = false
-                wasteReason = "" // 关闭弹窗时重置输入
+                wasteQuantity = 1
+                selectedReason = "Expired"
+                customReason = ""
             },
             title = { Text(text = "Mark as Waste", color = MaterialTheme.colorScheme.onSurface) },
             text = {
-                // 3. 将原来的纯文本扩展为 Column，加上输入框
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(
-                        text = "Are you sure you want to mark ${detail.name} as waste?",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "How many ${detail.unit} of ${detail.name} were wasted?",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp
                     )
-                    OutlinedTextField(
-                        value = wasteReason,
-                        onValueChange = { wasteReason = it },
-                        label = { Text("Reason (Optional)") },
-                        placeholder = { Text("e.g. Expired, Spoiled, Moldy") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
+
+                    // 数量选择加减器
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clickable { if (wasteQuantity > 1) wasteQuantity-- }
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                            }
+                        }
+
+                        Text(
+                            text = "$wasteQuantity / ${detail.quantity} ${detail.unit}",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clickable { if (wasteQuantity < detail.quantity) wasteQuantity++ }
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.Add, contentDescription = "Increase")
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Reason for waste:",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
+
+                    // 快捷原因 Chips
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        quickReasons.forEach { reason ->
+                            val isSelected = selectedReason == reason
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { selectedReason = reason },
+                                label = { Text(reason, fontSize = 12.sp) }
+                            )
+                        }
+                    }
+
+                    if (selectedReason == "Other") {
+                        OutlinedTextField(
+                            value = customReason,
+                            onValueChange = { customReason = it },
+                            placeholder = { Text("Enter custom reason...", fontSize = 13.sp) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                    }
                 }
             },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
-                        onWasteClick(wasteReason.ifBlank { "Expired" }) // 传递原因（若为空可给默认值）
+                        val finalReason = if (selectedReason == "Other") {
+                            customReason.ifBlank { "Wasted" }
+                        } else {
+                            selectedReason
+                        }
+                        onWasteClick(wasteQuantity, finalReason)
                         showWasteDialog = false
-                        wasteReason = ""
-                    }
+                        wasteQuantity = 1
+                        selectedReason = "Expired"
+                        customReason = ""
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Waste", color = MaterialTheme.colorScheme.error)
+                    Text("Confirm Waste", color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = {
                         showWasteDialog = false
-                        wasteReason = ""
+                        wasteQuantity = 1
+                        selectedReason = "Expired"
+                        customReason = ""
                     }
                 ) {
                     Text("Cancel", color = MaterialTheme.colorScheme.outline)
@@ -139,7 +313,6 @@ fun InventoryDetailScreen(
                     color = MaterialTheme.colorScheme.onBackground
                 )
 
-                // Light Blue Category Pill
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.tertiaryContainer
@@ -156,7 +329,6 @@ fun InventoryDetailScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Subtitle / Description
             Text(
                 text = detail.description,
                 fontSize = 18.sp,
@@ -166,7 +338,6 @@ fun InventoryDetailScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Light Green Storage Pill Tag
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.primaryContainer
@@ -175,7 +346,6 @@ fun InventoryDetailScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
-                    // Refrigerator Icon (Uses a built-in vector or painterResource)
                     Icon(
                         painter = painterResource(R.drawable.refrigerator),
                         contentDescription = "Storage",
@@ -202,12 +372,10 @@ fun InventoryDetailScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Quantity Section
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f)
                 ) {
-                    // Quantity Green Icon Box
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = Color.Transparent,
@@ -241,7 +409,6 @@ fun InventoryDetailScreen(
                     }
                 }
 
-                // Vertical Divider Line
                 VerticalDivider(
                     modifier = Modifier
                         .height(50.dp)
@@ -249,16 +416,14 @@ fun InventoryDetailScreen(
                     color = MaterialTheme.colorScheme.outlineVariant
                 )
 
-                // Status Days Left Section
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 16.dp)
                 ) {
-                    // Orange Clock Icon
                     Icon(
-                        painter = painterResource(R.drawable.clock), // replace with clock icon
+                        painter = painterResource(R.drawable.clock),
                         contentDescription = "Status",
                         tint = if (detail.daysLeft <= 3) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(48.dp)
@@ -332,7 +497,6 @@ fun InventoryDetailScreen(
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
 
-                    // Purchase Date Row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -360,7 +524,6 @@ fun InventoryDetailScreen(
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
 
-                    // Expiry Date Row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -396,7 +559,6 @@ fun InventoryDetailScreen(
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
 
-                    // Notes Row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.Top
@@ -424,19 +586,19 @@ fun InventoryDetailScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // 4. Edit & Delete Action Buttons
+            // 4. Action Buttons Section
+            // Edit & Delete
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Edit Button
                 OutlinedButton(
                     onClick = onEditClick,
                     modifier = Modifier
                         .weight(1f)
-                        .height(48.dp),
+                        .height(44.dp),
                     shape = RoundedCornerShape(12.dp),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                 ) {
@@ -444,23 +606,22 @@ fun InventoryDetailScreen(
                         painter = painterResource(R.drawable.edit),
                         contentDescription = "Edit",
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Edit",
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Medium
                     )
                 }
 
-                // Delete Button
                 OutlinedButton(
                     onClick = { showDeleteDialog = true },
                     modifier = Modifier
-                        .weight(1.2f)
-                        .height(48.dp),
+                        .weight(1f)
+                        .height(44.dp),
                     shape = RoundedCornerShape(12.dp),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                 ) {
@@ -468,33 +629,58 @@ fun InventoryDetailScreen(
                         painter = painterResource(R.drawable.delete),
                         contentDescription = "Delete",
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Delete",
                         color = MaterialTheme.colorScheme.error,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Medium
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedButton(
-                onClick = { showWasteDialog = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Mark as Consumed & Mark as Waste 两个操作按钮
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    text = "Mark as WASTE",
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                // Consumed Button
+                Button(
+                    onClick = { showConsumeDialog = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(46.dp)
+                ) {
+                    Text(
+                        text = "Mark Consumed",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
+                }
+
+                // Waste Button
+                OutlinedButton(
+                    onClick = { showWasteDialog = true },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(46.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+                ) {
+                    Text(
+                        text = "Mark Waste",
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
     }

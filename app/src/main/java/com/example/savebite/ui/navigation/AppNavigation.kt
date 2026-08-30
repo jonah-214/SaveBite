@@ -26,6 +26,7 @@ import com.example.savebite.data.ai.GeminiRecipeService
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.repo.ShoppingRepository
+import com.example.savebite.model.ReportStatus
 import com.example.savebite.ui.screen.AboutUsScreen
 import com.example.savebite.ui.screen.AddInventoryScreen
 import com.example.savebite.ui.screen.AddShoppingItemScreen
@@ -224,8 +225,8 @@ fun AppNavigation(
                         inventoryViewModel.toggleConsumed(item)
                     },
                     // 修改点 1：点击后导航至转入 Report 的中间确认页面，而非直接跳转到主 Report 页
-                    onMoveConsumedToReport = {
-                        navController.navigate(AppRoutes.INVENTORY_TO_REPORT) {
+                    onMoveConsumedToReport = { status ->
+                        navController.navigate("${AppRoutes.INVENTORY_TO_REPORT}/$status") {
                             launchSingleTop = true
                         }
                     }
@@ -233,12 +234,19 @@ fun AppNavigation(
             }
 
             // Inventory to Report Confirmation route
-            composable(AppRoutes.INVENTORY_TO_REPORT) {
-                val parentEntry = remember(it) { navController.getBackStackEntry(AppRoutes.INVENTORY) }
+            composable(
+                route = "${AppRoutes.INVENTORY_TO_REPORT}/{status}",
+                arguments = listOf(navArgument("status") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(AppRoutes.INVENTORY) }
                 val inventoryViewModel: InventoryViewModel = viewModel(viewModelStoreOwner = parentEntry)
+
+                val statusStr = backStackEntry.arguments?.getString("status") ?: "CONSUMED"
+                val targetStatus = if (statusStr == "WASTED") ReportStatus.WASTED else ReportStatus.CONSUMED
 
                 InventoryItemToReportScreen(
                     viewModel = inventoryViewModel,
+                    targetStatus = targetStatus,
                     onBackClick = { navController.popBackStack() },
                     onSuccess = {
                         navController.navigate(AppRoutes.REPORTS) {
@@ -333,8 +341,14 @@ fun AppNavigation(
                             inventoryViewModel.deleteItem(item)
                             navController.popBackStack()
                         },
-                        onWasteClick = { reason ->
-                            inventoryViewModel.markAsWaste(item, reason)
+                        // 新增: 处理消耗数量
+                        onConsumedClick = { qty ->
+                            inventoryViewModel.consumeItemQuantity(item, qty)
+                            navController.popBackStack()
+                        },
+                        // 修改: 处理浪费数量与原因
+                        onWasteClick = { qty, reason ->
+                            inventoryViewModel.markAsWaste(item, qty, reason)
                             navController.popBackStack()
                         }
                     )
