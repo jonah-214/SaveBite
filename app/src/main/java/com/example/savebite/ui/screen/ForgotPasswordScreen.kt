@@ -80,7 +80,12 @@ fun ForgotPasswordScreen(
             // Email Input Field
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = {
+                    email = it
+                    if (emailError != null) {
+                        viewModel.clearForgotPasswordEmailError()
+                    }
+                },
                 label = { Text("Email") },
                 placeholder = { Text("johndoe@example.com") },
                 shape = RoundedCornerShape(16.dp),

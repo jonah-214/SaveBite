@@ -33,29 +33,28 @@ class DashboardViewModel(
     // Load username from Supabase or fallback to local Room database (Offline mode)
     private fun loadUsername() {
         viewModelScope.launch {
-            try {
-                val supabaseUid = SupabaseClientProvider.client.auth.currentUserOrNull()?.id
-
-                val user = if (supabaseUid != null) {
-                    userRepository.getUserBySupabaseUid(supabaseUid)
+            sessionManager.userIdFlow.collect { userId ->
+                if (userId == -1) {
+                    _username.value = "User"
                 } else {
-                    null
-                }
+                    try {
+                        val supabaseUid = SupabaseClientProvider.client.auth.currentUserOrNull()?.id
 
-                if (user != null) {
-                    _username.value = user.username
-                    return@launch
-                }
+                        val user = if (supabaseUid != null) {
+                            userRepository.getUserBySupabaseUid(supabaseUid)
+                        } else {
+                            userRepository.getUserById(userId)
+                        }
 
-                // Fallback: Local Room Int ID (Offline, not yet synced)
-                val userId = sessionManager.getLoggedInUserId()
-                if (userId != -1) {
-                    userRepository.getUserById(userId)?.let {
-                        _username.value = it.username
+                        if (user != null) {
+                            _username.value = user.username
+                        } else {
+                            _username.value = "User"
+                        }
+                    } catch (e: Exception) {
+                        _username.value = "User"
                     }
                 }
-            } catch (e: Exception) {
-                // Keep default "User" rather than crashing the dashboard
             }
         }
     }

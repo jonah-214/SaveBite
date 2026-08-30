@@ -68,11 +68,11 @@ fun LoginScreen(
         viewModel.clearErrors()
     }
 
-    // Show success message if it's not null
+    // Show success message
     LaunchedEffect(successMessage) {
         successMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            viewModel.clearErrors() // Clear it so it doesn't show again
+            viewModel.clearSuccessMessage()
         }
     }
 
@@ -105,7 +105,12 @@ fun LoginScreen(
         // Email/Phone Input field
         OutlinedTextField(
             value = identifier,
-            onValueChange = { identifier = it },
+            onValueChange = {
+                identifier = it
+                if (identifierError != null) {
+                    viewModel.clearLoginIdentifierError()
+                }
+            },
             label = { Text("Email/Phone Number") },
             placeholder = { Text("Enter your email or phone number") },
             shape = RoundedCornerShape(16.dp),
@@ -129,7 +134,12 @@ fun LoginScreen(
         // Password Input field
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                password = it
+                if (passwordError != null) {
+                    viewModel.clearLoginPasswordError()
+                }
+            },
             label = { Text("Password") },
             placeholder = { Text("Enter your password") },
             shape = RoundedCornerShape(16.dp),
