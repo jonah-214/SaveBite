@@ -3,8 +3,9 @@ package com.example.savebite.utils
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class SessionManager(
     private val context: Context
@@ -17,11 +18,15 @@ class SessionManager(
         private const val NO_USER = -1
     }
 
+    private val _userIdFlow = MutableStateFlow(sharedPreferences.getInt(USER_ID_KEY, NO_USER))
+    val userIdFlow: StateFlow<Int> = _userIdFlow.asStateFlow()
+
     // Save the user's ID in SharedPreferences
     suspend fun saveUserSession(userId: Int) {
         sharedPreferences.edit {
             putInt(USER_ID_KEY, userId)
         }
+        _userIdFlow.value = userId
     }
 
     // Clear the user's session data from SharedPreferences
@@ -29,11 +34,7 @@ class SessionManager(
         sharedPreferences.edit {
             remove(USER_ID_KEY)
         }
-    }
-
-    // Flow for user ID - maintained for compatibility
-    val userIdFlow: Flow<Int> = flow {
-        emit(sharedPreferences.getInt(USER_ID_KEY, NO_USER))
+        _userIdFlow.value = NO_USER
     }
 
     // Get the ID of the currently logged-in user from SharedPreferences

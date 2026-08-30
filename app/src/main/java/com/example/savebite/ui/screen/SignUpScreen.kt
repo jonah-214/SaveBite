@@ -71,11 +71,11 @@ fun SignUpScreen(
         viewModel.clearErrors()
     }
 
-    // Show success message if it's not null
+    // Show success message
     LaunchedEffect(successMessage) {
         successMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            viewModel.clearErrors() // Clear it so it doesn't show again
+            viewModel.clearSuccessMessage()
         }
     }
 
@@ -108,7 +108,12 @@ fun SignUpScreen(
         // Username field
         OutlinedTextField(
             value = username,
-            onValueChange = { username = it },
+            onValueChange = {
+                username = it
+                if (usernameError != null) {
+                    viewModel.clearSignupUsernameError()
+                }
+            },
             label = { Text("Username") },
             placeholder = { Text("John_Doe") },
             shape = RoundedCornerShape(16.dp),
@@ -134,7 +139,12 @@ fun SignUpScreen(
         // Email field
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                email = it
+                if (emailError != null) {
+                    viewModel.clearSignupEmailError()
+                }
+            },
             label = { Text("Email") },
             placeholder = { Text("johndoe@example.com") },
             shape = RoundedCornerShape(16.dp),
@@ -158,7 +168,12 @@ fun SignUpScreen(
         // Phone field
         OutlinedTextField(
             value = phone,
-            onValueChange = { phone = it },
+            onValueChange = {
+                phone = it
+                if (phoneError != null) {
+                    viewModel.clearSignupPhoneError()
+                }
+            },
             label = { Text("Phone Number") },
             placeholder = { Text("60123456789") },
             shape = RoundedCornerShape(16.dp),
@@ -184,7 +199,12 @@ fun SignUpScreen(
         // Password field
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                password = it
+                if (passwordError != null) {
+                    viewModel.clearSignupPasswordError()
+                }
+            },
             label = { Text("Password") },
             placeholder = { Text("Enter your password") },
             shape = RoundedCornerShape(16.dp),

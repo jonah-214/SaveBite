@@ -74,6 +74,22 @@ class AuthViewModel(
         _resetEmailSent.value = false
     }
 
+    // Clear individual field errors as the user edits (Login screen)
+    fun clearLoginIdentifierError() { _loginIdentifierError.value = null }
+    fun clearLoginPasswordError() { _loginPasswordError.value = null }
+
+    // Clear individual field errors as the user edits (Sign Up screen)
+    fun clearSignupUsernameError() { _signupUsernameError.value = null }
+    fun clearSignupEmailError() { _signupEmailError.value = null }
+    fun clearSignupPhoneError() { _signupPhoneError.value = null }
+    fun clearSignupPasswordError() { _signupPasswordError.value = null }
+
+    // Clear field error (Forgot Password screen)
+    fun clearForgotPasswordEmailError() { _forgotPasswordEmailError.value = null }
+
+    // Clear only the success message after it's been shown as a toast
+    fun clearSuccessMessage() { _successMessage.value = null }
+
     // Login user
     fun login(identifier: String, password: String, onSuccess: () -> Unit) {
         if (_isLoading.value) return

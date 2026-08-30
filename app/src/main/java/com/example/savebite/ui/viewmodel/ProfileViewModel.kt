@@ -64,12 +64,15 @@ class ProfileViewModel(
     // Load user information from the database
     private fun loadUser() {
         viewModelScope.launch {
-            _isLoading.value = true
-            val userId = sessionManager.getLoggedInUserId()
-            if (userId != -1) {
-                _user.value = userRepository.getUserById(userId)
+            sessionManager.userIdFlow.collect { userId ->
+                if (userId != -1) {
+                    _isLoading.value = true
+                    _user.value = userRepository.getUserById(userId)
+                    _isLoading.value = false
+                } else {
+                    _user.value = null
+                }
             }
-            _isLoading.value = false
         }
     }
 
