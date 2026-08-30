@@ -3,6 +3,7 @@ package com.example.savebite.data.remote
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.storage.Storage
 
 object SupabaseClientProvider {
     val client = createSupabaseClient(
@@ -11,5 +12,6 @@ object SupabaseClientProvider {
     ) {
         install(Auth)
         install(Postgrest)
+        install(Storage)
     }
 }

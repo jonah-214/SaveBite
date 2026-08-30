@@ -23,9 +23,17 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -38,7 +46,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.example.savebite.R
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ProfileViewModel
@@ -143,26 +154,96 @@ fun EditProfileScreen(
         ) {
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Avatar Placeholder
+            // Avatar with edit badge
             Box(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .size(120.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer,
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.account_circle),
-                    contentDescription = "Avatar",
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(70.dp)
-                )
+                val context = LocalContext.current
+                var menuExpanded by remember { mutableStateOf(false) }
+
+                val photoPickerLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.PickVisualMedia()
+                ) { uri ->
+                    if (uri != null) {
+                        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                        if (bytes != null) {
+                            profileViewModel.uploadAvatar(bytes)
+                        }
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .background(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (user?.avatarUrl != null) {
+                        AsyncImage(
+                            model = user.avatarUrl,
+                            contentDescription = "Profile picture",
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(CircleShape)
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(id = R.drawable.account_circle),
+                            contentDescription = "Avatar",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(70.dp)
+                        )
+                    }
+                }
+
+                // Edit badge
+                FloatingActionButton(
+                    onClick = { menuExpanded = true },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(36.dp),
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = "Edit profile picture",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(if (user?.avatarUrl != null) "Replace Picture" else "Add Picture") },
+                        onClick = {
+                            menuExpanded = false
+                            photoPickerLauncher.launch(
+                                androidx.activity.result.PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
+                            )
+                        }
+                    )
+                    if (user?.avatarUrl != null) {
+                        DropdownMenuItem(
+                            text = { Text("Remove Picture") },
+                            onClick = {
+                                menuExpanded = false
+                                profileViewModel.removeAvatar()
+                            }
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(Modifier.height(32.dp))
 
             // Edit Profile Field - Username
             Text(
@@ -193,7 +274,7 @@ fun EditProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(Modifier.height(8.dp))
 
             // Edit Profile Field - Email
             Text(
@@ -224,7 +305,7 @@ fun EditProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(Modifier.height(8.dp))
 
             // Edit Profile Field - Phone
             Text(
@@ -264,7 +345,7 @@ fun EditProfileScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
 
             // Save Changes Button
             Button(

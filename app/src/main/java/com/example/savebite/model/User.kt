@@ -12,5 +12,6 @@ data class User(
     val username: String,
     val email: String,
     val phone: String,
-    val passwordHash: String // Reserved for a possible future offline-login fallback
+    val passwordHash: String, // Reserved for a possible future offline-login fallback
+    val avatarUrl: String? = null
 )
