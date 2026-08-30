@@ -21,6 +21,10 @@ class ProfileViewModel(
     private val _user = mutableStateOf<User?>(null)
     val user: State<User?> = _user
 
+    // Edit Profile Errors - Avatar Picture
+    private val _avatarError = mutableStateOf<String?>(null)
+    val avatarError: State<String?> = _avatarError
+
     // Edit Profile Errors - Username
     private val _usernameError = mutableStateOf<String?>(null)
     val usernameError: State<String?> = _usernameError
@@ -84,6 +88,8 @@ class ProfileViewModel(
         _currentPasswordError.value = null
         _newPasswordError.value = null
         _confirmNewPasswordError.value = null
+        _updateSuccess.value = false
+        _passwordChangeSuccess.value = false
     }
 
     // Clear individual Edit Profile errors as the user retypes
@@ -165,6 +171,52 @@ class ProfileViewModel(
                 }
             }
 
+            _isLoading.value = false
+        }
+    }
+
+    // Upload Avatar - Edit Profile
+    fun uploadAvatar(imageBytes: ByteArray) {
+        viewModelScope.launch {
+            val currentUser = _user.value
+            val uid = currentUser?.supabaseUid
+            if (currentUser == null || uid == null) {
+                _avatarError.value = "User not loaded. Please try again."
+                return@launch
+            }
+
+            _isLoading.value = true
+            _avatarError.value = null
+
+            val result = supabaseAuthRepository.uploadAvatar(uid, imageBytes)
+            result.onSuccess { url ->
+                val updatedUser = currentUser.copy(avatarUrl = url)
+                userRepository.updateUser(updatedUser)
+                _user.value = updatedUser
+            }.onFailure {
+                _avatarError.value = "Failed to upload picture. Please try again."
+            }
+
+            _isLoading.value = false
+        }
+    }
+
+    // Remove Avatar - Edit Profile
+    fun removeAvatar() {
+        viewModelScope.launch {
+            val currentUser = _user.value
+            val uid = currentUser?.supabaseUid
+            if (currentUser == null || uid == null) return@launch
+
+            _isLoading.value = true
+            val result = supabaseAuthRepository.removeAvatar(uid)
+            result.onSuccess {
+                val updatedUser = currentUser.copy(avatarUrl = null)
+                userRepository.updateUser(updatedUser)
+                _user.value = updatedUser
+            }.onFailure {
+                _avatarError.value = "Failed to remove picture. Please try again."
+            }
             _isLoading.value = false
         }
     }

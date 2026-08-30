@@ -5,6 +5,7 @@ import com.example.savebite.model.User
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.storage.storage
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -14,14 +15,16 @@ data class ProfileRow(
     val id: String,
     val username: String,
     val email: String,
-    val phone: String
+    val phone: String,
+    val avatar_url: String? = null
 )
 
 @Serializable
 data class ProfileUpdate(
-    val username: String,
-    val email: String,
-    val phone: String
+    val username: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+    val avatar_url: String? = null
 )
 
 @Serializable
@@ -253,6 +256,53 @@ class SupabaseAuthRepository(
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(mapSignUpException(e))
+        }
+    }
+
+    // Upload a new avatar, replacing any existing one, then update the profile row (Edit Profile)
+    suspend fun uploadAvatar(
+        uid: String,
+        imageBytes: ByteArray
+    ): Result<String> {
+        return try {
+            val path = "$uid/profile.jpg"
+            client.storage.from("avatars").upload(
+                path = path,
+                data = imageBytes
+            ) {
+                upsert = true // overwrite in place, so no separate delete-then-upload needed
+            }
+
+            val publicUrl = client.storage.from("avatars").publicUrl(path)
+            // Cache-bust so the new image isn't served from a stale cache under the same URL
+            val bustedUrl = "$publicUrl?t=${System.currentTimeMillis()}"
+
+            client.postgrest.from("profiles").update(
+                ProfileUpdate(avatar_url = bustedUrl)
+            ) {
+                filter { eq("id", uid) }
+            }
+
+            Result.success(bustedUrl)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Remove the current avatar entirely
+    suspend fun removeAvatar(uid: String): Result<Unit> {
+        return try {
+            client.storage.from("avatars").delete("$uid/profile.jpg")
+
+            client.postgrest.from("profiles").update(
+                ProfileUpdate(avatar_url = null)
+            ) {
+                filter { eq("id", uid) }
+            }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

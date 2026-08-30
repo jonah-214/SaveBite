@@ -19,17 +19,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,8 +62,26 @@ fun ProfileScreen(
     themeViewModel: ThemeViewModel
 ) {
     var notificationEnabled by remember { mutableStateOf(true) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
     val themeMode by themeViewModel.themeMode.collectAsState()
     val user = profileViewModel.user.value
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Show success message when profile is updated
+    LaunchedEffect(profileViewModel.updateSuccess.value) {
+        if (profileViewModel.updateSuccess.value) {
+            snackbarHostState.showSnackbar("Profile updated successfully!")
+            profileViewModel.resetUpdateSuccess()
+        }
+    }
+
+    // Show success message when password is changed
+    LaunchedEffect(profileViewModel.changePasswordSuccess.value) {
+        if (profileViewModel.changePasswordSuccess.value) {
+            snackbarHostState.showSnackbar("Password changed successfully!")
+            profileViewModel.resetPasswordChangeSuccess()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -66,7 +90,8 @@ fun ProfileScreen(
                 showBackButton = true,
                 onBackClick = { navController.popBackStack() }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -122,17 +147,43 @@ fun ProfileScreen(
                 }
             )
 
+            // Logout button
             Spacer(Modifier.height(24.dp))
             LogoutButton(
-                onClick = {
-                    profileViewModel.logout {
-                        navController.navigate(AppRoutes.LOGIN) {
-                            popUpTo(AppRoutes.DASHBOARD) { inclusive = true }
-                        }
-                    }
-                }
+                isLoading = profileViewModel.isLoading.value,
+                onClick = { showLogoutDialog = true }
             )
         }
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Log out?") },
+            text = { Text("You'll need to sign in again to access your account.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        profileViewModel.logout {
+                            navController.navigate(AppRoutes.LOGIN) {
+                                popUpTo(AppRoutes.DASHBOARD) { inclusive = true }
+                            }
+                        }
+                    }
+                ) {
+                    Text(
+                        text = "Log Out",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -465,10 +516,12 @@ fun SettingsRow(
 
 @Composable
 fun LogoutButton(
+    isLoading: Boolean = false,
     onClick: () -> Unit
 ) {
     Button(
         onClick = onClick,
+        enabled = !isLoading,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.errorContainer,
             contentColor = MaterialTheme.colorScheme.onErrorContainer
@@ -478,16 +531,22 @@ fun LogoutButton(
             .fillMaxWidth()
             .height(52.dp)
     ) {
-        Icon(
-            painter = painterResource(id = R.drawable.logout),
-            contentDescription = null
-        )
-
-        Spacer(Modifier.width(8.dp))
-
-        Text(
-            text = "Logout",
-            fontWeight = FontWeight.Bold
-        )
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                strokeWidth = 2.dp,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
+        } else {
+            Icon(
+                painter = painterResource(id = R.drawable.logout),
+                contentDescription = null
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = "Logout",
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }

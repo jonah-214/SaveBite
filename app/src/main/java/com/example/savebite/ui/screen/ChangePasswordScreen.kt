@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -15,13 +16,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ProfileViewModel
+import com.example.savebite.utils.Validators
 
 @Composable
 fun ChangePasswordScreen(
@@ -51,17 +57,22 @@ fun ChangePasswordScreen(
     var currentPasswordVisible by remember { mutableStateOf(false) }
     var newPasswordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var showDiscardDialog by remember { mutableStateOf(false) }
 
-    // Check if all fields are filled
+    // Check if any field is touched
+    val isChanged = currentPassword.isNotEmpty() ||
+            newPassword.isNotEmpty() ||
+            confirmNewPassword.isNotEmpty()
+
+    // Check if all fields are filled and the new password meets format rules
     val isFormValid = currentPassword.isNotBlank() &&
             newPassword.isNotBlank() &&
-            confirmNewPassword.isNotBlank()
-
+            confirmNewPassword.isNotBlank() &&
+            Validators.validatePassword(newPassword) == null
 
     // Handle password change success and pop back stack
     LaunchedEffect(profileViewModel.changePasswordSuccess.value) {
         if (profileViewModel.changePasswordSuccess.value) {
-            profileViewModel.resetPasswordChangeSuccess()
             navController.popBackStack()
         }
     }
@@ -71,12 +82,48 @@ fun ChangePasswordScreen(
         profileViewModel.clearErrors()
     }
 
+    // Intercept back button by showing discard changes dialog if there are unsaved changes
+    BackHandler(enabled = isChanged) {
+        showDiscardDialog = true
+    }
+
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text(text = "Discard Changes?") },
+            text = { Text(text = "You have unsaved changes. Are you sure you want to discard them and go back?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDiscardDialog = false
+                        navController.popBackStack()
+                    }
+                ) {
+                    Text("Discard", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
     Scaffold(
         topBar = {
             AppTopBar(
                 title = "Change Password",
                 showBackButton = true,
-                onBackClick = { navController.popBackStack() }
+                onBackClick = {
+                    if (isChanged) {
+                        showDiscardDialog = true
+                    } else {
+                        navController.popBackStack()
+                    }
+                }
             )
         }
     ) { innerPadding ->
@@ -255,16 +302,24 @@ fun ChangePasswordScreen(
                         confirmNewPassword
                     )
                 },
-                enabled = isFormValid,
+                enabled = isFormValid && !profileViewModel.isLoading.value,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Text(
-                    text = "Update Password",
-                    fontWeight = FontWeight.Bold
-                )
+                if (profileViewModel.isLoading.value) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(
+                        text = "Update Password",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
