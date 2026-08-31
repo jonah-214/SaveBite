@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class SessionManager(
-    private val context: Context
+    context: Context
 ) {
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("session_preferences", Context.MODE_PRIVATE)
@@ -22,7 +22,7 @@ class SessionManager(
     val userIdFlow: StateFlow<Int> = _userIdFlow.asStateFlow()
 
     // Save the user's ID in SharedPreferences
-    suspend fun saveUserSession(userId: Int) {
+    fun saveUserSession(userId: Int) {
         sharedPreferences.edit {
             putInt(USER_ID_KEY, userId)
         }
@@ -30,15 +30,10 @@ class SessionManager(
     }
 
     // Clear the user's session data from SharedPreferences
-    suspend fun clearUserSession() {
+    fun clearUserSession() {
         sharedPreferences.edit {
             remove(USER_ID_KEY)
         }
         _userIdFlow.value = NO_USER
-    }
-
-    // Get the ID of the currently logged-in user from SharedPreferences
-    suspend fun getLoggedInUserId(): Int {
-        return sharedPreferences.getInt(USER_ID_KEY, NO_USER)
     }
 }

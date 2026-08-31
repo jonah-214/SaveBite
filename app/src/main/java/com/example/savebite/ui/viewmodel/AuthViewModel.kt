@@ -101,7 +101,11 @@ class AuthViewModel(
             _loginPasswordError.value = null
             _loginError.value = null
 
-            val identifierErr = if (trimmedIdentifier.isBlank()) "Email or phone number is required" else null
+            val identifierErr = when {
+                trimmedIdentifier.isBlank() -> "Email or phone number is required"
+                trimmedIdentifier.contains("@") -> Validators.validateEmail(trimmedIdentifier)
+                else -> Validators.validatePhone(trimmedIdentifier)
+            }
             val passwordErr = if (password.isBlank()) "Password is required" else null
 
             _loginIdentifierError.value = identifierErr

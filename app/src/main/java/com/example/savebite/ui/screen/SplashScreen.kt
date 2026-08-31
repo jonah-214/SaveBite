@@ -12,6 +12,8 @@ import com.example.savebite.utils.SessionManager
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SplashScreen(
@@ -21,8 +23,10 @@ fun SplashScreen(
 ) {
     // Check for an existing user session
     LaunchedEffect(Unit) {
-        val status = SupabaseClientProvider.client.auth.sessionStatus
-            .first { it !is SessionStatus.Initializing }
+        val status = withTimeoutOrNull(5000L.milliseconds) {
+            SupabaseClientProvider.client.auth.sessionStatus
+                .first { it !is SessionStatus.Initializing }
+        }
 
         if (status is SessionStatus.Authenticated) {
             onSessionFound()

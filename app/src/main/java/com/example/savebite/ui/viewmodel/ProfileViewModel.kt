@@ -332,10 +332,6 @@ class ProfileViewModel(
             )
 
             result.onSuccess {
-                // passwordHash column is no longer used for auth, kept blank for clarity
-                val updatedUser = currentUser.copy(passwordHash = "")
-                userRepository.updateUser(updatedUser)
-                _user.value = updatedUser
                 _passwordChangeSuccess.value = true
             }.onFailure {
                 _currentPasswordError.value = "Current password is incorrect"

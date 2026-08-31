@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
         ReportItem::class,
         RecipeEntity::class
     ],
-    version = 12, // Bumped to version 11 to include cached_recipes table
+    version = 13,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

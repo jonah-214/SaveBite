@@ -128,7 +128,6 @@ fun AppNavigation(
                     onNavigateToSignup = {
                         viewModel.clearErrors()
                         navController.navigate(AppRoutes.SIGNUP) {
-                            popUpTo(AppRoutes.LOGIN) { inclusive = true }
                             launchSingleTop = true
                         }
                     },
@@ -163,7 +162,6 @@ fun AppNavigation(
                     onNavigateToLogin = {
                         viewModel.clearErrors()
                         navController.navigate(AppRoutes.LOGIN) {
-                            popUpTo(AppRoutes.SIGNUP) { inclusive = true }
                             launchSingleTop = true
                         }
                     }
@@ -457,7 +455,7 @@ fun AppNavigation(
                 val aiService = remember {
                     GeminiRecipeService(apiKey = com.example.savebite.BuildConfig.GEMINI_API_KEY)
                 }
-                
+
                 val repository = remember {
                     RecipeRepository(aiService, recipeDao)
                 }

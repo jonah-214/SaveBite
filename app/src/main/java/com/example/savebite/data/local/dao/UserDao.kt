@@ -16,25 +16,9 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE supabaseUid = :uid LIMIT 1")
     suspend fun getUserBySupabaseUid(uid: String): User?
 
-    // Get a user by email or phone number
-    @Query("SELECT * FROM users WHERE email = :identifier OR phone = :identifier LIMIT 1")
-    suspend fun getUserByEmailOrPhone(identifier: String): User?
-
-    // Get a user by their email
-    @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
-    suspend fun getUserByEmail(email: String): User?
-
     // Get a user by their phone number
     @Query("SELECT * FROM users WHERE phone = :phone LIMIT 1")
     suspend fun getUserByPhone(phone: String): User?
-
-    // Get a user by their username
-    @Query("SELECT * FROM users WHERE username = :username LIMIT 1")
-    suspend fun getUserByUsername(username: String): User?
-
-    // Get a user by their ID
-    @Query("SELECT * FROM users WHERE id = :id LIMIT 1")
-    suspend fun getUserById(id: Int): User?
 
     // Get a user by their ID as a Flow
     @Query("SELECT * FROM users WHERE id = :id LIMIT 1")

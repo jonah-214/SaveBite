@@ -97,7 +97,6 @@ class SupabaseAuthRepository(
                 username = username,
                 email = email,
                 phone = phone,
-                passwordHash = ""
             )
             val localId = userRepository.insertUser(localUser)
             Result.success(localUser.copy(id = localId.toInt()))
@@ -189,7 +188,6 @@ class SupabaseAuthRepository(
                     username = remoteProfile.username,
                     email = remoteProfile.email,
                     phone = remoteProfile.phone,
-                    passwordHash = ""
                 )
                 val localId = userRepository.insertUser(newUser)
                 localUser = newUser.copy(id = localId.toInt())

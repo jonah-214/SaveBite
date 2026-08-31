@@ -171,11 +171,16 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // "Forgot Password?" clickable text
+        // Forgot Password clickable text
         Text(
             text = "Forgot Password?",
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
+            color = if (isLoading) {
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+            } else {
+                MaterialTheme.colorScheme.primary
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onNavigateToForgotPassword() },
