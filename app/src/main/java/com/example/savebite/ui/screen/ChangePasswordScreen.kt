@@ -1,6 +1,7 @@
 package com.example.savebite.ui.screen
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,14 +9,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.foundation.BorderStroke
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -25,6 +25,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,7 +34,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -41,6 +45,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.savebite.R
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ProfileViewModel
 import com.example.savebite.utils.Validators
@@ -167,17 +172,18 @@ fun ChangePasswordScreen(
                     if (currentPasswordVisible) VisualTransformation.None
                     else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val icon =
-                        if (currentPasswordVisible) Icons.Filled.Visibility
-                        else Icons.Filled.VisibilityOff
+                    val iconRes =
+                        if (currentPasswordVisible) R.drawable.visibility
+                        else R.drawable.visibility_off
                     IconButton(
                         onClick = {
                             currentPasswordVisible = !currentPasswordVisible
                         }
                     ) {
                         Icon(
-                            imageVector = icon,
-                            contentDescription = "Toggle current password visibility"
+                            painter = painterResource(id = iconRes),
+                            contentDescription = "Toggle current password visibility",
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 },
@@ -216,17 +222,18 @@ fun ChangePasswordScreen(
                     if (newPasswordVisible) VisualTransformation.None
                     else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val icon =
-                        if (newPasswordVisible) Icons.Filled.Visibility
-                        else Icons.Filled.VisibilityOff
+                    val iconRes =
+                        if (newPasswordVisible) R.drawable.visibility
+                        else R.drawable.visibility_off
                     IconButton(
                         onClick = {
                             newPasswordVisible = !newPasswordVisible
                         }
                     ) {
                         Icon(
-                            imageVector = icon,
-                            contentDescription = "Toggle new password visibility"
+                            painter = painterResource(id = iconRes),
+                            contentDescription = "Toggle new password visibility",
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 },
@@ -274,22 +281,81 @@ fun ChangePasswordScreen(
                     if (confirmPasswordVisible) VisualTransformation.None
                     else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val icon =
-                        if (confirmPasswordVisible) Icons.Filled.Visibility
-                        else Icons.Filled.VisibilityOff
+                    val iconRes =
+                        if (confirmPasswordVisible) R.drawable.visibility
+                        else R.drawable.visibility_off
                     IconButton(
                         onClick = {
                             confirmPasswordVisible = !confirmPasswordVisible
                         }
                     ) {
                         Icon(
-                            imageVector = icon,
-                            contentDescription = "Toggle confirm password visibility"
+                            painter = painterResource(id = iconRes),
+                            contentDescription = "Toggle confirm password visibility",
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            // Password Requirements Box
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp)
+                ) {
+                    Text(
+                        text = "Password Requirements",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    val requirements = listOf(
+                        "At least 6 characters",
+                        "One uppercase letter (A-Z)",
+                        "One lowercase letter (a-z)",
+                        "One number (0-9)"
+                    )
+
+                    requirements.forEach { requirement ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.check),
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = if (isRequirementMet(requirement, newPassword))
+                                    Color(0xFF4CAF50)
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = requirement,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (isRequirementMet(requirement, newPassword))
+                                    MaterialTheme.colorScheme.onSurface
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -322,5 +388,18 @@ fun ChangePasswordScreen(
                 }
             }
         }
+    }
+}
+
+private fun isRequirementMet(
+    requirement: String,
+    password: String
+): Boolean {
+    return when (requirement) {
+        "At least 6 characters" -> password.length >= 6
+        "One uppercase letter (A-Z)" -> password.any { it.isUpperCase() }
+        "One lowercase letter (a-z)" -> password.any { it.isLowerCase() }
+        "One number (0-9)" -> password.any { it.isDigit() }
+        else -> false
     }
 }
