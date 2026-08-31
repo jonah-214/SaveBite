@@ -9,6 +9,9 @@ import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.model.User
 import com.example.savebite.utils.SessionManager
 import com.example.savebite.utils.Validators
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
@@ -36,6 +39,14 @@ class ProfileViewModel(
     // Edit Profile Errors - Phone
     private val _phoneError = mutableStateOf<String?>(null)
     val phoneError: State<String?> = _phoneError
+
+    // Edit Profile Pending Avatar (for preview before upload)
+    private val _pendingAvatarBytes = mutableStateOf<ByteArray?>(null)
+    val pendingAvatarBytes: State<ByteArray?> = _pendingAvatarBytes
+
+    // Edit Profile Pending Avatar URI (for preview before upload)
+    private val _pendingAvatarUri = mutableStateOf<android.net.Uri?>(null)
+    val pendingAvatarUri: State<android.net.Uri?> = _pendingAvatarUri
 
     // Edit Profile Success
     private val _updateSuccess = mutableStateOf(value = false)
@@ -66,30 +77,36 @@ class ProfileViewModel(
     }
 
     // Load user information from the database
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun loadUser() {
         viewModelScope.launch {
-            sessionManager.userIdFlow.collect { userId ->
+            sessionManager.userIdFlow.flatMapLatest { userId ->
                 if (userId != -1) {
-                    _isLoading.value = true
-                    _user.value = userRepository.getUserById(userId)
-                    _isLoading.value = false
+                    userRepository.getUserByIdFlow(userId)
                 } else {
-                    _user.value = null
+                    flowOf(null)
                 }
+            }.collect { user ->
+                _isLoading.value = true
+                _user.value = user
+                _isLoading.value = false
             }
         }
     }
 
-    // Clear all errors
+    // Clear all errors and pending states
     fun clearErrors() {
         _usernameError.value = null
         _emailError.value = null
         _phoneError.value = null
+        _avatarError.value = null
         _currentPasswordError.value = null
         _newPasswordError.value = null
         _confirmNewPasswordError.value = null
         _updateSuccess.value = false
         _passwordChangeSuccess.value = false
+        _pendingAvatarBytes.value = null
+        _pendingAvatarUri.value = null
     }
 
     // Clear individual Edit Profile errors as the user retypes
@@ -101,6 +118,25 @@ class ProfileViewModel(
     fun clearCurrentPasswordError() { _currentPasswordError.value = null }
     fun clearNewPasswordError() { _newPasswordError.value = null }
     fun clearConfirmNewPasswordError() { _confirmNewPasswordError.value = null }
+
+    // Set pending avatar for preview
+    fun setPendingAvatar(bytes: ByteArray, uri: android.net.Uri, mimeType: String?) {
+        val error = Validators.validateImage(bytes, mimeType)
+        if (error != null) {
+            _avatarError.value = error
+            return
+        }
+        _pendingAvatarBytes.value = bytes
+        _pendingAvatarUri.value = uri
+        _avatarError.value = null
+    }
+
+    // Clear pending avatar
+    fun clearPendingAvatar() {
+        _pendingAvatarBytes.value = null
+        _pendingAvatarUri.value = null
+        _avatarError.value = null
+    }
 
     // Edit User Profile
     fun updateProfile(
@@ -143,7 +179,20 @@ class ProfileViewModel(
                 return@launch
             }
 
-            // Supabase is the source of truth: check + update there first
+            // 1. Handle Avatar Upload if there's a pending one
+            var finalAvatarUrl = currentUser.avatarUrl
+            _pendingAvatarBytes.value?.let { bytes ->
+                val uploadResult = supabaseAuthRepository.uploadAvatar(uid, bytes)
+                uploadResult.onSuccess { newUrl ->
+                    finalAvatarUrl = newUrl
+                }.onFailure {
+                    _avatarError.value = "Failed to upload picture. Please try again."
+                    _isLoading.value = false
+                    return@launch
+                }
+            }
+
+            // 2. Update Profile Metadata
             val result = supabaseAuthRepository.updateProfile(
                 uid,
                 trimmedUsername,
@@ -156,10 +205,13 @@ class ProfileViewModel(
                 val updatedUser = currentUser.copy(
                     username = trimmedUsername,
                     email = trimmedEmail,
-                    phone = trimmedPhone
+                    phone = trimmedPhone,
+                    avatarUrl = finalAvatarUrl
                 )
                 userRepository.updateUser(updatedUser)
                 _user.value = updatedUser
+                _pendingAvatarBytes.value = null
+                _pendingAvatarUri.value = null
                 _updateSuccess.value = true
             }.onFailure { error ->
                 val message = error.message.orEmpty()
@@ -209,6 +261,11 @@ class ProfileViewModel(
             if (currentUser == null || uid == null) return@launch
 
             _isLoading.value = true
+            
+            // Clear pending if any
+            _pendingAvatarBytes.value = null
+            _pendingAvatarUri.value = null
+            
             val result = supabaseAuthRepository.removeAvatar(uid)
             result.onSuccess {
                 val updatedUser = currentUser.copy(avatarUrl = null)

@@ -31,12 +31,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.example.savebite.R
 import com.example.savebite.ui.navigation.AppRoutes
 import com.example.savebite.ui.theme.onWarningContainerLight
@@ -72,6 +75,7 @@ fun DashboardScreen(
         // Greeting user Header Area
         DashboardHeader(
             username = dashboardViewModel.username.value,
+            avatarUrl = dashboardViewModel.avatarUrl.value,
             onProfileClick = {
                 navController.navigate(AppRoutes.PROFILE) {
                     launchSingleTop = true
@@ -128,6 +132,7 @@ fun DashboardScreen(
 @Composable
 fun DashboardHeader(
     username: String,
+    avatarUrl: String? = null,
     onProfileClick: () -> Unit
 ) {
     Row(
@@ -135,19 +140,27 @@ fun DashboardHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
             Text(
                 text = "Welcome, $username",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = "Track your food, save the planet",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
+
+        Spacer(modifier = Modifier.width(16.dp))
 
         IconButton(
             onClick = onProfileClick,
@@ -158,12 +171,22 @@ fun DashboardHeader(
                 )
                 .size(48.dp)
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.account_circle),
-                contentDescription = "Profile",
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(28.dp)
-            )
+            if (avatarUrl != null) {
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = "Profile",
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                )
+            } else {
+                Icon(
+                    painter = painterResource(id = R.drawable.account_circle),
+                    contentDescription = "Profile",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
         }
     }
 }
@@ -229,9 +252,14 @@ fun ExpiryItemRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "${item.name} • ${item.quantity}",
-            color = MaterialTheme.colorScheme.onSurface
+            text = "${item.name} • ${item.quantity}",
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
+
+        Spacer(modifier = Modifier.width(8.dp))
 
         val (bg, fg) = if (item.daysLeft <= 1) {
             MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
@@ -428,8 +456,19 @@ fun RecipeCard(
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(recipe.name, fontWeight = FontWeight.Bold)
-            Text(recipe.usesText, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = recipe.name,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = recipe.usesText,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
