@@ -62,13 +62,16 @@ fun AddInventoryScreen(
     batchItems: List<ShoppingItem>? = null,
     storageLocations: List<String> = listOf("Refrigerator", "Pantry", "Freezer"),
     onBackClick: () -> Unit = {},
+    onNavigateToShoppingList: () -> Unit = {},
     onSaveClick: (List<Inventory>) -> Unit = {} // 修正：支持回调 List 应对批量新增
 ) {
     val isBatchMode = !batchItems.isNullOrEmpty()
     var currentIndex by remember { mutableIntStateOf(0) }
     val accumulatedBatchList = remember { mutableStateListOf<Inventory>() }
-
-    val collectedInventoryItems = remember { mutableStateListOf<Inventory>() }
+    val scrollState = rememberScrollState()
+    LaunchedEffect(currentIndex) {
+        scrollState.animateScrollTo(0)
+    }
 
     // Form Input States
     var name by remember { mutableStateOf("") }
@@ -80,8 +83,10 @@ fun AddInventoryScreen(
     var quantity by remember { mutableIntStateOf(1) }
     var unit by remember { mutableStateOf("pcs") }
     var price by remember { mutableStateOf("") }
-    
-    // Helper function to clean and parse price string
+    var purchaseDate by remember { mutableStateOf(getTodayFormatted()) }
+    var expiryDate by remember { mutableStateOf(getFutureDateFormatted(7)) }
+    var notes by remember { mutableStateOf("") }
+
     val cleanPriceString = { input: String ->
         input.trim()
             .replace("RM", "", ignoreCase = true)
@@ -89,28 +94,75 @@ fun AddInventoryScreen(
             .replace(Regex("[^0-9.]"), "")
     }
 
+    fun formatPriceString(priceValue: Double): String {
+        return if (priceValue > 0) String.format(Locale.US, "%.2f", priceValue) else ""
+    }
+
+    val handlePreviousStep = {
+        if (isBatchMode && currentIndex > 0) {
+            val cleanedPrice = cleanPriceString(price)
+            val parsedPrice = cleanedPrice.toDoubleOrNull() ?: 0.0
+            val calculatedDaysLeft = calculateDaysLeft(expiryDate)
+
+            val currentDraft = Inventory(
+                id = itemId ?: UUID.randomUUID().toString(),
+                name = name,
+                description = description,
+                category = category,
+                storage = storage,
+                quantity = quantity,
+                unit = unit,
+                price = parsedPrice,
+                daysLeft = calculatedDaysLeft,
+                purchaseDate = purchaseDate,
+                expiry = expiryDate,
+                notes = notes
+            )
+
+            if (currentIndex < accumulatedBatchList.size) {
+                accumulatedBatchList[currentIndex] = currentDraft
+            } else {
+                accumulatedBatchList.add(currentDraft)
+            }
+
+            currentIndex--
+        } else {
+            onBackClick()
+        }
+    }
     val isPriceValid = remember(price) {
         val cleaned = cleanPriceString(price)
         cleaned.isNotBlank() && cleaned.toDoubleOrNull() != null && cleaned.toDouble() >= 0.0
     }
     var attemptedSave by remember { mutableStateOf(false) }
 
-    // Default Dates (Today & 7 Days Later)
-    var purchaseDate by remember { mutableStateOf(getTodayFormatted()) }
-    var expiryDate by remember { mutableStateOf(getFutureDateFormatted(7)) }
-    var notes by remember { mutableStateOf("") }
-
     // 1. 如果是 Batch 模式，根据 currentIndex 自动更新数据
     LaunchedEffect(currentIndex, batchItems) {
         if (isBatchMode && batchItems != null && currentIndex < batchItems.size) {
-            val item = batchItems[currentIndex]
-            name = item.name
-            quantity = item.quantity
-            unit = item.unit
-            category = item.category
-            price = ""
-            description = ""
-            notes = ""
+            if (currentIndex < accumulatedBatchList.size) {
+                // 如果该位置已经有保存/暂存的数据，还原输入框
+                val savedItem = accumulatedBatchList[currentIndex]
+                name = savedItem.name
+                description = savedItem.description
+                category = savedItem.category
+                storage = savedItem.storage
+                quantity = savedItem.quantity
+                unit = savedItem.unit
+                price = formatPriceString(savedItem.price)
+                purchaseDate = savedItem.purchaseDate
+                expiryDate = savedItem.expiry
+                notes = savedItem.notes
+            } else {
+                // 如果是全新未填过的物品，加载初始默认值
+                val item = batchItems[currentIndex]
+                name = item.name
+                quantity = item.quantity
+                unit = item.unit
+                category = item.category
+                price = ""
+                description = ""
+                notes = ""
+            }
             attemptedSave = false
         }
     }
@@ -122,7 +174,7 @@ fun AddInventoryScreen(
             existingItem?.let { item ->
                 name = item.name
                 description = item.description
-                price = if (item.price > 0) item.price.toString() else ""
+                price = formatPriceString(item.price)
                 category = item.category
                 storage = item.storage
                 quantity = item.quantity
@@ -180,7 +232,13 @@ fun AddInventoryScreen(
                     else -> "Add Inventory"
                 },
                 showBackButton = true,
-                onBackClick = onBackClick
+                onBackClick = {
+                    if (isBatchMode) {
+                        onNavigateToShoppingList()
+                    } else {
+                        onBackClick()
+                    }
+                }
             )
         }
     ) { padding ->
@@ -203,7 +261,7 @@ fun AddInventoryScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -245,7 +303,7 @@ fun AddInventoryScreen(
                     onValueChange = { price = it },
                     label = { 
                         Row {
-                            Text("Price / Cost (RM)")
+                            Text("Total Cost (RM)")
                             Text(" *", color = MaterialTheme.colorScheme.error)
                         }
                     },
@@ -483,62 +541,95 @@ fun AddInventoryScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // 修正：动态按钮文字与保存/下一步逻辑
-                val actionButtonText = when {
-                    isBatchMode && batchItems != null && currentIndex < batchItems.size - 1 -> "Next Item (${currentIndex + 2}/${batchItems.size})"
-                    isBatchMode -> "Finish & Save All"
-                    else -> "Save Item"
-                }
-
-                Button(
-                    onClick = {
-                        attemptedSave = true
-                        if (name.isNotBlank() && isPriceValid) {
-                            val cleanedPrice = cleanPriceString(price)
-                            val parsedPrice = cleanedPrice.toDoubleOrNull() ?: 0.0
-                            val calculatedDaysLeft = calculateDaysLeft(expiryDate)
-                            
-                            val newFood = Inventory(
-                                id = itemId ?: UUID.randomUUID().toString(),
-                                name = name,
-                                description = description,
-                                category = category,
-                                storage = storage,
-                                quantity = quantity,
-                                unit = unit,
-                                price = parsedPrice,
-                                daysLeft = calculatedDaysLeft,
-                                purchaseDate = purchaseDate,
-                                expiry = expiryDate,
-                                notes = notes
-                            )
-
-                            if (isBatchMode && batchItems != null) {
-                                accumulatedBatchList.add(newFood)
-                                if (currentIndex < batchItems.size - 1) {
-                                    currentIndex++
-                                    // Reset attemptedSave for the next item in batch mode
-                                    attemptedSave = false
-                                } else {
-                                    onSaveClick(accumulatedBatchList.toList())
-                                }
-                            } else {
-                                onSaveClick(listOf(newFood))
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    shape = RoundedCornerShape(12.dp)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(
-                        text = actionButtonText,
-                        fontSize = 16.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
+                    // 主按钮： Save / Next
+                    val actionButtonText = when {
+                        isBatchMode && batchItems != null && currentIndex < batchItems.size - 1 -> "Next Item (${currentIndex + 2}/${batchItems.size})"
+                        isBatchMode -> "Finish & Save All"
+                        else -> "Save Item"
+                    }
+
+                    Button(
+                        onClick = {
+                            attemptedSave = true
+                            if (name.isNotBlank() && isPriceValid) {
+                                val cleanedPrice = cleanPriceString(price)
+                                val parsedPrice = cleanedPrice.toDoubleOrNull() ?: 0.0
+                                val calculatedDaysLeft = calculateDaysLeft(expiryDate)
+
+                                val newFood = Inventory(
+                                    id = itemId ?: UUID.randomUUID().toString(),
+                                    name = name,
+                                    description = description,
+                                    category = category,
+                                    storage = storage,
+                                    quantity = quantity,
+                                    unit = unit,
+                                    price = parsedPrice,
+                                    daysLeft = calculatedDaysLeft,
+                                    purchaseDate = purchaseDate,
+                                    expiry = expiryDate,
+                                    notes = notes
+                                )
+
+                                if (isBatchMode && batchItems != null) {
+                                    // 回退修改时覆盖，新增时添加
+                                    if (currentIndex < accumulatedBatchList.size) {
+                                        accumulatedBatchList[currentIndex] = newFood
+                                    } else {
+                                        accumulatedBatchList.add(newFood)
+                                    }
+
+                                    if (currentIndex < batchItems.size - 1) {
+                                        currentIndex++
+                                        attemptedSave = false
+                                    } else {
+                                        onSaveClick(accumulatedBatchList.toList())
+                                    }
+                                } else {
+                                    onSaveClick(listOf(newFood))
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = actionButtonText,
+                            fontSize = 16.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    // 次按钮：Back / Previous
+                    OutlinedButton(
+                        onClick = { handlePreviousStep() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                    ) {
+                        val backButtonText = if (isBatchMode && currentIndex > 0) {
+                            "Back to Previous Item"
+                        } else {
+                            "Cancel / Back"
+                        }
+
+                        Text(
+                            text = backButtonText,
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
         }

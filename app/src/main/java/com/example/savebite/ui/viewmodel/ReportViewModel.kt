@@ -9,7 +9,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import java.util.*
 
-enum class TimeFrame { MONTHLY, WEEKLY }
+enum class TimeFrame { WEEKLY, MONTHLY, YEARLY }
 
 data class CategoryBreakdown(
     val category: String,
@@ -33,11 +33,9 @@ data class ReasonBreakdown(
 
 data class ReportUiState(
     val selectedTimeFrame: TimeFrame = TimeFrame.MONTHLY,
-    val selectedMonth: Int = Calendar.getInstance().get(Calendar.MONTH),
-    val selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR),
-    val selectedWeek: Int = 1,
+    val dateDisplay: String = "",
+    val currentDate: Calendar = Calendar.getInstance(),
 
-    // Wasted Stats
     val totalWastedItems: Int = 0,
     val totalWastedCost: Double = 0.0,
     val mostWastedName: String = "-",
@@ -45,8 +43,6 @@ data class ReportUiState(
     val wastedBreakdowns: List<CategoryBreakdown> = emptyList(),
     val topWastedItems: List<TopWastedItem> = emptyList(),
     val reasonBreakdowns: List<ReasonBreakdown> = emptyList(),
-
-    // Consumed Stats
     val totalConsumedItems: Int = 0,
     val totalSavedCost: Double = 0.0,
     val consumedBreakdowns: List<CategoryBreakdown> = emptyList(),
@@ -56,96 +52,112 @@ data class ReportUiState(
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReportViewModel(private val repository: ReportRepository) : ViewModel() {
 
-    private val _filterParams = MutableStateFlow(
-        Triple(
-            TimeFrame.MONTHLY,
-            Pair(Calendar.getInstance().get(Calendar.MONTH), Calendar.getInstance().get(Calendar.YEAR)),
-            1
-        )
+    private val _timeFilter = MutableStateFlow(
+        Pair(TimeFrame.WEEKLY, Calendar.getInstance())
     )
 
-    val uiState: StateFlow<ReportUiState> = _filterParams
-        .flatMapLatest { (timeFrame, monthYear, week) ->
-            val range = if (timeFrame == TimeFrame.WEEKLY) {
-                getWeekRange(monthYear.second, monthYear.first, week)
-            } else {
-                getMonthRange(monthYear.first, monthYear.second)
-            }
+    val uiState: StateFlow<ReportUiState> = _timeFilter
+        .flatMapLatest { (timeFrame, calendar) ->
+            val range = getTimeRange(timeFrame, calendar)
+            val dateDisplay = formatDateDisplay(timeFrame, range.first, range.second)
+
             repository.getReportItemsInRange(range.first, range.second).map { items ->
-                calculateReport(items, timeFrame, monthYear.first, monthYear.second, week)
+                calculateReport(items, timeFrame, dateDisplay, calendar)
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ReportUiState())
 
+
     fun setTimeFrame(timeFrame: TimeFrame) {
-        val current = _filterParams.value
-        _filterParams.value = Triple(timeFrame, current.second, current.third)
+        val currentCal = _timeFilter.value.second
+        _timeFilter.value = Pair(timeFrame, Calendar.getInstance())
     }
 
-    fun selectMonthYear(month: Int, year: Int) {
-        val current = _filterParams.value
-        _filterParams.value = Triple(current.first, Pair(month, year), current.third)
-    }
-
-    fun selectWeek(week: Int) {
-        val current = _filterParams.value
-        _filterParams.value = Triple(current.first, current.second, week)
-    }
-
-    private fun getMonthRange(month: Int, year: Int): Pair<Long, Long> {
-        val calendar = Calendar.getInstance().apply {
-            set(Calendar.YEAR, year)
-            set(Calendar.MONTH, month)
-            set(Calendar.DAY_OF_MONTH, 1)
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
+    fun navigatePrevious() {
+        val (timeFrame, cal) = _timeFilter.value
+        val newCal = cal.clone() as Calendar
+        when (timeFrame) {
+            TimeFrame.WEEKLY -> newCal.add(Calendar.WEEK_OF_YEAR, -1)
+            TimeFrame.MONTHLY -> newCal.add(Calendar.MONTH, -1)
+            TimeFrame.YEARLY -> newCal.add(Calendar.YEAR, -1)
         }
-        val start = calendar.timeInMillis
-        calendar.add(Calendar.MONTH, 1)
-        calendar.add(Calendar.MILLISECOND, -1)
-        return Pair(start, calendar.timeInMillis)
+        _timeFilter.value = Pair(timeFrame, newCal)
     }
 
-    private fun getWeekRange(year: Int, month: Int, week: Int): Pair<Long, Long> {
-        val calendar = Calendar.getInstance().apply {
-            clear()
-            set(Calendar.YEAR, year)
-            set(Calendar.MONTH, month)
-            set(Calendar.WEEK_OF_MONTH, week)
-            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
+    fun navigateNext() {
+        val (timeFrame, cal) = _timeFilter.value
+        val newCal = cal.clone() as Calendar
+        when (timeFrame) {
+            TimeFrame.WEEKLY -> newCal.add(Calendar.WEEK_OF_YEAR, 1)
+            TimeFrame.MONTHLY -> newCal.add(Calendar.MONTH, 1)
+            TimeFrame.YEARLY -> newCal.add(Calendar.YEAR, 1)
         }
-        val start = calendar.timeInMillis
-        calendar.add(Calendar.DAY_OF_WEEK, 6)
-        calendar.set(Calendar.HOUR_OF_DAY, 23)
-        calendar.set(Calendar.MINUTE, 59)
-        calendar.set(Calendar.SECOND, 59)
-        return Pair(start, calendar.timeInMillis)
+        _timeFilter.value = Pair(timeFrame, newCal)
     }
 
-    private fun normalizeName(name: String): String {
-        return name.trim().lowercase().replaceFirstChar {
-            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+    private fun getTimeRange(timeFrame: TimeFrame, calendar: Calendar): Pair<Long, Long> {
+        val startCal = calendar.clone() as Calendar
+        startCal.set(Calendar.HOUR_OF_DAY, 0)
+        startCal.set(Calendar.MINUTE, 0)
+        startCal.set(Calendar.SECOND, 0)
+        startCal.set(Calendar.MILLISECOND, 0)
+
+        val endCal = calendar.clone() as Calendar
+
+        when (timeFrame) {
+            TimeFrame.WEEKLY -> {
+                startCal.set(Calendar.DAY_OF_WEEK, startCal.firstDayOfWeek)
+                endCal.timeInMillis = startCal.timeInMillis
+                endCal.add(Calendar.DAY_OF_WEEK, 6)
+            }
+            TimeFrame.MONTHLY -> {
+                startCal.set(Calendar.DAY_OF_MONTH, 1)
+                endCal.timeInMillis = startCal.timeInMillis
+                endCal.add(Calendar.MONTH, 1)
+                endCal.add(Calendar.MILLISECOND, -1)
+                return Pair(startCal.timeInMillis, endCal.timeInMillis)
+            }
+            TimeFrame.YEARLY -> {
+                startCal.set(Calendar.DAY_OF_YEAR, 1)
+                endCal.timeInMillis = startCal.timeInMillis
+                endCal.add(Calendar.YEAR, 1)
+                endCal.add(Calendar.MILLISECOND, -1)
+                return Pair(startCal.timeInMillis, endCal.timeInMillis)
+            }
+        }
+
+        endCal.set(Calendar.HOUR_OF_DAY, 23)
+        endCal.set(Calendar.MINUTE, 59)
+        endCal.set(Calendar.SECOND, 59)
+        endCal.set(Calendar.MILLISECOND, 999)
+
+        return Pair(startCal.timeInMillis, endCal.timeInMillis)
+    }
+
+    private fun formatDateDisplay(timeFrame: TimeFrame, startMs: Long, endMs: Long): String {
+        val sdfWeekly = java.text.SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        val sdfMonthly = java.text.SimpleDateFormat("MM.yyyy", Locale.getDefault())
+        val sdfYearly = java.text.SimpleDateFormat("yyyy", Locale.getDefault())
+
+        return when (timeFrame) {
+            TimeFrame.WEEKLY -> "${sdfWeekly.format(startMs)} ~ ${sdfWeekly.format(endMs)}"
+            TimeFrame.MONTHLY -> sdfMonthly.format(startMs)
+            TimeFrame.YEARLY -> sdfYearly.format(startMs)
         }
     }
 
     private fun calculateReport(
         items: List<ReportItem>,
         timeFrame: TimeFrame,
-        month: Int,
-        year: Int,
-        week: Int
+        dateDisplay: String,
+        currentCal: Calendar
     ): ReportUiState {
+        // ... (原有的计算逻辑不变)
         val wastedItems = items.filter { it.status == ReportStatus.WASTED }
         val consumedItems = items.filter { it.status == ReportStatus.CONSUMED }
 
         val totalWasted = wastedItems.sumOf { it.quantity }
         val totalConsumed = consumedItems.sumOf { it.quantity }
-
         val wastedCost = wastedItems.sumOf { it.price * it.quantity }
         val savedCost = consumedItems.sumOf { it.price * it.quantity }
 
@@ -185,9 +197,8 @@ class ReportViewModel(private val repository: ReportRepository) : ViewModel() {
 
         return ReportUiState(
             selectedTimeFrame = timeFrame,
-            selectedMonth = month,
-            selectedYear = year,
-            selectedWeek = week,
+            dateDisplay = dateDisplay,
+            currentDate = currentCal,
             totalWastedItems = totalWasted,
             totalWastedCost = wastedCost,
             mostWastedName = topWasted?.key ?: "-",
@@ -200,5 +211,11 @@ class ReportViewModel(private val repository: ReportRepository) : ViewModel() {
             consumedBreakdowns = consumedCategories,
             topConsumedItems = topConsumedList
         )
+    }
+
+    private fun normalizeName(name: String): String {
+        return name.trim().lowercase().replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+        }
     }
 }

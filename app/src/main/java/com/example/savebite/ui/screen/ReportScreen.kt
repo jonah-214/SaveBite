@@ -1,12 +1,15 @@
 package com.example.savebite.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.CheckCircleOutline
 import androidx.compose.material.icons.outlined.Delete
@@ -39,27 +42,10 @@ fun ReportScreen(
     onNavigateToConsumedItems: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
-    var showMonthPicker by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    if (showMonthPicker) {
-        MonthYearPicker(
-            initialMonth = state.selectedMonth,
-            initialYear = state.selectedYear,
-            onDismiss = { showMonthPicker = false },
-            onConfirm = { month, year ->
-                viewModel.selectMonthYear(month, year)
-                showMonthPicker = false
-            }
-        )
-    }
-
-    val monthName = DateFormatSymbols().months[state.selectedMonth]
-    val dateDisplay = if (state.selectedTimeFrame == TimeFrame.WEEKLY) {
-        "$monthName ${state.selectedYear} (Week ${state.selectedWeek})"
-    } else {
-        "$monthName ${state.selectedYear}"
-    }
+    // 控制下拉菜单显隐
+    var dropdownExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -82,59 +68,111 @@ fun ReportScreen(
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Time Filter Section
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(
-                    selected = state.selectedTimeFrame == TimeFrame.MONTHLY,
-                    onClick = { viewModel.setTimeFrame(TimeFrame.MONTHLY) },
-                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-                ) { Text("Monthly") }
-                SegmentedButton(
-                    selected = state.selectedTimeFrame == TimeFrame.WEEKLY,
-                    onClick = { viewModel.setTimeFrame(TimeFrame.WEEKLY) },
-                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-                ) { Text("Weekly") }
-            }
-
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Summary", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                OutlinedButton(
-                    onClick = { showMonthPicker = true },
-                    shape = RoundedCornerShape(16.dp),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
-                    modifier = Modifier.height(32.dp)
-                ) {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = null, modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(dateDisplay, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                }
-            }
-
-            if (state.selectedTimeFrame == TimeFrame.WEEKLY) {
-                Spacer(modifier = Modifier.height(8.dp))
+                // 左侧：前后切换箭头 + 当前日期范围显示
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
                 ) {
-                    (1..5).forEach { weekNum ->
-                        FilterChip(
-                            selected = state.selectedWeek == weekNum,
-                            onClick = { viewModel.selectWeek(weekNum) },
-                            label = { Text("Week $weekNum") }
+                    IconButton(
+                        onClick = { viewModel.navigatePrevious() },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ChevronLeft,
+                            contentDescription = "Previous"
+                        )
+                    }
+
+                    Text(
+                        text = state.dateDisplay,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    )
+
+                    IconButton(
+                        onClick = { viewModel.navigateNext() },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = "Next"
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Box {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.clickable { dropdownExpanded = true }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val label = when (state.selectedTimeFrame) {
+                                TimeFrame.WEEKLY -> "Weekly"
+                                TimeFrame.MONTHLY -> "Monthly"
+                                TimeFrame.YEARLY -> "Yearly"
+                            }
+                            Text(
+                                text = label,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+
+                    // 下拉选项列表
+                    DropdownMenu(
+                        expanded = dropdownExpanded,
+                        onDismissRequest = { dropdownExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Weekly") },
+                            onClick = {
+                                viewModel.setTimeFrame(TimeFrame.WEEKLY)
+                                dropdownExpanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Monthly") },
+                            onClick = {
+                                viewModel.setTimeFrame(TimeFrame.MONTHLY)
+                                dropdownExpanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Yearly") },
+                            onClick = {
+                                viewModel.setTimeFrame(TimeFrame.YEARLY)
+                                dropdownExpanded = false
+                            }
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Metrics
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

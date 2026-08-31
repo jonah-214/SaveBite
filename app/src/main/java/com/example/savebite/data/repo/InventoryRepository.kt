@@ -100,10 +100,8 @@ class InventoryRepository(
                     val days = TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS).toInt()
 
                     if (days < 0) {
-                        // Expired
                         markAsWaste(item, "Expired")
                     } else {
-                        // Update daysLeft if it changed
                         val newDaysLeft = days + 1
                         if (item.daysLeft != newDaysLeft) {
                             inventoryDao.updateItem(item.copy(daysLeft = newDaysLeft))

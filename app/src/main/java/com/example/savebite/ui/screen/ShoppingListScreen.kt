@@ -160,34 +160,50 @@ fun ShoppingListScreen(
 
             // Categorized List with Collapsible Logic
             val grouped = items.groupBy { it.category }
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                grouped.forEach { (category, list) ->
-                    val isExpanded = if (searchQuery.isNotEmpty()) true else categoryExpandedStates.getOrDefault(category, true)
 
-                    item(key = "header_$category") {
-                        CategoryHeader(
-                            category = category,
-                            count = list.size,
-                            isExpanded = isExpanded,
-                            onToggleExpand = {
-                                if (searchQuery.isEmpty()) {
-                                    categoryExpandedStates[category] = !isExpanded
+            if (items.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No Data Recorded",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    grouped.forEach { (category, list) ->
+                        val isExpanded = if (searchQuery.isNotEmpty()) true else categoryExpandedStates.getOrDefault(category, true)
+
+                        item(key = "header_$category") {
+                            CategoryHeader(
+                                category = category,
+                                count = list.size,
+                                isExpanded = isExpanded,
+                                onToggleExpand = {
+                                    if (searchQuery.isEmpty()) {
+                                        categoryExpandedStates[category] = !isExpanded
+                                    }
                                 }
-                            }
-                        )
-                    }
-
-                    if (isExpanded) {
-                        items(list, key = { it.id }) { item ->
-                            ShoppingItemRow(
-                                item = item,
-                                onToggle = { viewModel.togglePurchased(item) },
-                                onEdit = { onNavigateToEditItem(item) },
-                                onDelete = { itemToDelete = item }
                             )
+                        }
+
+                        if (isExpanded) {
+                            items(list, key = { it.id }) { item ->
+                                ShoppingItemRow(
+                                    item = item,
+                                    onToggle = { viewModel.togglePurchased(item) },
+                                    onEdit = { onNavigateToEditItem(item) },
+                                    onDelete = { itemToDelete = item }
+                                )
+                            }
                         }
                     }
                 }

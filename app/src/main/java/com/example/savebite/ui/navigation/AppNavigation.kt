@@ -293,9 +293,19 @@ fun AppNavigation(
                     batchItems = batchItems,
                     storageLocations = storageList,
                     onBackClick = {
+                        // 普通模式/底部的 Back 按钮：返回上一页
                         navController.previousBackStackEntry?.savedStateHandle?.remove<List<Any>>("batch_items")
                         navController.popBackStack()
                     },
+                    // 关键补全：传入控制直接跳回 Shopping List 的回调
+                    onNavigateToShoppingList = {
+                        navController.previousBackStackEntry?.savedStateHandle?.remove<List<Any>>("batch_items")
+                        navController.popBackStack(
+                            route = AppRoutes.SHOPPING,
+                            inclusive = false
+                        )
+                    },
+
                     onSaveClick = { itemList ->
                         itemList.forEach { item ->
                             inventoryViewModel.saveItem(item)

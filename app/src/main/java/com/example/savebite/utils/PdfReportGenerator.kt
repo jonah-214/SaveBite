@@ -92,10 +92,10 @@ object PdfReportGenerator {
         canvas.drawText("Food Waste & Consumption Report", startX, currentY + 16f, paint)
 
         // 根据 selectedTimeFrame 组装 Date 显示字符串
-        val monthName = DateFormatSymbols().months.getOrElse(state.selectedMonth) { "" }
         val dateDisplay = when (state.selectedTimeFrame) {
-            TimeFrame.WEEKLY -> "$monthName ${state.selectedYear} (Week ${state.selectedWeek})"
-            TimeFrame.MONTHLY -> "$monthName ${state.selectedYear}"
+            TimeFrame.WEEKLY -> "Weekly Report: ${state.dateDisplay}"
+            TimeFrame.MONTHLY -> "Monthly Report: ${state.dateDisplay}"
+            TimeFrame.YEARLY -> "Yearly Report: ${state.dateDisplay}"
         }
 
         paint.color = textMuted

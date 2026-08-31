@@ -178,21 +178,34 @@ fun InventoryList(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(
-                    items = foods,
-                    key = { item -> item.id }
-                ) { food ->
-                    InventoryCard(
-                        food = food,
-                        onToggleConsume = onToggleConsume,
-                        onEditClick = onEditClick,
-                        onDeleteClick = onDeleteClick,
-                        onCardClick = onItemClick
+            if (foods.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No Data Recorded",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(
+                        items = foods,
+                        key = { item -> item.id }
+                    ) { food ->
+                        InventoryCard(
+                            food = food,
+                            onToggleConsume = onToggleConsume,
+                            onEditClick = onEditClick,
+                            onDeleteClick = onDeleteClick,
+                            onCardClick = onItemClick
+                        )
+                    }
                 }
             }
         }
