@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.savebite.data.repo.ReportRepository
 import com.example.savebite.model.ReportItem
 import com.example.savebite.model.ReportStatus
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import java.util.*
 
 enum class TimeFrame { WEEKLY, MONTHLY, YEARLY }
@@ -55,6 +57,16 @@ class ReportViewModel(private val repository: ReportRepository) : ViewModel() {
     private val _timeFilter = MutableStateFlow(
         Pair(TimeFrame.WEEKLY, Calendar.getInstance())
     )
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.syncFromCloud()
+            } catch (e: Exception) {
+                // 忽略网络异常，使用本地离线数据
+            }
+        }
+    }
 
     val uiState: StateFlow<ReportUiState> = _timeFilter
         .flatMapLatest { (timeFrame, calendar) ->
@@ -152,7 +164,6 @@ class ReportViewModel(private val repository: ReportRepository) : ViewModel() {
         dateDisplay: String,
         currentCal: Calendar
     ): ReportUiState {
-        // ... (原有的计算逻辑不变)
         val wastedItems = items.filter { it.status == ReportStatus.WASTED }
         val consumedItems = items.filter { it.status == ReportStatus.CONSUMED }
 
@@ -186,7 +197,7 @@ class ReportViewModel(private val repository: ReportRepository) : ViewModel() {
         val consumedCategories = consumedItems.groupBy { it.category.trim() }
             .map { (cat, list) ->
                 val catCount = list.sumOf { it.quantity }
-                CategoryBreakdown(cat, catCount, if (totalConsumed > 0) ((catCount.toFloat() / totalConsumed) * 100) else 0f, list.sumOf { it.price * it.quantity })
+                CategoryBreakdown(cat, catCount, if (totalConsumed > 0) ((totalConsumed.toFloat() / totalConsumed) * 100) else 0f, list.sumOf { it.price * it.quantity })
             }.sortedByDescending { it.count }
 
         val topConsumedList = consumedItems.groupBy { normalizeName(it.name) }

@@ -1,34 +1,47 @@
 package com.example.savebite.data.repo
 
 import com.example.savebite.data.local.dao.InventoryDao
-import com.example.savebite.data.local.dao.StorageDao
 import com.example.savebite.data.local.dao.ReportDao
+import com.example.savebite.data.local.dao.StorageDao
+import com.example.savebite.data.remote.toRoom
+import com.example.savebite.data.remote.toSupabase
 import com.example.savebite.model.Inventory
-import com.example.savebite.model.Storage
 import com.example.savebite.model.ReportItem
 import com.example.savebite.model.ReportStatus
 import com.example.savebite.model.ReportStatus.WASTED
+import com.example.savebite.model.Storage
 import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 class InventoryRepository(
     private val inventoryDao: InventoryDao,
     private val storageDao: StorageDao,
-    private val reportDao: ReportDao
+    private val reportDao: ReportDao,
+    private val supabaseDataRepository: SupabaseDataRepository = SupabaseDataRepository()
 ) {
 
     val allInventory: Flow<List<Inventory>> = inventoryDao.getAllInventory()
 
     val allStorageNames: Flow<List<String>> = storageDao.getAllStorageNames()
 
-    suspend fun insertItem(item: Inventory) = inventoryDao.insertItem(item)
+    suspend fun insertItem(item: Inventory) {
+        inventoryDao.insertItem(item)
+        supabaseDataRepository.upsertInventoryItem(item.toSupabase())
+    }
 
-    suspend fun updateItem(item: Inventory) = inventoryDao.updateItem(item)
+    suspend fun updateItem(item: Inventory) {
+        inventoryDao.updateItem(item)
+        supabaseDataRepository.upsertInventoryItem(item.toSupabase())
+    }
 
-    suspend fun deleteItem(item: Inventory) = inventoryDao.deleteItem(item)
+    suspend fun deleteItem(item: Inventory) {
+        inventoryDao.deleteItem(item)
+        supabaseDataRepository.deleteInventoryItem(item.id)
+    }
 
     fun getItemById(id: String): Flow<Inventory?> = inventoryDao.getInventoryById(id)
 
@@ -38,13 +51,21 @@ class InventoryRepository(
 
     suspend fun insertStorage(name: String) {
         if (name.isNotBlank()) {
-            storageDao.insertStorage(Storage(name))
+            val storage = Storage(name)
+            storageDao.insertStorage(storage)
+            supabaseDataRepository.upsertStorage(storage.toSupabase())
         }
     }
 
     suspend fun deleteStorageAndReassign(name: String, defaultStorage: String = "Refrigerator") {
         inventoryDao.reassignStorage(name, defaultStorage)
         storageDao.deleteStorage(Storage(name))
+        supabaseDataRepository.deleteStorage(name)
+
+        val updatedItems = inventoryDao.getAllInventorySync().filter { it.storage == defaultStorage }
+        updatedItems.forEach { item ->
+            supabaseDataRepository.upsertInventoryItem(item.toSupabase())
+        }
     }
 
     suspend fun markAsWaste(item: Inventory, reason: String) {
@@ -58,13 +79,18 @@ class InventoryRepository(
             status = WASTED,
             reason = reason
         )
-        this@InventoryRepository.reportDao.insertReportItem(reportItem)
+        reportDao.insertReportItem(reportItem)
         inventoryDao.deleteItem(item)
+
+        // Supabase 同步
+        supabaseDataRepository.insertReportItem(reportItem.toSupabase())
+        supabaseDataRepository.deleteInventoryItem(item.id)
     }
 
     suspend fun toggleConsumed(item: Inventory) {
         val updated = item.copy(isConsumed = !item.isConsumed)
         inventoryDao.updateItem(updated)
+        supabaseDataRepository.upsertInventoryItem(updated.toSupabase())
     }
 
     suspend fun moveConsumedToReport() {
@@ -82,8 +108,12 @@ class InventoryRepository(
                     reason = "Consumed"
                 )
             }
-            this@InventoryRepository.reportDao.insertReportItems(reportItems) // 批量插入
+            reportDao.insertReportItems(reportItems)
             inventoryDao.deleteConsumedItems()
+
+            // 批量同步云端
+            reportItems.forEach { supabaseDataRepository.insertReportItem(it.toSupabase()) }
+            consumedList.forEach { supabaseDataRepository.deleteInventoryItem(it.id) }
         }
     }
 
@@ -104,7 +134,9 @@ class InventoryRepository(
                     } else {
                         val newDaysLeft = days + 1
                         if (item.daysLeft != newDaysLeft) {
-                            inventoryDao.updateItem(item.copy(daysLeft = newDaysLeft))
+                            val updatedItem = item.copy(daysLeft = newDaysLeft)
+                            inventoryDao.updateItem(updatedItem)
+                            supabaseDataRepository.upsertInventoryItem(updatedItem.toSupabase())
                         }
                     }
                 }
@@ -129,26 +161,42 @@ class InventoryRepository(
                     quantity = moveQty,
                     unit = item.unit,
                     status = status,
-                    reason = if (status == ReportStatus.WASTED) reason else "Consumed"
+                    reason = if (status == WASTED) reason else "Consumed"
                 )
                 reportDao.insertReportItem(reportItem)
+                supabaseDataRepository.insertReportItem(reportItem.toSupabase())
 
                 val remainingQty = item.quantity - moveQty
                 if (remainingQty <= 0) {
                     inventoryDao.deleteItem(item)
+                    supabaseDataRepository.deleteInventoryItem(item.id)
                 } else {
-                    // Update the remaining items' total price proportionally
                     val newTotalPrice = (remainingQty.toDouble() / item.quantity.toDouble()) * item.price
-                    
-                    inventoryDao.updateItem(
-                        item.copy(
-                            quantity = remainingQty, 
-                            price = newTotalPrice,
-                            isConsumed = false
-                        )
+                    val updatedItem = item.copy(
+                        quantity = remainingQty,
+                        price = newTotalPrice,
+                        isConsumed = false
                     )
+                    inventoryDao.updateItem(updatedItem)
+                    supabaseDataRepository.upsertInventoryItem(updatedItem.toSupabase())
                 }
             }
+        }
+    }
+
+    suspend fun syncStorageFromCloud(): Result<Unit> {
+        return supabaseDataRepository.fetchStorageList().map { remoteStorageList ->
+            val localStorageList = remoteStorageList.map { it.toRoom() }
+            localStorageList.forEach { storageDao.insertStorage(it) }
+        }
+    }
+
+    suspend fun syncFromCloud(): Result<Unit> {
+        syncStorageFromCloud()
+
+        return supabaseDataRepository.fetchInventoryItems().map { remoteItems ->
+            val localItems = remoteItems.map { it.toRoom() }
+            localItems.forEach { inventoryDao.insertItem(it) }
         }
     }
 }

@@ -6,6 +6,7 @@ import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.ShoppingItem
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,20 @@ class ShoppingViewModel(
     private val shoppingRepository: ShoppingRepository,
     private val inventoryRepository: InventoryRepository
 ) : ViewModel() {
+
+    init {
+        syncFromCloud()
+    }
+
+    fun syncFromCloud() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                shoppingRepository.syncFromCloud()
+            } catch (e: Exception) {
+                // 忽略网络异常，使用本地 Room 离线缓存
+            }
+        }
+    }
 
     // 搜索关键字状态
     val searchQuery = MutableStateFlow("")

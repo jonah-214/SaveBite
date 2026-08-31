@@ -6,6 +6,9 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.storage.storage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -35,7 +38,10 @@ data class AvailabilityResponse(
 )
 
 class SupabaseAuthRepository(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val inventoryRepository: InventoryRepository? = null,
+    private val shoppingRepository: ShoppingRepository? = null,
+    private val reportRepository: ReportRepository? = null
 ) {
     private val client = SupabaseClientProvider.client
 
@@ -196,6 +202,18 @@ class SupabaseAuthRepository(
                 userRepository.updateUser(updated)
                 localUser = updated
             }
+
+            // 登录成功后，在后台异步拉取云端的业务数据同步到本地 Room
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    inventoryRepository?.syncFromCloud()
+                    shoppingRepository?.syncFromCloud()
+                    reportRepository?.syncFromCloud()
+                } catch (e: Exception) {
+                    // 同步日志或异常捕获，避免影响登录主流程
+                }
+            }
+
             Result.success(localUser)
         } catch (e: Exception) {
             Result.failure(e)

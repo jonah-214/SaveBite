@@ -3,11 +3,12 @@ package com.example.savebite.ui.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.local.db.AppDatabase
+import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.InventorySortOption
 import com.example.savebite.model.ReportStatus
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -61,8 +62,12 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
             }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-        // Automatically clean up expired items on startup
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.syncFromCloud()
+            } catch (e: Exception) {
+                // 网络连接失败时捕获，继续使用本地离线数据
+            }
             repository.cleanupExpiredItems()
         }
     }
