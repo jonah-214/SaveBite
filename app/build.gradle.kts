@@ -54,7 +54,7 @@ android {
 }
 
 dependencies {
-    // Gemini SDK
+    // Gemini SDK (Ktor 3 compatible)
     implementation(libs.generativeai)
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.navigation.compose)

@@ -50,8 +50,8 @@ fun InventoryItemToReportScreen(
     }
 
     // 主色调：Consumed -> 自然绿；Wasted -> 警示红/橘
-    val primaryThemeColor = if (isConsumed) Color(0xFF2E7D32) else Color(0xFFD32F2F)
-    val bgHeaderColor = if (isConsumed) Color(0xFFE8F5E9) else Color(0xFFFFEBEE)
+    val primaryThemeColor = if (isConsumed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+    val bgHeaderColor = if (isConsumed) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer
 
     Scaffold(
         topBar = {

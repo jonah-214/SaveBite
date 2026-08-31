@@ -25,7 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.ui.navigation.AppTopBar
-import com.example.savebite.ui.theme.VegGreen
 import com.example.savebite.ui.theme.getCategoryColor
 import com.example.savebite.ui.viewmodel.ReportViewModel
 import com.example.savebite.ui.viewmodel.TimeFrame
@@ -187,8 +186,8 @@ fun ReportScreen(
                 )
                 MetricCard(
                     icon = Icons.Outlined.Savings,
-                    iconBg = VegGreen.copy(alpha = 0.2f),
-                    iconTint = VegGreen,
+                    iconBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                    iconTint = MaterialTheme.colorScheme.primary,
                     title = "Saved Value",
                     value = String.format(Locale.getDefault(), "RM %.2f", state.totalSavedCost),
                     subtitle = "${state.totalConsumedItems} items",
@@ -271,7 +270,7 @@ fun ReportScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.CheckCircleOutline, contentDescription = null, tint = VegGreen, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Outlined.CheckCircleOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(6.dp))
                             Text("Consumed Items", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
@@ -282,7 +281,7 @@ fun ReportScreen(
                     }
                     if (state.topConsumedItems.isNotEmpty()) {
                         state.topConsumedItems.take(5).forEach {
-                            ItemStatRow(name = it.name, count = it.count, percentage = it.percentage, price = it.totalPrice, progressColor = VegGreen)
+                            ItemStatRow(name = it.name, count = it.count, percentage = it.percentage, price = it.totalPrice, progressColor = MaterialTheme.colorScheme.primary)
                         }
                     } else {
                         Text("No consumed items recorded", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))

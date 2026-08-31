@@ -58,7 +58,7 @@ fun InventoryDetailScreen(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text("Delete", color = Color.Red)
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -651,7 +651,7 @@ fun InventoryDetailScreen(
                 // Consumed Button
                 Button(
                     onClick = { showConsumeDialog = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .weight(1f)
@@ -661,7 +661,7 @@ fun InventoryDetailScreen(
                         text = "Mark Consumed",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
 

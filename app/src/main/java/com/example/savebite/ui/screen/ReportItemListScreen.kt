@@ -21,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.ui.navigation.AppTopBar
-import com.example.savebite.ui.theme.VegGreen
 import com.example.savebite.ui.viewmodel.ReportViewModel
 import com.example.savebite.model.ReportStatus
 import java.util.Locale
@@ -42,9 +41,9 @@ fun ReportItemListScreen(
     val totalCount = items.sumOf { it.count }
     val totalCost = items.sumOf { it.totalPrice }
 
-    val themeColor = if (isWasted) MaterialTheme.colorScheme.error else VegGreen
+    val themeColor = if (isWasted) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
     val headerBgColor = if (isWasted) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
-    else VegGreen.copy(alpha = 0.15f)
+    else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
 
     Scaffold(
         topBar = {
