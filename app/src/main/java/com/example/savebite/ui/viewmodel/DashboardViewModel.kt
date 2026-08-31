@@ -4,7 +4,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.savebite.data.remote.SupabaseClientProvider
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.data.repo.UserRepository
@@ -12,7 +11,11 @@ import com.example.savebite.ui.screen.ExpiryItem
 import com.example.savebite.ui.screen.RecipeSuggestion
 import com.example.savebite.utils.SessionManager
 import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -26,34 +29,30 @@ class DashboardViewModel(
     private val _username = mutableStateOf("User")
     val username: State<String> = _username
 
+    private val _avatarUrl = mutableStateOf<String?>(null)
+    val avatarUrl: State<String?> = _avatarUrl
+
     init {
-        loadUsername()
+        loadUserData()
     }
 
-    // Load username from Supabase or fallback to local Room database (Offline mode)
-    private fun loadUsername() {
+    // Load user data from Supabase or fallback to local Room database (Offline mode)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun loadUserData() {
         viewModelScope.launch {
-            sessionManager.userIdFlow.collect { userId ->
+            sessionManager.userIdFlow.flatMapLatest { userId ->
                 if (userId == -1) {
-                    _username.value = "User"
+                    flowOf(null)
                 } else {
-                    try {
-                        val supabaseUid = SupabaseClientProvider.client.auth.currentUserOrNull()?.id
-
-                        val user = if (supabaseUid != null) {
-                            userRepository.getUserBySupabaseUid(supabaseUid)
-                        } else {
-                            userRepository.getUserById(userId)
-                        }
-
-                        if (user != null) {
-                            _username.value = user.username
-                        } else {
-                            _username.value = "User"
-                        }
-                    } catch (e: Exception) {
-                        _username.value = "User"
-                    }
+                    userRepository.getUserByIdFlow(userId)
+                }
+            }.collect { user ->
+                if (user != null) {
+                    _username.value = user.username
+                    _avatarUrl.value = user.avatarUrl
+                } else {
+                    _username.value = "User"
+                    _avatarUrl.value = null
                 }
             }
         }

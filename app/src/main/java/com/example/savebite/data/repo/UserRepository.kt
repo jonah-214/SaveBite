@@ -2,6 +2,7 @@ package com.example.savebite.data.repo
 
 import com.example.savebite.data.local.dao.UserDao
 import com.example.savebite.model.User
+import kotlinx.coroutines.flow.Flow
 
 class UserRepository(private val userDao: UserDao) {
     // Insert user
@@ -37,6 +38,11 @@ class UserRepository(private val userDao: UserDao) {
     // Get user by ID
     suspend fun getUserById(id: Int): User? {
         return userDao.getUserById(id)
+    }
+
+    // Get user by ID as a Flow
+    fun getUserByIdFlow(id: Int): Flow<User?> {
+        return userDao.getUserByIdFlow(id)
     }
 
     // Update user

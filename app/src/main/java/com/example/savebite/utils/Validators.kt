@@ -1,13 +1,13 @@
 package com.example.savebite.utils
 
 object Validators {
-    // Check for email format (something@domain.com)
+    // Check for email format
     private val EMAIL_REGEX = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
     
     // Check for letters, numbers, and underscores only
     private val USERNAME_REGEX = Regex("^[A-Za-z0-9_]+$")
 
-    // Check for Malaysian phone format starting with 60 (e.g., 60123456789)
+    // Check for Malaysian phone format starting with 60
     private val MY_PHONE_REGEX = Regex("^60[0-9]{8,9}$")
 
     // Validation for username
@@ -42,6 +42,21 @@ object Validators {
         if (!password.any { it.isUpperCase() }) return "Include at least one uppercase letter"
         if (!password.any { it.isLowerCase() }) return "Include at least one lowercase letter"
         if (!password.any { it.isDigit() }) return "Include at least one number"
+        return null
+    }
+
+    // Validation for profile picture
+    fun validateImage(
+        bytes: ByteArray,
+        mimeType: String?
+    ): String? {
+        val maxSize = 2 * 1024 * 1024 // 2MB
+        if (bytes.size > maxSize) return "Image size must be less than 2MB"
+
+        val allowedTypes = listOf("image/jpeg", "image/png", "image/webp", "image/jpg")
+        if (mimeType != null && !allowedTypes.contains(mimeType.lowercase())) {
+            return "Only JPEG, JPG, PNG, and WEBP formats are allowed"
+        }
         return null
     }
 }

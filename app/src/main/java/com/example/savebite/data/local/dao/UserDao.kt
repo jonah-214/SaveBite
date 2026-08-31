@@ -2,6 +2,7 @@ package com.example.savebite.data.local.dao
 
 import androidx.room.*
 import com.example.savebite.model.User
+import kotlinx.coroutines.flow.Flow
 
 // Room database operations - User
 @Dao
@@ -34,6 +35,10 @@ interface UserDao {
     // Get a user by their ID
     @Query("SELECT * FROM users WHERE id = :id LIMIT 1")
     suspend fun getUserById(id: Int): User?
+
+    // Get a user by their ID as a Flow
+    @Query("SELECT * FROM users WHERE id = :id LIMIT 1")
+    fun getUserByIdFlow(id: Int): Flow<User?>
 
     // Update a user's information
     @Update

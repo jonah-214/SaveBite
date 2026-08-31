@@ -43,11 +43,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.example.savebite.R
 import com.example.savebite.ui.navigation.AppRoutes
 import com.example.savebite.ui.navigation.AppTopBar
@@ -101,11 +104,12 @@ fun ProfileScreen(
                 .verticalScroll(rememberScrollState())
                 .imePadding()
         ) {
-            // Profile Header - Name, email, phone
+            // Profile Header - Avatar, Name, email, phone
             ProfileHeaderCard(
                 username = user?.username ?: "Loading...",
                 email = user?.email ?: "",
-                phone = user?.phone ?: ""
+                phone = user?.phone ?: "",
+                avatarUrl = user?.avatarUrl
             )
 
             Spacer(Modifier.height(20.dp))
@@ -191,7 +195,8 @@ fun ProfileScreen(
 fun ProfileHeaderCard(
     username: String,
     email: String,
-    phone: String
+    phone: String,
+    avatarUrl: String? = null
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -209,7 +214,7 @@ fun ProfileHeaderCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar Icon
+            // Avatar Display
             Box(
                 modifier = Modifier
                     .size(64.dp)
@@ -219,32 +224,50 @@ fun ProfileHeaderCard(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.account_circle),
-                    contentDescription = "Avatar",
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(40.dp)
-                )
+                if (avatarUrl != null) {
+                    AsyncImage(
+                        model = avatarUrl,
+                        contentDescription = "Profile picture",
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(id = R.drawable.account_circle),
+                        contentDescription = "Avatar",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
             // Name, email, phone
-            Column {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     text = username,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    fontSize = 18.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = email,
                     fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = phone,
                     fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

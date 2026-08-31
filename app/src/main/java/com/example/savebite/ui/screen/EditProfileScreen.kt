@@ -3,12 +3,14 @@ package com.example.savebite.ui.screen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +29,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,6 +41,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -68,7 +72,8 @@ fun EditProfileScreen(
     // Check if details were changed and fields are not blank
     val isChanged = username != (user?.username ?: "") ||
             email != (user?.email ?: "") ||
-            phone != (user?.phone ?: "")
+            phone != (user?.phone ?: "") ||
+            profileViewModel.pendingAvatarBytes.value != null
 
     // Check if all fields are filled
     val canSave = isChanged &&
@@ -155,91 +160,135 @@ fun EditProfileScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // Avatar with edit badge
-            Box(
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+            Column(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val context = LocalContext.current
-                var menuExpanded by remember { mutableStateOf(false) }
+                Box {
+                    val context = LocalContext.current
+                    var menuExpanded by remember { mutableStateOf(false) }
 
-                val photoPickerLauncher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.PickVisualMedia()
-                ) { uri ->
-                    if (uri != null) {
-                        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                        if (bytes != null) {
-                            profileViewModel.uploadAvatar(bytes)
+                    val photoPickerLauncher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.PickVisualMedia()
+                    ) { uri ->
+                        if (uri != null) {
+                            val mimeType = context.contentResolver.getType(uri)
+                            val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                            if (bytes != null) {
+                                profileViewModel.setPendingAvatar(bytes, uri, mimeType)
+                            }
                         }
                     }
-                }
 
-                Box(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .background(
-                            MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (user?.avatarUrl != null) {
-                        AsyncImage(
-                            model = user.avatarUrl,
-                            contentDescription = "Profile picture",
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(CircleShape)
-                        )
-                    } else {
-                        Icon(
-                            painter = painterResource(id = R.drawable.account_circle),
-                            contentDescription = "Avatar",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(70.dp)
-                        )
-                    }
-                }
-
-                // Edit badge
-                FloatingActionButton(
-                    onClick = { menuExpanded = true },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .size(36.dp),
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    elevation = FloatingActionButtonDefaults.elevation(0.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = "Edit profile picture",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(if (user?.avatarUrl != null) "Replace Picture" else "Add Picture") },
-                        onClick = {
-                            menuExpanded = false
-                            photoPickerLauncher.launch(
-                                androidx.activity.result.PickVisualMediaRequest(
-                                    ActivityResultContracts.PickVisualMedia.ImageOnly
-                                )
+                    Box(
+                        modifier = Modifier
+                            .size(120.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val displayImage = profileViewModel.pendingAvatarUri.value ?: user?.avatarUrl
+                        if (displayImage != null) {
+                            AsyncImage(
+                                model = displayImage,
+                                contentDescription = "Profile picture",
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .clip(CircleShape)
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.account_circle),
+                                contentDescription = "Avatar",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(70.dp)
                             )
                         }
-                    )
-                    if (user?.avatarUrl != null) {
-                        DropdownMenuItem(
-                            text = { Text("Remove Picture") },
-                            onClick = {
-                                menuExpanded = false
-                                profileViewModel.removeAvatar()
-                            }
+                    }
+
+                    // Edit badge
+                    FloatingActionButton(
+                        onClick = { menuExpanded = true },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .size(36.dp),
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        elevation = FloatingActionButtonDefaults.elevation(0.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = "Edit profile picture",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(18.dp)
                         )
                     }
+
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(if (user?.avatarUrl != null || profileViewModel.pendingAvatarUri.value != null) "Replace Picture" else "Add Picture") },
+                            onClick = {
+                                menuExpanded = false
+                                photoPickerLauncher.launch(
+                                    androidx.activity.result.PickVisualMediaRequest(
+                                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                                    )
+                                )
+                            }
+                        )
+                        if (user?.avatarUrl != null || profileViewModel.pendingAvatarUri.value != null) {
+                            DropdownMenuItem(
+                                text = { Text("Remove Picture") },
+                                onClick = {
+                                    menuExpanded = false
+                                    if (profileViewModel.pendingAvatarUri.value != null) {
+                                        profileViewModel.clearPendingAvatar()
+                                    } else {
+                                        profileViewModel.removeAvatar()
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Improved Requirements UI
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.info),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "JPG/PNG/WEBP • Max 2MB • Min 200x200px",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                profileViewModel.avatarError.value?.let { error ->
+                    Text(
+                        text = error,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
                 }
             }
 
