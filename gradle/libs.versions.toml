@@ -53,6 +53,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 generativeai = { group = "dev.shreyaspatil.generativeai", name = "generativeai-google", version.ref = "generative-ai-kmp" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 supabase-storage = { module = "io.github.jan-tennert.supabase:storage-kt" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

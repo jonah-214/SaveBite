@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -22,7 +24,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import kotlinx.coroutines.launch
 import com.example.savebite.data.ai.GeminiRecipeService
+import com.example.savebite.data.local.RecipeUserPreferences
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.repo.RecipeRepository
@@ -41,6 +45,7 @@ import com.example.savebite.ui.screen.InventoryList
 import com.example.savebite.ui.screen.LoginScreen
 import com.example.savebite.ui.screen.ManageStorageScreen
 import com.example.savebite.ui.screen.ProfileScreen
+import com.example.savebite.ui.screen.RecipeGetStartedScreen
 import com.example.savebite.ui.screen.RecipeScreen
 import com.example.savebite.ui.screen.ReportItemListScreen
 import com.example.savebite.ui.screen.ReportScreen
@@ -445,35 +450,59 @@ fun AppNavigation(
             }
 
             composable(AppRoutes.RECIPE) {
-                val context = navController.context
+                val context = LocalContext.current
                 val db = AppDatabase.getDatabase(context)
+                val scope = androidx.compose.runtime.rememberCoroutineScope()
 
-                val inventoryDao = db.inventoryDao()
-                val recipeDao = db.recipeDao()
-                val allInventoryItems by inventoryDao.getAllInventory().collectAsState(initial = emptyList())
+                // 读取 Recipe 专属的首次运行状态
+                val userPreferences = remember { RecipeUserPreferences(context) }
+                val isRecipeFirstRun by userPreferences.isRecipeFirstRun.collectAsState(initial = null)
 
-                val aiService = remember {
-                    GeminiRecipeService(apiKey = com.example.savebite.BuildConfig.GEMINI_API_KEY)
-                }
-
-                val repository = remember {
-                    RecipeRepository(aiService, recipeDao)
-                }
-
-                val recipeViewModel: RecipeViewModel = viewModel(
-                    factory = object : ViewModelProvider.Factory {
-                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                            @Suppress("UNCHECKED_CAST")
-                            return RecipeViewModel(repository) as T
-                        }
+                // 如果仍在读取 Preference 数据，展示 Loading 或占位，防止闪烁
+                if (isRecipeFirstRun == null) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
-                )
+                } else if (isRecipeFirstRun == true) {
+                    // 首次打开 Recipe，渲染 RecipeGetStartedScreen
+                    RecipeGetStartedScreen(
+                        onCompleted = {
+                            // 点击开始后更新 Preference 标记为 false
+                            // 推荐在 ViewModel 中处理异步 update
+                            scope.launch {
+                                userPreferences.setRecipeFirstRun(false)
+                            }
+                        }
+                    )
+                } else {
+                    // 非首次打开，正常展示 RecipeScreen
+                    val inventoryDao = db.inventoryDao()
+                    val recipeDao = db.recipeDao()
+                    val allInventoryItems by inventoryDao.getAllInventory().collectAsState(initial = emptyList())
 
-                LaunchedEffect(allInventoryItems) {
-                    recipeViewModel.fetchAIRecipes(allInventoryItems)
+                    val aiService = remember {
+                        GeminiRecipeService(apiKey = com.example.savebite.BuildConfig.GEMINI_API_KEY)
+                    }
+
+                    val repository = remember {
+                        RecipeRepository(aiService, recipeDao)
+                    }
+
+                    val recipeViewModel: RecipeViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                @Suppress("UNCHECKED_CAST")
+                                return RecipeViewModel(repository) as T
+                            }
+                        }
+                    )
+
+                    LaunchedEffect(allInventoryItems) {
+                        recipeViewModel.fetchAIRecipes(allInventoryItems)
+                    }
+
+                    RecipeScreen(viewModel = recipeViewModel)
                 }
-
-                RecipeScreen(viewModel = recipeViewModel)
             }
 
             composable(AppRoutes.REPORTS) { backStackEntry ->
