@@ -10,9 +10,7 @@ import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.ui.screen.ExpiryItem
 import com.example.savebite.ui.screen.RecipeSuggestion
 import com.example.savebite.utils.SessionManager
-import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -72,16 +70,16 @@ class DashboardViewModel(
                     )
                 }
         }
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Inventory count KPI
     val inventoryCount = inventoryRepository.allInventory
         .map { it.size }
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     val shoppingListCount = shoppingRepository.allShoppingItems
         .map { it.size }
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     // Hardcoded values - waiting on Shopping/Waste/Recipe modules
     val savedThisMonth = 45
