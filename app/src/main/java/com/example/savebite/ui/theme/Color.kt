@@ -219,12 +219,6 @@ val surfaceContainerDarkHighContrast = Color(0xFF2D322B)
 val surfaceContainerHighDarkHighContrast = Color(0xFF383D36)
 val surfaceContainerHighestDarkHighContrast = Color(0xFF444841)
 
-// Custom semantic colors (not part of Material3 baseline)
-val warningContainerLight = Color(0xFFFFE8B0)
-val onWarningContainerLight = Color(0xFF6B4E00)
-val warningContainerDark = Color(0xFF5C4400)
-val onWarningContainerDark = Color(0xFFFFE8B0)
-
 // Visualization Colors
 val VegGreen = Color(0xFF55823B)
 val FruitOrange = Color(0xFFECA338)

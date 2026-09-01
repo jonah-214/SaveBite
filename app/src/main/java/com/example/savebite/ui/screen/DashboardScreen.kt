@@ -39,12 +39,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.savebite.R
 import com.example.savebite.ui.navigation.AppRoutes
-import com.example.savebite.ui.theme.onWarningContainerLight
-import com.example.savebite.ui.theme.warningContainerLight
 import com.example.savebite.ui.viewmodel.DashboardViewModel
 
 
@@ -88,7 +87,7 @@ fun DashboardScreen(
 
         // Expiry Reminder Card Area
         ExpiryReminderCard(
-            items = dashboardViewModel.expiringItems.collectAsState().value,
+            items = dashboardViewModel.expiringItems.collectAsStateWithLifecycle().value,
             onSeeAllClick = {
                 navController.navigate(AppRoutes.REMINDER) {
                     launchSingleTop = true
@@ -99,8 +98,8 @@ fun DashboardScreen(
 
         // Inventory & Shopping List Stats Area
         StatsRow(
-            inventoryCount = dashboardViewModel.inventoryCount.collectAsState().value,
-            shoppingCount = dashboardViewModel.shoppingListCount.collectAsState().value,
+            inventoryCount = dashboardViewModel.inventoryCount.collectAsStateWithLifecycle().value,
+            shoppingCount = dashboardViewModel.shoppingListCount.collectAsStateWithLifecycle().value,
             onInventoryClick = {
                 navController.navigate(AppRoutes.INVENTORY) {
                     launchSingleTop = true
@@ -276,7 +275,7 @@ fun ExpiryItemRow(
         val (bg, fg) = if (item.daysLeft <= 1) {
             MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
         } else {
-            warningContainerLight to onWarningContainerLight
+            MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
         }
         Text(
             text = "${item.daysLeft} days",
@@ -396,7 +395,7 @@ fun WasteReportSection(
         Spacer(modifier = Modifier.height(12.dp))
 
         // Simple bar row - height scales relative to the max value in the list
-        val maxValue = wasteByWeek.maxOrNull() ?: 1
+        val maxValue = (wasteByWeek.maxOrNull() ?: 1).coerceAtLeast(1)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -405,7 +404,7 @@ fun WasteReportSection(
         ) {
             wasteByWeek.forEach { value ->
                 val barHeight = (value.toFloat() / maxValue) * 50.dp.value
-                val barColor = if (value == maxValue) warningContainerLight else MaterialTheme.colorScheme.primary
+                val barColor = if (value == maxValue) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primary
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -443,7 +442,7 @@ fun RecipeSuggestionsRow(
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(recipes) { recipe ->
+            items(recipes, key = { it.name }) { recipe ->
                 RecipeCard(recipe)
             }
         }
