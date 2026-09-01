@@ -175,14 +175,15 @@ fun SignUpScreen(
                 }
             },
             label = { Text("Phone Number") },
-            placeholder = { Text("60123456789") },
+            placeholder = { Text("123456789") },
+            prefix = { Text("+60 ") },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             enabled = !isLoading,
             isError = phoneError != null,
             supportingText = {
                 Text(
-                    text = phoneError ?: "Only Malaysian phone number is supported.",
+                    text = phoneError ?: "Only Malaysian phone numbers allowed.",
                     color = if (phoneError != null) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.onSurfaceVariant
                 )

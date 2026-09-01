@@ -118,9 +118,11 @@ fun LoginScreen(
             enabled = !isLoading,
             isError = identifierError != null,
             supportingText = {
-                if (identifierError != null) {
-                    Text(text = identifierError!!, color = MaterialTheme.colorScheme.error)
-                }
+                Text(
+                    text = identifierError ?: "Supported phone formats: 60123456789, 0123456789, 123456789",
+                    color = if (identifierError != null) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,

@@ -101,10 +101,16 @@ class AuthViewModel(
             _loginPasswordError.value = null
             _loginError.value = null
 
+            val normalizedIdentifier = if (trimmedIdentifier.contains("@")) {
+                trimmedIdentifier
+            } else {
+                Validators.normalizeMalaysianPhone(trimmedIdentifier)
+            }
+
             val identifierErr = when {
                 trimmedIdentifier.isBlank() -> "Email or phone number is required"
-                trimmedIdentifier.contains("@") -> Validators.validateEmail(trimmedIdentifier)
-                else -> Validators.validatePhone(trimmedIdentifier)
+                normalizedIdentifier.contains("@") -> Validators.validateEmail(normalizedIdentifier)
+                else -> Validators.validatePhone(normalizedIdentifier)
             }
             val passwordErr = if (password.isBlank()) "Password is required" else null
 
@@ -118,14 +124,14 @@ class AuthViewModel(
             _isLoading.value = true
 
             // Supabase Auth only accepts email, so resolve phone -> email locally first
-            val email = if (trimmedIdentifier.contains("@")) {
-                trimmedIdentifier
+            val email = if (normalizedIdentifier.contains("@")) {
+                normalizedIdentifier
             } else {
-                val localUser = userRepository.getUserByPhone(trimmedIdentifier)
+                val localUser = userRepository.getUserByPhone(normalizedIdentifier)
                 if (localUser != null) {
                     localUser.email
                 } else {
-                    val remoteEmail = supabaseAuthRepository.getEmailByPhone(trimmedIdentifier)
+                    val remoteEmail = supabaseAuthRepository.getEmailByPhone(normalizedIdentifier)
                     if (remoteEmail == null) {
                         _isLoading.value = false
                         _loginError.value = "Invalid email/phone number or password"
@@ -184,7 +190,7 @@ class AuthViewModel(
 
         val trimmedUsername = username.trim()
         val trimmedEmail = email.trim()
-        val trimmedPhone = phone.trim().replace(" ", "").replace("-", "")
+        val trimmedPhone = Validators.normalizeMalaysianPhone(phone)
 
         viewModelScope.launch {
             _signupUsernameError.value = null

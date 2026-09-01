@@ -8,12 +8,12 @@ object Validators {
     private val USERNAME_REGEX = Regex("^[A-Za-z0-9_]+$")
 
     // Check for Malaysian phone format starting with 60
-    private val MY_PHONE_REGEX = Regex("^60[0-9]{8,9}$")
+    private val MY_PHONE_REGEX = Regex("^60[0-9]{8,10}$")
 
     // Validation for username
     fun validateUsername(username: String): String? {
         if (username.isBlank()) return "Username is required"
-        if (username.length < 3 || username.length > 20) return "Username must be 3-20 characters"
+        if (username.length !in 3..20) return "Username must be 3-20 characters"
         if (!USERNAME_REGEX.matches(username)) return "Username can only contain letters, numbers, and underscores"
         if (username.contains("__")) return "Username cannot contain consecutive underscores"
         return null
@@ -33,6 +33,18 @@ object Validators {
             return "Enter a valid Malaysian phone number (e.g. 60123456789)"
         }
         return null
+    }
+
+    // Malaysian phone number normalization
+    fun normalizeMalaysianPhone(rawInput: String): String {
+        var digits = rawInput.trim().replace(" ", "").replace("-", "")
+        if (digits.startsWith("+")) digits = digits.substring(1)
+
+        return when {
+            digits.startsWith("60") -> digits
+            digits.startsWith("0")  -> "60" + digits.substring(1) // 0123456789 -> 60123456789
+            else -> "60$digits" // 123456789 -> 60123456789
+        }
     }
 
     // Validation for password
