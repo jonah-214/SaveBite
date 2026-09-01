@@ -47,6 +47,7 @@ import com.example.savebite.ui.screen.ManageStorageScreen
 import com.example.savebite.ui.screen.ProfileScreen
 import com.example.savebite.ui.screen.RecipeGetStartedScreen
 import com.example.savebite.ui.screen.RecipeScreen
+import com.example.savebite.ui.screen.ReminderScreen
 import com.example.savebite.ui.screen.ReportItemListScreen
 import com.example.savebite.ui.screen.ReportScreen
 import com.example.savebite.ui.screen.ShoppingItemToInventoryScreen
@@ -62,6 +63,8 @@ import com.example.savebite.ui.viewmodel.InventoryViewModel
 import com.example.savebite.ui.viewmodel.ProfileViewModel
 import com.example.savebite.ui.viewmodel.ProfileViewModelFactory
 import com.example.savebite.ui.viewmodel.RecipeViewModel
+import com.example.savebite.ui.viewmodel.ReminderViewModel
+import com.example.savebite.ui.viewmodel.ReminderViewModelFactory
 import com.example.savebite.ui.viewmodel.ReportViewModel
 import com.example.savebite.ui.viewmodel.ShoppingViewModel
 import com.example.savebite.ui.viewmodel.ThemeViewModel
@@ -73,6 +76,7 @@ fun AppNavigation(
     viewModel: AuthViewModel,
     sessionManager: SessionManager,
     dashboardViewModelFactory: DashboardViewModelFactory,
+    reminderViewModelFactory: ReminderViewModelFactory,
     profileViewModelFactory: ProfileViewModelFactory,
     themeViewModel: ThemeViewModel,
     modifier: Modifier = Modifier
@@ -186,7 +190,13 @@ fun AppNavigation(
 
             // Expiry Reminder route
             composable(AppRoutes.REMINDER) {
-                PlaceholderScreen("Reminders")
+                val reminderViewModel: ReminderViewModel = viewModel(
+                    factory = reminderViewModelFactory
+                )
+                ReminderScreen(
+                    navController = navController,
+                    reminderViewModel = reminderViewModel
+                )
             }
 
             // Food Inventory route
@@ -612,15 +622,5 @@ fun AppNavigation(
                 AboutUsScreen(navController = navController)
             }
         }
-    }
-}
-
-@Composable
-fun PlaceholderScreen(title: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("✅ $title reached — navigation works!")
     }
 }

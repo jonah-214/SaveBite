@@ -23,6 +23,7 @@ import com.example.savebite.ui.viewmodel.AuthViewModel
 import com.example.savebite.ui.viewmodel.AuthViewModelFactory
 import com.example.savebite.ui.viewmodel.DashboardViewModelFactory
 import com.example.savebite.ui.viewmodel.ProfileViewModelFactory
+import com.example.savebite.ui.viewmodel.ReminderViewModelFactory
 import com.example.savebite.ui.viewmodel.ThemeViewModel
 import com.example.savebite.ui.viewmodel.ThemeViewModelFactory
 import com.example.savebite.utils.SessionManager
@@ -47,6 +48,7 @@ class MainActivity : ComponentActivity() {
 
         val authViewModelFactory = AuthViewModelFactory(userRepository, supabaseAuthRepository, sessionManager)
         val dashboardViewModelFactory = DashboardViewModelFactory(userRepository, inventoryRepository, shoppingRepository, reportRepository, sessionManager)
+        val reminderViewModelFactory = ReminderViewModelFactory(inventoryRepository)
         val profileViewModelFactory = ProfileViewModelFactory(userRepository, supabaseAuthRepository, sessionManager)
         val themeViewModelFactory = ThemeViewModelFactory(themePreferenceManager)
 
@@ -69,6 +71,7 @@ class MainActivity : ComponentActivity() {
                     viewModel = authViewModel,
                     sessionManager = sessionManager,
                     dashboardViewModelFactory = dashboardViewModelFactory,
+                    reminderViewModelFactory = reminderViewModelFactory,
                     profileViewModelFactory = profileViewModelFactory,
                     themeViewModel = themeViewModel,
                     modifier = Modifier.fillMaxSize()
