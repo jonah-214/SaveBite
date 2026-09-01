@@ -17,16 +17,16 @@ interface ReportDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertReportItems(items: List<ReportItem>)
 
-    @Query("SELECT * FROM report_table WHERE recordTimestamp BETWEEN :startTimestamp AND :endTimestamp")
+    @Query("SELECT * FROM report_table WHERE timestamp BETWEEN :startTimestamp AND :endTimestamp")
     fun getReportItemsInRange(startTimestamp: Long, endTimestamp: Long): Flow<List<ReportItem>>
 
-    @Query("SELECT * FROM report_table WHERE status = :status AND recordTimestamp BETWEEN :startTimestamp AND :endTimestamp")
+    @Query("SELECT * FROM report_table WHERE status = :status AND timestamp BETWEEN :startTimestamp AND :endTimestamp")
     fun getReportItemsByStatusInRange(
         status: ReportStatus,
         startTimestamp: Long,
         endTimestamp: Long
     ): Flow<List<ReportItem>>
 
-    @Query("SELECT * FROM report_table WHERE recordTimestamp >= :startTimestamp")
+    @Query("SELECT * FROM report_table WHERE timestamp >= :startTimestamp")
     fun getReportItemsSince(startTimestamp: Long): Flow<List<ReportItem>>
 }

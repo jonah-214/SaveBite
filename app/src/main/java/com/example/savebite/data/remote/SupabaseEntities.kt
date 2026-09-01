@@ -2,6 +2,7 @@ package com.example.savebite.data.remote
 
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.ReportItem
+import com.example.savebite.model.ReportStatus
 import com.example.savebite.model.ShoppingItem
 import com.example.savebite.model.Storage
 import kotlinx.serialization.SerialName
@@ -18,6 +19,7 @@ data class SupabaseInventory(
     val storage: String,
     val quantity: Int,
     val unit: String,
+    val price: Double = 0.0,
     @SerialName("days_left") val daysLeft: Int,
     @SerialName("purchase_date") val purchaseDate: String = "",
     val expiry: String,
@@ -54,8 +56,9 @@ data class SupabaseReportItem(
     val price: Double = 0.0,
     val quantity: Int = 1,
     val unit: String = "pcs",
-    val status: String, // "CONSUMED" 或 "WASTED"
-    val reason: String = ""
+    val status: String,
+    val reason: String = "",
+    val timestamp: Long = System.currentTimeMillis()
 )
 
 // --- Mapper 转换函数（Room <-> Supabase） ---
@@ -69,6 +72,7 @@ fun Inventory.toSupabase(userId: String? = null) = SupabaseInventory(
     storage = storage,
     quantity = quantity,
     unit = unit,
+    price = price,
     daysLeft = daysLeft,
     purchaseDate = purchaseDate,
     expiry = expiry,
@@ -84,6 +88,7 @@ fun SupabaseInventory.toRoom() = Inventory(
     storage = storage,
     quantity = quantity,
     unit = unit,
+    price = price,
     daysLeft = daysLeft,
     purchaseDate = purchaseDate,
     expiry = expiry,
@@ -119,7 +124,8 @@ fun ReportItem.toSupabase(userId: String? = null) = SupabaseReportItem(
     quantity = quantity,
     unit = unit,
     status = status.name,
-    reason = reason
+    reason = reason,
+    timestamp = timestamp
 )
 
 fun SupabaseReportItem.toRoom() = ReportItem(
@@ -129,8 +135,13 @@ fun SupabaseReportItem.toRoom() = ReportItem(
     price = price,
     quantity = quantity,
     unit = unit,
-    status = com.example.savebite.model.ReportStatus.valueOf(status),
-    reason = reason
+    status = try {
+        ReportStatus.valueOf(status.uppercase())
+    } catch (e: Exception) {
+        ReportStatus.CONSUMED
+    },
+    reason = reason,
+    timestamp = timestamp
 )
 
 fun Storage.toSupabase(userId: String? = null) = SupabaseStorage(name = name, userId = userId)

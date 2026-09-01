@@ -5,8 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savebite.data.repo.InventoryRepository
+import com.example.savebite.data.repo.ReportRepository
 import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.data.repo.UserRepository
+import com.example.savebite.model.ReportItem
+import com.example.savebite.model.ReportStatus
 import com.example.savebite.ui.screen.ExpiryItem
 import com.example.savebite.ui.screen.RecipeSuggestion
 import com.example.savebite.utils.SessionManager
@@ -19,11 +22,13 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class DashboardViewModel(
     private val userRepository: UserRepository,
     private val inventoryRepository: InventoryRepository,
     private val shoppingRepository: ShoppingRepository,
+    private val reportRepository: ReportRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
     private val _username = mutableStateOf("User")
@@ -67,7 +72,7 @@ class DashboardViewModel(
                 .map { item ->
                     ExpiryItem(
                         name = item.name,
-                        quantity = "${item.quantity}",
+                        quantity = "${item.quantity} ${item.unit}",
                         daysLeft = item.daysLeft
                     )
                 }
@@ -83,13 +88,45 @@ class DashboardViewModel(
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
-    // Hardcoded values - waiting on Shopping/Waste/Recipe modules
-    val savedThisMonth = 45
+    // Real Metrics from ReportRepository
+    private val currentMonthStart: Long
+        get() {
+            val cal = Calendar.getInstance()
+            cal.set(Calendar.DAY_OF_MONTH, 1)
+            cal.set(Calendar.HOUR_OF_DAY, 0)
+            cal.set(Calendar.MINUTE, 0)
+            cal.set(Calendar.SECOND, 0)
+            cal.set(Calendar.MILLISECOND, 0)
+            return cal.timeInMillis
+        }
+
+    val savedThisMonth = reportRepository.getReportItemsInRange(currentMonthStart, Long.MAX_VALUE)
+        .map { items ->
+            items.filter { it.status == ReportStatus.CONSUMED }
+                .sumOf { it.price * it.quantity }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0.0)
+
+    val wasteTrackerData = reportRepository.getReportItemsSince(
+        Calendar.getInstance().apply { add(Calendar.WEEK_OF_YEAR, -4) }.timeInMillis
+    ).map { items: List<ReportItem> ->
+        val wasted = items.filter { it.status == ReportStatus.WASTED }
+        val now = Calendar.getInstance()
+        val weeks = mutableListOf(0, 0, 0, 0)
+        
+        wasted.forEach { item: ReportItem ->
+            val itemCal = Calendar.getInstance().apply { timeInMillis = item.timestamp }
+            val diffMillis = now.timeInMillis - itemCal.timeInMillis
+            val diffWeeks = (diffMillis / (1000 * 60 * 60 * 24 * 7)).toInt()
+            if (diffWeeks in 0..3) {
+                weeks[3 - diffWeeks] += item.quantity
+            }
+        }
+        weeks
+    }.stateIn(viewModelScope, SharingStarted.Lazily, listOf(0, 0, 0, 0))
 
     val recipeSuggestions = listOf(
         RecipeSuggestion("Cheese Toast", "Uses 1 expiring items"),
         RecipeSuggestion("Tomato Salad", "Uses 2 expiring items")
     )
-
-    val wasteTrackerData = listOf(3, 1, 6, 2)
 }

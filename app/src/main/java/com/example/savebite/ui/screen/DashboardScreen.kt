@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -114,17 +115,28 @@ fun DashboardScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         // Waste Tracker Report Area
+        val savedAmount by dashboardViewModel.savedThisMonth.collectAsState()
+        val wasteTrackerData by dashboardViewModel.wasteTrackerData.collectAsState()
+
         WasteReportSection(
-            savedAmount = dashboardViewModel.savedThisMonth,
-            wasteByWeek = dashboardViewModel.wasteTrackerData,
-            onSeeAllClick = { /* navigate to Waste Tracker later */ }
+            savedAmount = savedAmount.toInt(),
+            wasteByWeek = wasteTrackerData,
+            onSeeAllClick = {
+                navController.navigate(AppRoutes.REPORTS) {
+                    launchSingleTop = true
+                }
+            }
         )
         Spacer(modifier = Modifier.height(20.dp))
 
         // Recipe Suggestions Area
         RecipeSuggestionsRow(
             recipes = dashboardViewModel.recipeSuggestions,
-            onSeeAllClick = { /* navigate to Recipe tab */ }
+            onSeeAllClick = {
+                navController.navigate(AppRoutes.RECIPE) {
+                    launchSingleTop = true
+                }
+            }
         )
     }
 }

@@ -15,6 +15,7 @@ import com.example.savebite.ui.navigation.AppNavigation
 import com.example.savebite.ui.theme.SaveBiteTheme
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
+import com.example.savebite.data.repo.ReportRepositoryImpl
 import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.data.repo.SupabaseAuthRepository
 import com.example.savebite.data.repo.UserRepository
@@ -41,10 +42,11 @@ class MainActivity : ComponentActivity() {
         val userRepository = UserRepository(database.userDao())
         val inventoryRepository = InventoryRepository(database.inventoryDao(), database.storageDao(), database.reportDao())
         val shoppingRepository = ShoppingRepository(database.shoppingDao())
+        val reportRepository = ReportRepositoryImpl(database.reportDao())
         val supabaseAuthRepository = SupabaseAuthRepository(userRepository)
 
         val authViewModelFactory = AuthViewModelFactory(userRepository, supabaseAuthRepository, sessionManager)
-        val dashboardViewModelFactory = DashboardViewModelFactory(userRepository, inventoryRepository, shoppingRepository, sessionManager)
+        val dashboardViewModelFactory = DashboardViewModelFactory(userRepository, inventoryRepository, shoppingRepository, reportRepository, sessionManager)
         val profileViewModelFactory = ProfileViewModelFactory(userRepository, supabaseAuthRepository, sessionManager)
         val themeViewModelFactory = ThemeViewModelFactory(themePreferenceManager)
 

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 interface ReportRepository {
     fun getReportItemsInRange(startTimestamp: Long, endTimestamp: Long): Flow<List<ReportItem>>
     fun getReportItemsByStatusInRange(status: ReportStatus, startTimestamp: Long, endTimestamp: Long): Flow<List<ReportItem>>
+    fun getReportItemsSince(startTimestamp: Long): Flow<List<ReportItem>>
     suspend fun insertReportItem(item: ReportItem)
     suspend fun syncFromCloud(): Result<Unit>
 }
@@ -29,6 +30,10 @@ class ReportRepositoryImpl(
         endTimestamp: Long
     ): Flow<List<ReportItem>> {
         return reportDao.getReportItemsByStatusInRange(status, startTimestamp, endTimestamp)
+    }
+
+    override fun getReportItemsSince(startTimestamp: Long): Flow<List<ReportItem>> {
+        return reportDao.getReportItemsSince(startTimestamp)
     }
 
     override suspend fun insertReportItem(item: ReportItem) {
