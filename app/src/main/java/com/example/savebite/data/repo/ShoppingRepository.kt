@@ -14,41 +14,77 @@ class ShoppingRepository(
     val allShoppingItems: Flow<List<ShoppingItem>> = shoppingDao.getAllShoppingItems()
 
     suspend fun insertItem(item: ShoppingItem) {
-        shoppingDao.insertShoppingItem(item)
-        supabaseDataRepository.upsertShoppingItem(item.toSupabase())
+        val itemToSave = item.copy(isSynced = false, isDeleted = false)
+        shoppingDao.insertShoppingItem(itemToSave)
+
+        val result = supabaseDataRepository.upsertShoppingItem(itemToSave.toSupabase())
+        if (result.isSuccess) {
+            shoppingDao.updateShoppingItem(itemToSave.copy(isSynced = true))
+        }
     }
 
     suspend fun updateItem(item: ShoppingItem) {
-        shoppingDao.updateShoppingItem(item)
-        supabaseDataRepository.upsertShoppingItem(item.toSupabase())
+        val itemToSave = item.copy(isSynced = false)
+        shoppingDao.updateShoppingItem(itemToSave)
+
+        val result = supabaseDataRepository.upsertShoppingItem(itemToSave.toSupabase())
+        if (result.isSuccess) {
+            shoppingDao.updateShoppingItem(itemToSave.copy(isSynced = true))
+        }
     }
 
     suspend fun deleteItem(item: ShoppingItem) {
-        shoppingDao.deleteShoppingItem(item)
-        supabaseDataRepository.deleteShoppingItem(item.id)
+        val itemToDelete = item.copy(isDeleted = true, isSynced = false)
+        shoppingDao.updateShoppingItem(itemToDelete)
+
+        val result = supabaseDataRepository.deleteShoppingItem(item.id)
+        if (result.isSuccess) {
+            shoppingDao.deleteShoppingItem(itemToDelete)
+        }
     }
 
     suspend fun clearPurchasedItems() {
         val currentItems = allShoppingItems.first()
         val purchased = currentItems.filter { it.isPurchased }
 
-        shoppingDao.deletePurchasedItems()
-
-        purchased.forEach { item ->
-            supabaseDataRepository.deleteShoppingItem(item.id)
-        }
+        purchased.forEach { deleteItem(it) }
     }
 
     suspend fun syncFromCloud(): Result<Unit> {
-        val remoteResult = supabaseDataRepository.fetchShoppingItems()
-        return if (remoteResult.isSuccess) {
-            val remoteItems = remoteResult.getOrDefault(emptyList())
-            remoteItems.forEach { supabaseItem ->
-                shoppingDao.insertShoppingItem(supabaseItem.toRoom())
+        return runCatching {
+            val rawLocalItems = shoppingDao.getAllShoppingItemsRaw()
+
+            val pendingDeletes = rawLocalItems.filter { it.isDeleted && !it.isSynced }
+            for (deletedItem in pendingDeletes) {
+                val delResult = supabaseDataRepository.deleteShoppingItem(deletedItem.id)
+                if (delResult.isSuccess) {
+                    shoppingDao.deleteShoppingItem(deletedItem)
+                }
             }
-            Result.success(Unit)
-        } else {
-            Result.failure(remoteResult.exceptionOrNull() ?: Exception("Sync failed"))
+
+            val pendingUpserts = rawLocalItems.filter { !it.isDeleted && !it.isSynced }
+            for (item in pendingUpserts) {
+                val upResult = supabaseDataRepository.upsertShoppingItem(item.toSupabase())
+                if (upResult.isSuccess) {
+                    shoppingDao.updateShoppingItem(item.copy(isSynced = true))
+                }
+            }
+
+            val remoteResult = supabaseDataRepository.fetchShoppingItems()
+            if (remoteResult.isSuccess) {
+                val remoteItems = remoteResult.getOrThrow().map { it.toRoom() }
+
+                val deletedIds = shoppingDao.getAllShoppingItemsRaw()
+                    .filter { it.isDeleted }
+                    .map { it.id }
+                    .toSet()
+
+                remoteItems.forEach { remoteItem ->
+                    if (remoteItem.id !in deletedIds) {
+                        shoppingDao.insertShoppingItem(remoteItem.copy(isSynced = true, isDeleted = false))
+                    }
+                }
+            }
         }
     }
 }

@@ -7,11 +7,7 @@ import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.ShoppingItem
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -22,24 +18,8 @@ class ShoppingViewModel(
     private val inventoryRepository: InventoryRepository
 ) : ViewModel() {
 
-    init {
-        syncFromCloud()
-    }
-
-    fun syncFromCloud() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                shoppingRepository.syncFromCloud()
-            } catch (e: Exception) {
-                // 忽略网络异常，使用本地 Room 离线缓存
-            }
-        }
-    }
-
-    // 搜索关键字状态
     val searchQuery = MutableStateFlow("")
 
-    // 将数据库列表与 searchQuery 进行动态结合过滤
     val items: StateFlow<List<ShoppingItem>> = combine(
         shoppingRepository.allShoppingItems,
         searchQuery
@@ -51,18 +31,28 @@ class ShoppingViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    init {
+        syncFromCloud()
+    }
+
+    fun syncFromCloud() {
+        viewModelScope.launch(Dispatchers.IO) {
+            shoppingRepository.syncFromCloud()
+        }
+    }
+
     fun onSearchQueryChange(newQuery: String) {
         searchQuery.value = newQuery
     }
 
     fun togglePurchased(item: ShoppingItem) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             shoppingRepository.updateItem(item.copy(isPurchased = !item.isPurchased))
         }
     }
 
     fun addItem(name: String, quantity: Int, unit: String, category: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val newItem = ShoppingItem(
                 name = name,
                 quantity = quantity,
@@ -75,19 +65,19 @@ class ShoppingViewModel(
     }
 
     fun updateItem(item: ShoppingItem) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             shoppingRepository.updateItem(item)
         }
     }
 
     fun deleteItem(item: ShoppingItem) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             shoppingRepository.deleteItem(item)
         }
     }
 
     fun transferSelectedToInventory(onComplete: () -> Unit) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val purchased = items.value.filter { it.isPurchased }
             val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val currentDate = dateFormat.format(Date())
@@ -107,7 +97,10 @@ class ShoppingViewModel(
             }
 
             shoppingRepository.clearPurchasedItems()
-            onComplete()
+
+            launch(Dispatchers.Main) {
+                onComplete()
+            }
         }
     }
 }

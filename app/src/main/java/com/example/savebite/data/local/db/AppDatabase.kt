@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
         ReportItem::class,
         RecipeEntity::class
     ],
-    version = 13,
+    version = 15,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

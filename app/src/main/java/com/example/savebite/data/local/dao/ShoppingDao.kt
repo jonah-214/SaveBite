@@ -7,8 +7,14 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ShoppingDao {
 
-    @Query("SELECT * FROM shopping_table")
+    @Query("SELECT * FROM shopping_table WHERE isDeleted = 0")
     fun getAllShoppingItems(): Flow<List<ShoppingItem>>
+
+    @Query("SELECT * FROM shopping_table")
+    suspend fun getAllShoppingItemsRaw(): List<ShoppingItem>
+
+    @Query("DELETE FROM shopping_table WHERE isDeleted = 1 AND isSynced = 1")
+    suspend fun purgeDeletedItems()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertShoppingItem(item: ShoppingItem)

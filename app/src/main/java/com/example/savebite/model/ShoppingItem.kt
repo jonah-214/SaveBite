@@ -12,5 +12,7 @@ data class ShoppingItem(
     val quantity: Int,
     val unit: String,
     val category: String,
-    val isPurchased: Boolean = false
+    val isPurchased: Boolean = false,
+    val isSynced: Boolean = true,
+    val isDeleted: Boolean = false
 )
