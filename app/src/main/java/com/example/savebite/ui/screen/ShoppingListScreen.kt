@@ -224,7 +224,7 @@ fun ShoppingListScreen(
                         .weight(1f)
                         .height(48.dp)
                 ) {
-                    Icon(painter = painterResource(R.drawable.add), contentDescription = null)
+                    Icon(painter = painterResource(R.drawable.add), contentDescription = null, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Add Item", fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
@@ -267,7 +267,8 @@ fun ShoppingListScreen(
                             Icon(
                                 painter = painterResource(R.drawable.chevron_right),
                                 contentDescription = "Proceed",
-                                tint = MaterialTheme.colorScheme.onSurface
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
@@ -315,7 +316,8 @@ fun CategoryHeader(
             Icon(
                 painter = painterResource(id = if (isExpanded) R.drawable.arrow_up else R.drawable.arrow_down),
                 contentDescription = if (isExpanded) "Collapse" else "Expand",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
             )
         }
     }

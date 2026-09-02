@@ -162,7 +162,8 @@ fun InventoryItemToReportScreen(
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(
                                             painter = painterResource(R.drawable.remove),
-                                            contentDescription = "Increase"
+                                            contentDescription = "Increase",
+                                            modifier = Modifier.size(20.dp)
                                         )
                                     }
                                 }
@@ -188,7 +189,8 @@ fun InventoryItemToReportScreen(
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(
                                             painter = painterResource(R.drawable.add),
-                                            contentDescription = "Increase"
+                                            contentDescription = "Increase",
+                                            modifier = Modifier.size(20.dp)
                                         )
                                     }
                                 }

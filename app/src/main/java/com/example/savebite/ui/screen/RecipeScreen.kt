@@ -73,7 +73,8 @@ fun RecipeScreen(
                                 Icon(
                                     painter = painterResource(R.drawable.search), 
                                     contentDescription = null, 
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
                                 ) 
                             },
                             singleLine = true,

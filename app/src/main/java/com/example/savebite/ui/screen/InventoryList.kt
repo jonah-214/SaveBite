@@ -93,7 +93,7 @@ fun InventoryList(
                 Icon(
                     painter = painterResource(R.drawable.add),
                     contentDescription = "Add button",
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         },

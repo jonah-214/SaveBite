@@ -131,9 +131,9 @@ fun MonthYearPicker(
                 Text("Select Month & Year", style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(24.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { year-- }) { Icon(painter = painterResource(R.drawable.chevron_left), null) }
+                    IconButton(onClick = { year-- }) { Icon(painter = painterResource(R.drawable.chevron_left), null, modifier = Modifier.size(24.dp)) }
                     Text("$year", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp))
-                    IconButton(onClick = { year++ }) { Icon(painter = painterResource(R.drawable.chevron_right), null) }
+                    IconButton(onClick = { year++ }) { Icon(painter = painterResource(R.drawable.chevron_right), null, modifier = Modifier.size(24.dp)) }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

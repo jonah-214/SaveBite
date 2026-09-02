@@ -45,7 +45,12 @@ fun ReportScreen(
                 showBackButton = false,
                 actions = {
                     IconButton(onClick = { PdfReportGenerator.generateAndSharePdf(context, state) }) {
-                        Icon(painter = painterResource(R.drawable.picture_as_pdf), contentDescription = "Export PDF", tint = MaterialTheme.colorScheme.onPrimary)
+                        Icon(
+                            painter = painterResource(R.drawable.picture_as_pdf), 
+                            contentDescription = "Export PDF", 
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                 }
             )
@@ -78,7 +83,8 @@ fun ReportScreen(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.chevron_left),
-                            contentDescription = "Previous"
+                            contentDescription = "Previous",
+                            modifier = Modifier.size(24.dp)
                         )
                     }
 
@@ -95,7 +101,8 @@ fun ReportScreen(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.chevron_right),
-                            contentDescription = "Next"
+                            contentDescription = "Next",
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }

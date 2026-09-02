@@ -103,7 +103,8 @@ fun InventoryDetailScreen(
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     painter = painterResource(R.drawable.remove),
-                                    contentDescription = "Decrease"
+                                    contentDescription = "Decrease",
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
@@ -124,7 +125,8 @@ fun InventoryDetailScreen(
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     painter = painterResource(R.drawable.add),
-                                    contentDescription = "Increase"
+                                    contentDescription = "Increase",
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
