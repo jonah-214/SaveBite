@@ -28,22 +28,23 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.savebite.R
-import com.example.savebite.utils.ExpiryGrouping
-import com.example.savebite.utils.ExpirySection
 import com.example.savebite.model.Inventory
 import com.example.savebite.ui.navigation.AppRoutes
 import com.example.savebite.ui.navigation.AppSearchBar
 import com.example.savebite.ui.navigation.AppTopBar
-import com.example.savebite.ui.theme.SaveBiteTheme
+import com.example.savebite.ui.theme.expirySectionColors
 import com.example.savebite.ui.viewmodel.ReminderViewModel
+import com.example.savebite.ui.viewmodel.SortOrder
+import com.example.savebite.utils.ExpiryGrouping
+import com.example.savebite.utils.ExpirySection
 
 
 @Composable
@@ -53,25 +54,21 @@ fun ReminderScreen(
 ) {
     val grouped by reminderViewModel.groupedItems.collectAsState()
     val searchQuery by reminderViewModel.searchQuery.collectAsState()
-    val selectedStorage by reminderViewModel.selectedStorage.collectAsState()
-    val storageOptions by reminderViewModel.storageOptions.collectAsState()
     val totalItemCount by reminderViewModel.totalItemCount.collectAsState()
+    val sortOrder by reminderViewModel.sortOrder.collectAsState()
 
     ReminderScreenContent(
         grouped = grouped,
         searchQuery = searchQuery,
         onSearchQueryChange = reminderViewModel::onSearchQueryChange,
-        storageOptions = storageOptions,
-        selectedStorage = selectedStorage,
-        onStorageSelected = reminderViewModel::onStorageFilterSelected,
+        sortOrder = sortOrder,
+        onSortOrderChange = reminderViewModel::onSortOrderChange,
         hasAnyInventory = totalItemCount > 0,
         onBackClick = { navController.popBackStack() },
         onItemClick = { item ->
             navController.navigate("${AppRoutes.INVENTORY_DETAILS}/${item.id}")
         },
         onRecipeClick = {
-            // RecipeScreen doesn't yet support pre-filtering by a single
-            // ingredient — for now this just opens the Recipe tab.
             navController.navigate(AppRoutes.RECIPE) {
                 launchSingleTop = true
             }
@@ -84,17 +81,13 @@ fun ReminderScreenContent(
     grouped: Map<ExpirySection, List<Inventory>>,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
-    storageOptions: List<String>,
-    selectedStorage: String?,
-    onStorageSelected: (String?) -> Unit,
+    sortOrder: SortOrder,
+    onSortOrderChange: (SortOrder) -> Unit,
     hasAnyInventory: Boolean,
     onBackClick: () -> Unit = {},
     onItemClick: (Inventory) -> Unit = {},
     onRecipeClick: (Inventory) -> Unit = {}
 ) {
-    val allStorageLabel = "All Storages"
-    val sortOptions = listOf(allStorageLabel) + storageOptions
-
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -116,13 +109,11 @@ fun ReminderScreenContent(
             AppSearchBar(
                 query = searchQuery,
                 onQueryChange = onSearchQueryChange,
-                placeholderText = "Search by name or category...",
-                sortOptions = sortOptions,
-                selectedSortOption = selectedStorage ?: allStorageLabel,
-                onSortOptionSelected = { option ->
-                    onStorageSelected(if (option == allStorageLabel) null else option)
-                },
-                getSortOptionLabel = { it }
+                placeholderText = "Search items...",
+                sortOptions = SortOrder.entries,
+                selectedSortOption = sortOrder,
+                onSortOptionSelected = onSortOrderChange,
+                getSortOptionLabel = { it.label }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -173,7 +164,7 @@ private fun SummaryRow(grouped: Map<ExpirySection, List<Inventory>>) {
     ) {
         ExpirySection.entries.forEach { section ->
             val count = grouped[section]?.size ?: 0
-            val (bg, fg) = colorsForSection(section)
+            val (bg, fg) = expirySectionColors(section)
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
@@ -214,102 +205,87 @@ private fun SectionHeaderText(section: ExpirySection) {
 }
 
 @Composable
-private fun colorsForSection(section: ExpirySection): Pair<androidx.compose.ui.graphics.Color, androidx.compose.ui.graphics.Color> {
-    return when (section) {
-        ExpirySection.TODAY -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
-        ExpirySection.THIS_WEEK -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
-        ExpirySection.LATER -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
-    }
-}
-
-@Composable
 private fun ReminderCard(
     item: Inventory,
     onClick: () -> Unit,
     onRecipeClick: () -> Unit
 ) {
     val section = ExpiryGrouping.sectionFor(item.daysLeft)
-    val (badgeBg, badgeFg) = colorsForSection(section)
-    val accentColor = badgeFg
+    val (badgeBg, badgeFg) = expirySectionColors(section)
 
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                .padding(start = 4.dp)
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left accent bar communicates urgency at a glance
+            // Expiry-colored Avatar with first letter
             Box(
                 modifier = Modifier
-                    .width(4.dp)
-                    .fillMaxWidth()
-                    .background(accentColor, RoundedCornerShape(2.dp))
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(badgeBg),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = item.name.take(1).uppercase(),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = badgeFg
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "${item.quantity} ${item.unit} • ${item.category}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Expiry Badge
+            Text(
+                text = if (item.daysLeft <= 0) "Today" else "${item.daysLeft}d left",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = badgeFg,
+                modifier = Modifier
+                    .background(badgeBg, RoundedCornerShape(8.dp))
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
             )
 
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp, top = 12.dp, bottom = 12.dp, end = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Spacer(modifier = Modifier.width(4.dp))
+
+            IconButton(
+                onClick = onRecipeClick,
+                modifier = Modifier.size(32.dp)
             ) {
-                // Category initial badge (no per-food icon set yet)
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(badgeBg, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = item.name.take(1).uppercase(),
-                        color = badgeFg,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "${item.name} • ${item.quantity} ${item.unit}",
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = item.category,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text(
-                    text = if (item.daysLeft <= 0) "Today" else "${item.daysLeft} days",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = badgeFg,
-                    modifier = Modifier
-                        .background(badgeBg, RoundedCornerShape(50))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                Icon(
+                    painter = painterResource(id = R.drawable.chef_hat),
+                    contentDescription = "See recipes using ${item.name}",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
                 )
-
-                Spacer(modifier = Modifier.width(4.dp))
-
-                IconButton(onClick = onRecipeClick) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.chef_hat),
-                        contentDescription = "See recipes using ${item.name}",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
             }
         }
     }
@@ -343,89 +319,6 @@ private fun EmptyReminderState(hasAnyInventory: Boolean, modifier: Modifier = Mo
             fontSize = 13.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(start = 40.dp, top = 4.dp, end = 40.dp)
-        )
-    }
-}
-
-// --------------------------------------------------------------------------
-// Preview only — fake data standing in for the ViewModel
-// --------------------------------------------------------------------------
-private val fakeReminderItems = listOf(
-    Inventory(
-        name = "Apple",
-        category = "Fruit",
-        storage = "Refrigerator",
-        quantity = 4,
-        unit = "pcs",
-        daysLeft = 0,
-        expiry = "01 Sep 2026"
-    ),
-    Inventory(
-        name = "Milk",
-        category = "Dairy",
-        storage = "Refrigerator",
-        quantity = 1,
-        unit = "L",
-        daysLeft = 2,
-        expiry = "03 Sep 2026"
-    ),
-    Inventory(
-        name = "Bread",
-        category = "Bakery",
-        storage = "Pantry",
-        quantity = 1,
-        unit = "loaf",
-        daysLeft = 3,
-        expiry = "04 Sep 2026"
-    ),
-    Inventory(
-        name = "Fish",
-        category = "Fish",
-        storage = "Freezer",
-        quantity = 500,
-        unit = "g",
-        daysLeft = 6,
-        expiry = "07 Sep 2026"
-    ),
-    Inventory(
-        name = "Rice",
-        category = "Grain",
-        storage = "Pantry",
-        quantity = 5,
-        unit = "kg",
-        daysLeft = 30,
-        expiry = "01 Oct 2026"
-    )
-)
-
-@Preview(showBackground = true)
-@Composable
-private fun ReminderScreenPreview() {
-    SaveBiteTheme {
-        ReminderScreenContent(
-            grouped = ExpiryGrouping.group(fakeReminderItems),
-            searchQuery = "",
-            onSearchQueryChange = {},
-            storageOptions = listOf("Refrigerator", "Freezer", "Pantry"),
-            selectedStorage = null,
-            onStorageSelected = {},
-            hasAnyInventory = true
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Empty state")
-@Composable
-private fun ReminderScreenEmptyPreview() {
-    SaveBiteTheme {
-        ReminderScreenContent(
-            grouped = emptyMap(),
-            searchQuery = "",
-            onSearchQueryChange = {},
-            storageOptions = emptyList(),
-            selectedStorage = null,
-            onStorageSelected = {},
-            hasAnyInventory = false
         )
     }
 }

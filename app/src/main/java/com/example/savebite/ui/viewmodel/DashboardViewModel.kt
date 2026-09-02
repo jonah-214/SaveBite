@@ -65,13 +65,15 @@ class DashboardViewModel(
     // Expiring Item Section
     val expiringItems = inventoryRepository.allInventory
         .map { list ->
-            list.sortedBy { it.daysLeft }
-                .take(3)
+            list.filter { it.daysLeft <= 7 }
+                .sortedBy { it.daysLeft }
                 .map { item ->
                     ExpiryItem(
+                        id = item.id,
                         name = item.name,
                         quantity = "${item.quantity} ${item.unit}",
-                        daysLeft = item.daysLeft
+                        daysLeft = item.daysLeft,
+                        category = item.category
                     )
                 }
         }

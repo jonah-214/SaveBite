@@ -27,6 +27,13 @@ val surfaceVariantLight = Color(0xFFDEE5D8)
 val onSurfaceVariantLight = Color(0xFF424940)
 val outlineLight = Color(0xFF73796F)
 val outlineVariantLight = Color(0xFFC2C8BD)
+// Custom "warning" (amber) colors for the Expiry Reminder "This Week" bucket.
+// Material3's baseline scheme has no yellow role, so these are added by hand.
+val warningContainerLight = Color(0xFFFFE08D)
+val onWarningContainerLight = Color(0xFF241A00)
+val warningContainerDark = Color(0xFF534600)
+val onWarningContainerDark = Color(0xFFFFE08D)
+
 val scrimLight = Color(0xFF000000)
 val inverseSurfaceLight = Color(0xFF2D322B)
 val inverseOnSurfaceLight = Color(0xFFEFF2E9)

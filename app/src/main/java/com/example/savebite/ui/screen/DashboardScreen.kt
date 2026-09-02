@@ -44,14 +44,17 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.savebite.R
 import com.example.savebite.ui.navigation.AppRoutes
+import com.example.savebite.ui.theme.expirySectionColors
 import com.example.savebite.ui.viewmodel.DashboardViewModel
 
 
 // Hardcoded data - Expiry & Recipe suggestions
 data class ExpiryItem(
+    val id: String,
     val name: String,
     val quantity: String,
     val daysLeft: Int,
+    val category: String,
 )
 
 data class RecipeSuggestion(
@@ -92,6 +95,9 @@ fun DashboardScreen(
                 navController.navigate(AppRoutes.REMINDER) {
                     launchSingleTop = true
                 }
+            },
+            onItemClick = { item ->
+                navController.navigate("${AppRoutes.INVENTORY_DETAILS}/${item.id}")
             }
         )
         Spacer(modifier = Modifier.height(20.dp))
@@ -206,7 +212,8 @@ fun DashboardHeader(
 @Composable
 fun ExpiryReminderCard(
     items: List<ExpiryItem>,
-    onSeeAllClick: () -> Unit
+    onSeeAllClick: () -> Unit,
+    onItemClick: (ExpiryItem) -> Unit = {}
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -218,7 +225,7 @@ fun ExpiryReminderCard(
     ) {
         Column(
             modifier = Modifier
-            .padding(16.dp)
+                .padding(16.dp)
         ) {
             SectionHeader(
                 title = "Expiry Reminder",
@@ -229,19 +236,22 @@ fun ExpiryReminderCard(
             if (items.isEmpty()) {
                 Text(
                     text = "No items expiring soon",
-                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 12.dp)
                 )
             } else {
                 Text(
                     text = "${items.size} item${if (items.size == 1) "" else "s"} expiring soon",
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
 
-                items.forEach { item ->
-                    ExpiryItemRow(item)
+                // Only show top 3 most urgent
+                items.take(3).forEach { item ->
+                    ExpiryItemRow(item, onClick = { onItemClick(item) })
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
@@ -251,38 +261,56 @@ fun ExpiryReminderCard(
 
 @Composable
 fun ExpiryItemRow(
-    item: ExpiryItem
+    item: ExpiryItem,
+    onClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh,
-                RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                MaterialTheme.colorScheme.surfaceContainerHigh,
+                RoundedCornerShape(12.dp)
+            )
+            .clickable(onClick = onClick)
             .padding(12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "${item.name} • ${item.quantity}",
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
+            Column {
+                Text(
+                    text = item.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "${item.quantity} • ${item.category}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        val (bg, fg) = if (item.daysLeft <= 1) {
-            MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
-        } else {
-            MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
-        }
+        val (bg, fg) = expirySectionColors(item.daysLeft)
         Text(
-            text = "${item.daysLeft} days",
+            text = if (item.daysLeft <= 0) "Today" else "${item.daysLeft}d left",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
             color = fg,
             modifier = Modifier
-                .background(bg, RoundedCornerShape(50))
-                .padding(horizontal = 10.dp, vertical = 4.dp)
+                .background(bg, RoundedCornerShape(8.dp))
+                .padding(horizontal = 10.dp, vertical = 6.dp)
         )
     }
 }

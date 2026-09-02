@@ -15,33 +15,44 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+enum class SortOrder(val label: String) {
+    EXPIRY_ASC("Soonest First"),
+    EXPIRY_DESC("Latest First"),
+    NAME_ASC("Name (A-Z)"),
+    NAME_DESC("Name (Z-A)")
+}
+
 class ReminderViewModel(
     private val inventoryRepository: InventoryRepository
 ) : ViewModel() {
 
-    // Filter state (drives the filter icon in the top bar)
+    // Filter state
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-   // Storage filter state (drives the storage filter dropdown)
-    private val _selectedStorage = MutableStateFlow<String?>(null)
-    val selectedStorage: StateFlow<String?> = _selectedStorage.asStateFlow()
+    // Sort state
+    private val _sortOrder = MutableStateFlow(SortOrder.EXPIRY_ASC)
+    val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
 
-    val storageOptions: StateFlow<List<String>> = inventoryRepository.allStorageNames
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    // Filtered + grouped items
+    // Filtered + sorted + grouped items
     private val filteredItems: Flow<List<Inventory>> = combine(
         inventoryRepository.allInventory,
         _searchQuery,
-        _selectedStorage
-    ) { items, query, storage ->
+        _sortOrder
+    ) { items, query, sort ->
         items
-            .filter { storage == null || it.storage == storage }
             .filter {
                 query.isBlank() ||
                     it.name.contains(query, ignoreCase = true) ||
                     it.category.contains(query, ignoreCase = true)
+            }
+            .let { filtered ->
+                when (sort) {
+                    SortOrder.EXPIRY_ASC -> filtered.sortedBy { it.daysLeft }
+                    SortOrder.EXPIRY_DESC -> filtered.sortedByDescending { it.daysLeft }
+                    SortOrder.NAME_ASC -> filtered.sortedBy { it.name.lowercase() }
+                    SortOrder.NAME_DESC -> filtered.sortedByDescending { it.name.lowercase() }
+                }
             }
     }
 
@@ -49,7 +60,7 @@ class ReminderViewModel(
         .map { ExpiryGrouping.group(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    // Total count before filtering, so the empty state can distinguish "no items at all" from "no items match this filter"
+    // Total count before filtering
     val totalItemCount: StateFlow<Int> = inventoryRepository.allInventory
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
@@ -58,12 +69,12 @@ class ReminderViewModel(
         _searchQuery.value = query
     }
 
-    fun onStorageFilterSelected(storage: String?) {
-        _selectedStorage.value = storage
+    fun onSortOrderChange(order: SortOrder) {
+        _sortOrder.value = order
     }
 
     fun clearFilters() {
         _searchQuery.value = ""
-        _selectedStorage.value = null
+        _sortOrder.value = SortOrder.EXPIRY_ASC
     }
 }
