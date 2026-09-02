@@ -7,13 +7,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.rounded.ArrowForwardIos
-import androidx.compose.material.icons.rounded.FilterList
-import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.ui.res.painterResource
+import com.example.savebite.R
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -76,7 +71,7 @@ fun RecipeScreen(
                             },
                             leadingIcon = { 
                                 Icon(
-                                    Icons.Default.Search, 
+                                    painter = painterResource(R.drawable.search), 
                                     contentDescription = null, 
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 ) 
@@ -99,7 +94,7 @@ fun RecipeScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    Icons.Rounded.FilterList, 
+                                    painter = painterResource(R.drawable.filter_list),
                                     contentDescription = "Filter", 
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant, 
                                     modifier = Modifier.size(24.dp)
@@ -280,7 +275,7 @@ fun RecommendedCard(recipe: Recipe) {
                         .background(Color.Black.copy(alpha = 0.4f), CircleShape)
                 ) {
                     Icon(
-                        Icons.Default.FavoriteBorder, 
+                        painter = painterResource(R.drawable.check), 
                         contentDescription = "Favorite", 
                         tint = Color.White, 
                         modifier = Modifier.size(16.dp)
@@ -310,7 +305,7 @@ fun RecommendedCard(recipe: Recipe) {
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Rounded.Schedule, 
+                        painter = painterResource(R.drawable.clock), 
                         contentDescription = null, 
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), 
                         modifier = Modifier.size(12.dp)
@@ -378,7 +373,7 @@ fun PopularRecipeRowCard(recipe: Recipe) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Rounded.Schedule, 
+                        painter = painterResource(R.drawable.clock), 
                         contentDescription = null, 
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), 
                         modifier = Modifier.size(12.dp)
@@ -405,7 +400,7 @@ fun PopularRecipeRowCard(recipe: Recipe) {
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape)
             ) {
                 Icon(
-                    Icons.Rounded.ArrowForwardIos, 
+                    painter = painterResource(R.drawable.chevron_right), 
                     contentDescription = "View", 
                     tint = MaterialTheme.colorScheme.primary, 
                     modifier = Modifier.size(14.dp)

@@ -2,17 +2,15 @@ package com.example.savebite.ui.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.savebite.ui.theme.SaveBiteTheme
+import com.example.savebite.R
 import com.example.savebite.ui.viewmodel.RecipeGetStartedViewModel
 
 @Composable
@@ -128,7 +126,7 @@ fun RecipeGetStartedContent(
                             leadingIcon = if (isSelected) {
                                 {
                                     Icon(
-                                        imageVector = Icons.Default.Check,
+                                        painter = painterResource(R.drawable.check),
                                         contentDescription = "Selected",
                                         modifier = Modifier.size(FilterChipDefaults.IconSize)
                                     )
@@ -169,7 +167,7 @@ fun RecipeGetStartedContent(
                             leadingIcon = if (isChecked) {
                                 {
                                     Icon(
-                                        imageVector = Icons.Default.Check,
+                                        painter = painterResource(R.drawable.check),
                                         contentDescription = "Selected",
                                         modifier = Modifier.size(FilterChipDefaults.IconSize)
                                     )
@@ -183,4 +181,3 @@ fun RecipeGetStartedContent(
         }
     }
 }
-
