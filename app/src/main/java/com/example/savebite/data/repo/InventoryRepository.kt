@@ -10,11 +10,9 @@ import com.example.savebite.model.ReportItem
 import com.example.savebite.model.ReportStatus
 import com.example.savebite.model.ReportStatus.WASTED
 import com.example.savebite.model.Storage
+import com.example.savebite.utils.DateFormats
 import kotlinx.coroutines.flow.Flow
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 class InventoryRepository(
@@ -120,28 +118,21 @@ class InventoryRepository(
     suspend fun cleanupExpiredItems() {
         val allItems = inventoryDao.getAllInventorySync()
         val today = Date()
-        val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
 
         allItems.forEach { item ->
-            try {
-                val expiryDate = formatter.parse(item.expiry)
-                if (expiryDate != null) {
-                    val diffInMillis = expiryDate.time - today.time
-                    val days = TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS).toInt()
+            val expiryDate = DateFormats.parseExpiryOrNull(item.expiry) ?: return@forEach
+            val diffInMillis = expiryDate.time - today.time
+            val days = TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS).toInt()
 
-                    if (days < 0) {
-                        markAsWaste(item, "Expired")
-                    } else {
-                        val newDaysLeft = days + 1
-                        if (item.daysLeft != newDaysLeft) {
-                            val updatedItem = item.copy(daysLeft = newDaysLeft)
-                            inventoryDao.updateItem(updatedItem)
-                            supabaseDataRepository.upsertInventoryItem(updatedItem.toSupabase())
-                        }
-                    }
+            if (days < 0) {
+                markAsWaste(item, "Expired")
+            } else {
+                val newDaysLeft = days + 1
+                if (item.daysLeft != newDaysLeft) {
+                    val updatedItem = item.copy(daysLeft = newDaysLeft)
+                    inventoryDao.updateItem(updatedItem)
+                    supabaseDataRepository.upsertInventoryItem(updatedItem.toSupabase())
                 }
-            } catch (e: Exception) {
-                // Ignore parsing errors
             }
         }
     }

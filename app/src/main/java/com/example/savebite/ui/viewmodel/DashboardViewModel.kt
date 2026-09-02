@@ -1,25 +1,25 @@
 package com.example.savebite.ui.viewmodel
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savebite.data.repo.InventoryRepository
+import com.example.savebite.data.repo.RecipeRepository
 import com.example.savebite.data.repo.ReportRepository
 import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.data.repo.UserRepository
-import com.example.savebite.model.ReportItem
+import com.example.savebite.model.ExpiryItem
+import com.example.savebite.model.RecipeSuggestion
 import com.example.savebite.model.ReportStatus
-import com.example.savebite.ui.screen.ExpiryItem
-import com.example.savebite.ui.screen.RecipeSuggestion
+import com.example.savebite.model.WastePeriod
 import com.example.savebite.utils.SessionManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import java.util.Calendar
 
 class DashboardViewModel(
@@ -27,45 +27,43 @@ class DashboardViewModel(
     private val inventoryRepository: InventoryRepository,
     private val shoppingRepository: ShoppingRepository,
     private val reportRepository: ReportRepository,
+    private val recipeRepository: RecipeRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
-    private val _username = mutableStateOf("User")
-    val username: State<String> = _username
 
-    private val _avatarUrl = mutableStateOf<String?>(null)
-    val avatarUrl: State<String?> = _avatarUrl
-
-    init {
-        loadUserData()
+    companion object {
+        // These are constants (values that don't change)
+        private const val STOP_TIMEOUT_MS = 5_000L
+        private const val RECIPE_SUGGESTION_LIMIT = 5
+        private const val EXPIRY_WINDOW_DAYS = 7 // Items expiring in 7 days or less
+        
+        // Settings for the Waste Chart
+        private const val WEEK_COUNT = 4
+        private const val MONTH_COUNT = 6
+        private const val YEAR_COUNT = 3
+        private const val MILLIS_PER_WEEK = 1000L * 60 * 60 * 24 * 7
     }
 
-    // Load user data from Supabase or fallback to local Room database (Offline mode)
+    // Header — user's name/avatar, same StateFlow + WhileSubscribed pattern as
+    // every other piece of Dashboard state, so the Screen collects everything
+    // the same way (collectAsStateWithLifecycle).
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun loadUserData() {
-        viewModelScope.launch {
-            sessionManager.userIdFlow.flatMapLatest { userId ->
-                if (userId == -1) {
-                    flowOf(null)
-                } else {
-                    userRepository.getUserByIdFlow(userId)
-                }
-            }.collect { user ->
-                if (user != null) {
-                    _username.value = user.username
-                    _avatarUrl.value = user.avatarUrl
-                } else {
-                    _username.value = "User"
-                    _avatarUrl.value = null
-                }
-            }
-        }
+    private val currentUser = sessionManager.userIdFlow.flatMapLatest { userId ->
+        if (userId == -1) flowOf(null) else userRepository.getUserByIdFlow(userId)
     }
 
+    val username = currentUser
+        .map { it?.username ?: "User" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), "User")
 
-    // Expiring Item Section
+    val avatarUrl = currentUser
+        .map { it?.avatarUrl }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), null)
+
+    // Expiring Items - Look at the inventory and filter items that expire soon.
     val expiringItems = inventoryRepository.allInventory
-        .map { list ->
-            list.filter { it.daysLeft <= 7 }
+        .map { items ->
+            items.filter { it.daysLeft <= EXPIRY_WINDOW_DAYS }
                 .sortedBy { it.daysLeft }
                 .map { item ->
                     ExpiryItem(
@@ -77,56 +75,112 @@ class DashboardViewModel(
                     )
                 }
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
 
-    // Inventory count KPI
+    // Inventory & Shopping count KPI
     val inventoryCount = inventoryRepository.allInventory
         .map { it.size }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), 0)
 
     val shoppingListCount = shoppingRepository.allShoppingItems
         .map { it.size }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), 0)
 
-    // Real Metrics from ReportRepository
-    private val currentMonthStart: Long
-        get() {
-            val cal = Calendar.getInstance()
-            cal.set(Calendar.DAY_OF_MONTH, 1)
-            cal.set(Calendar.HOUR_OF_DAY, 0)
-            cal.set(Calendar.MINUTE, 0)
-            cal.set(Calendar.SECOND, 0)
-            cal.set(Calendar.MILLISECOND, 0)
-            return cal.timeInMillis
-        }
-
-    val savedThisMonth = reportRepository.getReportItemsInRange(currentMonthStart, Long.MAX_VALUE)
+    // Monthly Savings - Calculate how much money was saved by eating food instead of wasting it.
+    val savedThisMonth = reportRepository.getReportItemsInRange(getCurrentMonthStart(), Long.MAX_VALUE)
         .map { items ->
             items.filter { it.status == ReportStatus.CONSUMED }
                 .sumOf { it.price * it.quantity }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, 0.0)
 
-    val wasteTrackerData = reportRepository.getReportItemsSince(
-        Calendar.getInstance().apply { add(Calendar.WEEK_OF_YEAR, -4) }.timeInMillis
-    ).map { items: List<ReportItem> ->
-        val wasted = items.filter { it.status == ReportStatus.WASTED }
-        val now = Calendar.getInstance()
-        val weeks = mutableListOf(0, 0, 0, 0)
-        
-        wasted.forEach { item: ReportItem ->
-            val itemCal = Calendar.getInstance().apply { timeInMillis = item.timestamp }
-            val diffMillis = now.timeInMillis - itemCal.timeInMillis
-            val diffWeeks = (diffMillis / (1000 * 60 * 60 * 24 * 7)).toInt()
-            if (diffWeeks in 0..3) {
-                weeks[3 - diffWeeks] += item.quantity
+    // Which time range the bar chart is grouped by (Weekly / Monthly / Yearly)
+    private val _wastePeriod = MutableStateFlow(WastePeriod.WEEKLY)
+    val wastePeriod = _wastePeriod.asStateFlow()
+
+    // Waste Tracker - Prepares data for the bar chart based on the selected period (Weekly/Monthly/Yearly).
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val wasteTrackerData = _wastePeriod
+        .flatMapLatest { period ->
+            val bucketCount = when (period) {
+                WastePeriod.WEEKLY -> WEEK_COUNT
+                WastePeriod.MONTHLY -> MONTH_COUNT
+                WastePeriod.YEARLY -> YEAR_COUNT
+            }
+            val sinceTimestamp = getStartTimestampFor(period)
+
+            reportRepository.getReportItemsSince(sinceTimestamp).map { items ->
+                val wasted = items.filter { it.status == ReportStatus.WASTED }
+                val buckets = MutableList(bucketCount) { 0 }
+                val now = Calendar.getInstance()
+
+                wasted.forEach { item ->
+                    val itemCal = Calendar.getInstance().apply { timeInMillis = item.timestamp }
+                    val index = getBucketIndexFor(period, now, itemCal)
+                    if (index in 0 until bucketCount) {
+                        buckets[bucketCount - 1 - index] += item.quantity
+                    }
+                }
+                buckets
             }
         }
-        weeks
-    }.stateIn(viewModelScope, SharingStarted.Lazily, listOf(0, 0, 0, 0))
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val recipeSuggestions = listOf(
-        RecipeSuggestion("Cheese Toast", "Uses 1 expiring items"),
-        RecipeSuggestion("Tomato Salad", "Uses 2 expiring items")
-    )
+    // Helper function to find the start of the current month
+    private fun getCurrentMonthStart(): Long {
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.DAY_OF_MONTH, 1)
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
+    }
+
+    // Helper function to find how far back we should look for waste data
+    private fun getStartTimestampFor(period: WastePeriod): Long {
+        val cal = Calendar.getInstance()
+        when (period) {
+            WastePeriod.WEEKLY -> cal.add(Calendar.WEEK_OF_YEAR, -WEEK_COUNT)
+            WastePeriod.MONTHLY -> cal.add(Calendar.MONTH, -MONTH_COUNT)
+            WastePeriod.YEARLY -> cal.add(Calendar.YEAR, -YEAR_COUNT)
+        }
+        return cal.timeInMillis
+    }
+
+    // Helper function to group items into "buckets" for the chart
+    private fun getBucketIndexFor(period: WastePeriod, now: Calendar, itemCal: Calendar): Int {
+        return when (period) {
+            WastePeriod.WEEKLY -> {
+                val diffMillis = now.timeInMillis - itemCal.timeInMillis
+                (diffMillis / MILLIS_PER_WEEK).toInt()
+            }
+            WastePeriod.MONTHLY -> {
+                val nowMonths = now.get(Calendar.YEAR) * 12 + now.get(Calendar.MONTH)
+                val itemMonths = itemCal.get(Calendar.YEAR) * 12 + itemCal.get(Calendar.MONTH)
+                nowMonths - itemMonths
+            }
+            WastePeriod.YEARLY -> now.get(Calendar.YEAR) - itemCal.get(Calendar.YEAR)
+        }
+    }
+
+    fun onWastePeriodSelected(period: WastePeriod) {
+        _wastePeriod.value = period
+    }
+
+    // Recipe Suggestions card — the same AI-generated recipes cached by the
+    // Recipe feature (RecipeRepository), so Dashboard and the Recipe screen
+    // never disagree. Dashboard only reads the cache; it never triggers a
+    // new AI call itself (that stays a user action on the Recipe screen).
+    val recipeSuggestions = recipeRepository.cachedRecipes
+        .map { recipes ->
+            recipes.take(RECIPE_SUGGESTION_LIMIT).map { recipe ->
+                RecipeSuggestion(
+                    name = recipe.title,
+                    usesText = "Uses ${recipe.usedExpiringIngredients.size} expiring item" +
+                        if (recipe.usedExpiringIngredients.size == 1) "" else "s"
+                )
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
 }

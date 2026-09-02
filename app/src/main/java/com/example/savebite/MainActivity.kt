@@ -13,8 +13,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.savebite.ui.navigation.AppNavigation
 import com.example.savebite.ui.theme.SaveBiteTheme
+import com.example.savebite.data.ai.GeminiRecipeService
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
+import com.example.savebite.data.repo.RecipeRepository
 import com.example.savebite.data.repo.ReportRepositoryImpl
 import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.data.repo.SupabaseAuthRepository
@@ -35,25 +37,32 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Initialize the database, session manager, and repositories
+        // Set up the "Storage": Database, Session (login info), and Theme preferences
         val database = AppDatabase.getDatabase(this)
         val sessionManager = SessionManager(this)
         val themePreferenceManager = ThemePreferenceManager(this)
 
+        // Set up the "Repositories": These handle fetching data from the database or internet
         val userRepository = UserRepository(database.userDao())
         val inventoryRepository = InventoryRepository(database.inventoryDao(), database.storageDao(), database.reportDao())
         val shoppingRepository = ShoppingRepository(database.shoppingDao())
         val reportRepository = ReportRepositoryImpl(database.reportDao())
         val supabaseAuthRepository = SupabaseAuthRepository(userRepository)
+        val recipeRepository = RecipeRepository(
+            GeminiRecipeService(apiKey = BuildConfig.GEMINI_API_KEY),
+            database.recipeDao()
+        )
 
+        // Set up the "Factories": These help create the ViewModels
         val authViewModelFactory = AuthViewModelFactory(userRepository, supabaseAuthRepository, sessionManager)
-        val dashboardViewModelFactory = DashboardViewModelFactory(userRepository, inventoryRepository, shoppingRepository, reportRepository, sessionManager)
+        val dashboardViewModelFactory = DashboardViewModelFactory(userRepository, inventoryRepository, shoppingRepository, reportRepository, recipeRepository, sessionManager)
         val reminderViewModelFactory = ReminderViewModelFactory(inventoryRepository)
         val profileViewModelFactory = ProfileViewModelFactory(userRepository, supabaseAuthRepository, sessionManager)
         val themeViewModelFactory = ThemeViewModelFactory(themePreferenceManager)
 
         enableEdgeToEdge()
         setContent {
+            // ThemeViewModel handles Dark Mode / Light Mode settings
             val themeViewModel: ThemeViewModel = viewModel(factory = themeViewModelFactory)
             val themeMode by themeViewModel.themeMode.collectAsState()
 
@@ -63,9 +72,11 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.SYSTEM -> isSystemInDarkTheme()
             }
 
+            // Apply the app's visual style
             SaveBiteTheme(darkTheme = useDarkTheme) {
-                val navController = rememberNavController()
+                val navController = rememberNavController() // Handles moving between screens
                 val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
+
                 AppNavigation(
                     navController = navController,
                     viewModel = authViewModel,

@@ -28,7 +28,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,24 +42,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.savebite.R
+import com.example.savebite.model.ExpiryItem
+import com.example.savebite.model.RecipeSuggestion
+import com.example.savebite.model.WastePeriod
 import com.example.savebite.ui.navigation.AppRoutes
 import com.example.savebite.ui.theme.expirySectionColors
 import com.example.savebite.ui.viewmodel.DashboardViewModel
 
-
-// Hardcoded data - Expiry & Recipe suggestions
-data class ExpiryItem(
-    val id: String,
-    val name: String,
-    val quantity: String,
-    val daysLeft: Int,
-    val category: String,
-)
-
-data class RecipeSuggestion(
-    val name: String,
-    val usesText: String,
-)
+// TODO: several other screens (Report, InventoryDetail, PdfReportGenerator) also
+// hardcode "RM" — worth pulling into one shared currency constant app-wide later.
+private const val CURRENCY_PREFIX = "RM"
 
 @Composable
 fun DashboardScreen(
@@ -77,8 +68,8 @@ fun DashboardScreen(
     ) {
         // Greeting user Header Area
         DashboardHeader(
-            username = dashboardViewModel.username.value,
-            avatarUrl = dashboardViewModel.avatarUrl.value,
+            username = dashboardViewModel.username.collectAsStateWithLifecycle().value,
+            avatarUrl = dashboardViewModel.avatarUrl.collectAsStateWithLifecycle().value,
             onProfileClick = {
                 navController.navigate(AppRoutes.PROFILE) {
                     launchSingleTop = true
@@ -120,23 +111,21 @@ fun DashboardScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         // Waste Tracker Report Area
-        val savedAmount by dashboardViewModel.savedThisMonth.collectAsState()
-        val wasteTrackerData by dashboardViewModel.wasteTrackerData.collectAsState()
+        val savedAmount by dashboardViewModel.savedThisMonth.collectAsStateWithLifecycle()
+        val wasteTrackerData by dashboardViewModel.wasteTrackerData.collectAsStateWithLifecycle()
+        val wastePeriod by dashboardViewModel.wastePeriod.collectAsStateWithLifecycle()
 
         WasteReportSection(
             savedAmount = savedAmount.toInt(),
-            wasteByWeek = wasteTrackerData,
-            onSeeAllClick = {
-                navController.navigate(AppRoutes.REPORTS) {
-                    launchSingleTop = true
-                }
-            }
+            wasteData = wasteTrackerData,
+            selectedPeriod = wastePeriod,
+            onPeriodSelected = dashboardViewModel::onWastePeriodSelected
         )
         Spacer(modifier = Modifier.height(20.dp))
 
         // Recipe Suggestions Area
         RecipeSuggestionsRow(
-            recipes = dashboardViewModel.recipeSuggestions,
+            recipes = dashboardViewModel.recipeSuggestions.collectAsStateWithLifecycle().value,
             onSeeAllClick = {
                 navController.navigate(AppRoutes.RECIPE) {
                     launchSingleTop = true
@@ -389,14 +378,16 @@ fun StatsCard(
 @Composable
 fun WasteReportSection(
     savedAmount: Int,
-    wasteByWeek: List<Int>,
-    onSeeAllClick: () -> Unit
+    wasteData: List<Int>,
+    selectedPeriod: WastePeriod,
+    onPeriodSelected: (WastePeriod) -> Unit
 ) {
     Column {
+        // No "See All" here — Waste Report is a self-contained summary,
+        // there's no separate detail screen it would link to.
         SectionHeader(
             title = "Waste Report",
-            icon = R.drawable.assignment,
-            onSeeAllClick = onSeeAllClick
+            icon = R.drawable.assignment
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -414,24 +405,24 @@ fun WasteReportSection(
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = "RM $savedAmount",
+                text = "$CURRENCY_PREFIX $savedAmount",
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.Bold
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Simple bar row - height scales relative to the max value in the list
-        val maxValue = (wasteByWeek.maxOrNull() ?: 1).coerceAtLeast(1)
+        // Chart and "Items Wasted" text moved above the selection tabs
+        val maxValue = (wasteData.maxOrNull() ?: 1).coerceAtLeast(1)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
+                .height(60.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            wasteByWeek.forEach { value ->
-                val barHeight = (value.toFloat() / maxValue) * 50.dp.value
+            wasteData.forEach { value ->
+                val barHeight = (value.toFloat() / maxValue) * 60.dp.value
                 val barColor = if (value == maxValue) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primary
                 Box(
                     modifier = Modifier
@@ -443,13 +434,61 @@ fun WasteReportSection(
             }
         }
 
+        val caption = when (selectedPeriod) {
+            WastePeriod.WEEKLY -> "Items wasted, last 4 weeks"
+            WastePeriod.MONTHLY -> "Items wasted, last 6 months"
+            WastePeriod.YEARLY -> "Items wasted, last 3 years"
+        }
         Text(
-            "Items wasted, last 4 weeks",
+            text = caption,
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 12.dp),
             textAlign = TextAlign.Center
         )
+
+        WastePeriodToggle(
+            selectedPeriod = selectedPeriod,
+            onPeriodSelected = onPeriodSelected
+        )
+    }
+}
+
+/** Three-way Weekly / Monthly / Yearly switch for the waste bar chart above. */
+@Composable
+fun WastePeriodToggle(
+    selectedPeriod: WastePeriod,
+    onPeriodSelected: (WastePeriod) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        WastePeriod.entries.forEach { period ->
+            val isSelected = period == selectedPeriod
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .clickable { onPeriodSelected(period) }
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = period.label,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 
@@ -467,11 +506,27 @@ fun RecipeSuggestionsRow(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(recipes, key = { it.name }) { recipe ->
-                RecipeCard(recipe)
+        if (recipes.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No recipe suggestions right now",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(recipes, key = { it.name }) { recipe ->
+                    RecipeCard(recipe)
+                }
             }
         }
     }
@@ -529,7 +584,7 @@ fun SectionHeader(
     title: String,
     modifier: Modifier = Modifier,
     icon: Int? = null,
-    onSeeAllClick: () -> Unit
+    onSeeAllClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -552,6 +607,9 @@ fun SectionHeader(
                 fontWeight = FontWeight.Bold
             )
         }
-        SeeAllText(onSeeAllClick)
+        // Only sections that link to a detail screen show "See All".
+        if (onSeeAllClick != null) {
+            SeeAllText(onSeeAllClick)
+        }
     }
 }
