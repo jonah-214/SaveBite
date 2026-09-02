@@ -7,9 +7,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -104,7 +101,11 @@ fun InventoryDetailScreen(
                                 .clickable { if (consumeQuantity > 1) consumeQuantity-- }
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                                Icon(
+                                    painter = painterResource(R.drawable.remove),
+                                    contentDescription = "Decrease",
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                         }
 
@@ -122,7 +123,11 @@ fun InventoryDetailScreen(
                                 .clickable { if (consumeQuantity < detail.quantity) consumeQuantity++ }
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Add, contentDescription = "Increase")
+                                Icon(
+                                    painter = painterResource(R.drawable.add),
+                                    contentDescription = "Increase",
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                         }
                     }
@@ -190,7 +195,10 @@ fun InventoryDetailScreen(
                                 .clickable { if (wasteQuantity > 1) wasteQuantity-- }
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                                Icon(
+                                    painter = painterResource(R.drawable.remove),
+                                    contentDescription = "Decrease"
+                                )
                             }
                         }
 
@@ -208,7 +216,10 @@ fun InventoryDetailScreen(
                                 .clickable { if (wasteQuantity < detail.quantity) wasteQuantity++ }
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Add, contentDescription = "Increase")
+                                Icon(
+                                    painter = painterResource(R.drawable.add),
+                                    contentDescription = "Increase"
+                                )
                             }
                         }
                     }

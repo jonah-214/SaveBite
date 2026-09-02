@@ -9,8 +9,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.res.painterResource
+import com.example.savebite.R
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -224,7 +224,7 @@ fun ShoppingListScreen(
                         .weight(1f)
                         .height(48.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
+                    Icon(painter = painterResource(R.drawable.add), contentDescription = null, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Add Item", fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
@@ -265,9 +265,10 @@ fun ShoppingListScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                Icons.Default.ChevronRight,
+                                painter = painterResource(R.drawable.chevron_right),
                                 contentDescription = "Proceed",
-                                tint = MaterialTheme.colorScheme.onSurface
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
@@ -313,9 +314,10 @@ fun CategoryHeader(
             }
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
-                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                painter = painterResource(id = if (isExpanded) R.drawable.arrow_up else R.drawable.arrow_down),
                 contentDescription = if (isExpanded) "Collapse" else "Expand",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
             )
         }
     }
@@ -354,7 +356,7 @@ fun ShoppingItemRow(
 
         IconButton(onClick = onEdit) {
             Icon(
-                Icons.Default.Edit,
+                painter = painterResource(R.drawable.edit),
                 contentDescription = "Edit Item",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
@@ -362,7 +364,7 @@ fun ShoppingItemRow(
         }
         IconButton(onClick = onDelete) {
             Icon(
-                Icons.Default.Delete,
+                painter = painterResource(R.drawable.delete),
                 contentDescription = "Delete Item",
                 tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(20.dp)

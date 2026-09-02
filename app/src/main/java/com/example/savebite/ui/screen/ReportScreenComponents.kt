@@ -6,9 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,7 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import com.example.savebite.R
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -28,7 +26,7 @@ import java.util.Locale
 
 @Composable
 fun MetricCard(
-    icon: ImageVector,
+    icon: Int,
     iconBg: Color,
     iconTint: Color,
     title: String,
@@ -52,7 +50,7 @@ fun MetricCard(
                     .background(iconBg, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(24.dp))
+                Icon(painter = painterResource(id = icon), contentDescription = null, tint = iconTint, modifier = Modifier.size(24.dp))
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column {
@@ -133,9 +131,9 @@ fun MonthYearPicker(
                 Text("Select Month & Year", style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(24.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { year-- }) { Icon(Icons.Default.ChevronLeft, null) }
+                    IconButton(onClick = { year-- }) { Icon(painter = painterResource(R.drawable.chevron_left), null, modifier = Modifier.size(24.dp)) }
                     Text("$year", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp))
-                    IconButton(onClick = { year++ }) { Icon(Icons.Default.ChevronRight, null) }
+                    IconButton(onClick = { year++ }) { Icon(painter = painterResource(R.drawable.chevron_right), null, modifier = Modifier.size(24.dp)) }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -243,7 +241,7 @@ fun LegendRow(color: Color, label: String, count: Int, percentage: Int) {
 @Composable
 fun ReportSectionCard(
     title: String,
-    icon: ImageVector,
+    icon: Int,
     iconTint: Color,
     onViewMore: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
@@ -260,14 +258,14 @@ fun ReportSectionCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
+                    Icon(painter = painterResource(id = icon), contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
                 if (onViewMore != null) {
                     TextButton(onClick = onViewMore) {
                         Text("View More", fontSize = 12.sp)
-                        Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(painter = painterResource(R.drawable.chevron_right), contentDescription = null, modifier = Modifier.size(16.dp))
                     }
                 }
             }

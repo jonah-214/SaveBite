@@ -5,25 +5,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.outlined.CheckCircleOutline
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.FormatListBulleted
-import androidx.compose.material.icons.outlined.PictureAsPdf
-import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.savebite.R
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.theme.getCategoryColor
 import com.example.savebite.ui.viewmodel.ReportViewModel
@@ -54,7 +45,12 @@ fun ReportScreen(
                 showBackButton = false,
                 actions = {
                     IconButton(onClick = { PdfReportGenerator.generateAndSharePdf(context, state) }) {
-                        Icon(Icons.Outlined.PictureAsPdf, contentDescription = "Export PDF", tint = MaterialTheme.colorScheme.onPrimary)
+                        Icon(
+                            painter = painterResource(R.drawable.picture_as_pdf), 
+                            contentDescription = "Export PDF", 
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                 }
             )
@@ -86,8 +82,9 @@ fun ReportScreen(
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.ChevronLeft,
-                            contentDescription = "Previous"
+                            painter = painterResource(R.drawable.chevron_left),
+                            contentDescription = "Previous",
+                            modifier = Modifier.size(24.dp)
                         )
                     }
 
@@ -103,8 +100,9 @@ fun ReportScreen(
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = "Next"
+                            painter = painterResource(R.drawable.chevron_right),
+                            contentDescription = "Next",
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
@@ -134,7 +132,7 @@ fun ReportScreen(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
+                                painter = painterResource(R.drawable.arrow_down),
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -176,7 +174,7 @@ fun ReportScreen(
             // Metrics
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 MetricCard(
-                    icon = Icons.Outlined.Delete,
+                    icon = R.drawable.delete,
                     iconBg = MaterialTheme.colorScheme.primaryContainer,
                     iconTint = MaterialTheme.colorScheme.primary,
                     title = "Waste Cost",
@@ -185,7 +183,7 @@ fun ReportScreen(
                     modifier = Modifier.weight(1f)
                 )
                 MetricCard(
-                    icon = Icons.Outlined.Savings,
+                    icon = R.drawable.savings,
                     iconBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                     iconTint = MaterialTheme.colorScheme.primary,
                     title = "Saved Value",
@@ -208,7 +206,7 @@ fun ReportScreen(
                         Text("Waste Breakdown", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         TextButton(onClick = onNavigateToCategoryBreakdown) {
                             Text("View More", fontSize = 12.sp)
-                            Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Icon(painter = painterResource(R.drawable.chevron_right), contentDescription = null, modifier = Modifier.size(16.dp))
                         }
                     }
                     if (state.totalWastedItems > 0) {
@@ -246,7 +244,7 @@ fun ReportScreen(
                         Text("Most Wasted Items", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         TextButton(onClick = onNavigateToWastedItems) {
                             Text("View More", fontSize = 12.sp)
-                            Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Icon(painter = painterResource(R.drawable.chevron_right), contentDescription = null, modifier = Modifier.size(16.dp))
                         }
                     }
                     if (state.topWastedItems.isNotEmpty()) {
@@ -270,13 +268,13 @@ fun ReportScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.CheckCircleOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                            Icon(painter = painterResource(R.drawable.check), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(6.dp))
                             Text("Consumed Items", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
                         TextButton(onClick = onNavigateToConsumedItems) {
                             Text("View More", fontSize = 12.sp)
-                            Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Icon(painter = painterResource(R.drawable.chevron_right), contentDescription = null, modifier = Modifier.size(16.dp))
                         }
                     }
                     if (state.topConsumedItems.isNotEmpty()) {
@@ -293,7 +291,7 @@ fun ReportScreen(
 
             ReportSectionCard(
                 title = "Waste Reasons",
-                icon = Icons.Outlined.FormatListBulleted,
+                icon = R.drawable.list,
                 iconTint = MaterialTheme.colorScheme.primary,
                 onViewMore = null
             ) {

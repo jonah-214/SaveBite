@@ -8,18 +8,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.savebite.R
 import com.example.savebite.model.ReportStatus
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.InventoryViewModel
@@ -163,9 +161,9 @@ fun InventoryItemToReportScreen(
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(
-                                            Icons.Default.Remove,
-                                            contentDescription = "Decrease",
-                                            modifier = Modifier.size(14.dp)
+                                            painter = painterResource(R.drawable.remove),
+                                            contentDescription = "Increase",
+                                            modifier = Modifier.size(20.dp)
                                         )
                                     }
                                 }
@@ -190,9 +188,9 @@ fun InventoryItemToReportScreen(
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(
-                                            Icons.Default.Add,
+                                            painter = painterResource(R.drawable.add),
                                             contentDescription = "Increase",
-                                            modifier = Modifier.size(14.dp)
+                                            modifier = Modifier.size(20.dp)
                                         )
                                     }
                                 }
@@ -258,7 +256,7 @@ fun InventoryItemToReportScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.Default.Info,
+                    painter = painterResource(R.drawable.info),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     modifier = Modifier.size(14.dp)
