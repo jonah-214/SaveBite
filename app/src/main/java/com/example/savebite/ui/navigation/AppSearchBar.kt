@@ -100,7 +100,8 @@ fun <T> AppSearchBar(
                     Icon(
                         painter = painterResource(id = R.drawable.filter_list),
                         contentDescription = "Sort Options",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
 

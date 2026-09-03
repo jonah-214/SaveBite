@@ -85,7 +85,10 @@ fun ShoppingListScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = 12.dp
+                )
                 .padding(horizontal = 16.dp)
         ) {
             // Progress Header Card
@@ -107,7 +110,6 @@ fun ShoppingListScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        // Main Label: Handles empty list / zero items / singular / plural
                         Text(
                             text = when {
                                 totalCount == 0 -> "No items in list"

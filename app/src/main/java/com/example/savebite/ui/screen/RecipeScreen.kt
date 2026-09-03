@@ -126,7 +126,7 @@ fun RecipeScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "⏰ Use Expiring Ingredients",
+                                    text = "Use Expiring Ingredients",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -313,7 +313,7 @@ fun RecommendedCard(recipe: Recipe, onClick: () -> Unit = {}) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "👨‍🍳 Uses ${recipe.usedExpiringIngredients.size} items",
+                text = "Uses ${recipe.usedExpiringIngredients.size} items",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
@@ -387,7 +387,7 @@ fun PopularRecipeRowCard(recipe: Recipe, onClick: () -> Unit = {}) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "👨‍🍳 Uses ${recipe.usedExpiringIngredients.size} items", 
+                    "Uses ${recipe.usedExpiringIngredients.size} items",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )

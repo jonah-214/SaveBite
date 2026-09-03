@@ -22,10 +22,13 @@ fun AppBottomBar(navController: NavHostController) {
 
     NavigationBar {
         bottomNavItems.forEach { item ->
+            val isSelected = currentRoute == item.route ||
+                    (item.route == AppRoutes.RECIPE && currentRoute == AppRoutes.RECIPE_PATTERN)
+
             NavigationBarItem(
-                selected = currentRoute == item.route,
+                selected = isSelected,
                 onClick = {
-                    if (currentRoute != item.route) {
+                    if (!isSelected) {
                         navController.navigate(item.route) {
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
@@ -35,12 +38,12 @@ fun AppBottomBar(navController: NavHostController) {
                         }
                     }
                 },
-                icon = { 
+                icon = {
                     Icon(
-                        painter = painterResource(id = item.icon), 
+                        painter = painterResource(id = item.icon),
                         contentDescription = item.label,
                         modifier = Modifier.size(24.dp)
-                    ) 
+                    )
                 },
                 label = { Text(item.label) }
             )
