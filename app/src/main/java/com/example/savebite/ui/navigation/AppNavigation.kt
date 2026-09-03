@@ -466,41 +466,31 @@ fun AppNavigation(
                 })
             ) { backStackEntry ->
                 val context = LocalContext.current
-                val db = AppDatabase.getDatabase(context)
                 val scope = rememberCoroutineScope()
-
                 val initialSearchQuery = backStackEntry.arguments?.getString("searchQuery")
 
-                // 读取 Recipe 专属的首次运行状态
                 val userPreferences = remember { RecipeUserPreferences(context) }
                 val isRecipeFirstRun by userPreferences.isRecipeFirstRun.collectAsState(initial = null)
 
-                // 如果仍在读取 Preference 数据，展示 Loading 或占位，防止闪烁
                 if (isRecipeFirstRun == null) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 } else if (isRecipeFirstRun == true) {
-                    // 首次打开 Recipe，渲染 RecipeGetStartedScreen
                     RecipeGetStartedScreen(
                         onCompleted = {
-                            // 点击开始后更新 Preference 标记为 false
-                            // 推荐在 ViewModel 中处理异步 update
-                            scope.launch {
-                                userPreferences.setRecipeFirstRun(false)
-                            }
+                            scope.launch { userPreferences.setRecipeFirstRun(false) }
                         }
                     )
                 } else {
-                    // 非首次打开，正常展示 RecipeScreen
                     val inventoryRepository = (context.applicationContext as SaveBiteApp).container.inventoryRepository
                     val allInventoryItems by inventoryRepository.allInventory.collectAsState(initial = emptyList())
 
-                    // Dietary Preference / Allergies / Household Type
                     val dietType by userPreferences.dietType.collectAsState(initial = "None")
                     val allergies by userPreferences.allergies.collectAsState(initial = emptySet())
                     val householdType by userPreferences.householdType.collectAsState(initial = "Student")
 
+                    // ✅ 使用 current backStackEntry 保证 ViewModel 在 Recipe 流程中共享
                     val recipeViewModel: RecipeViewModel = viewModel(factory = recipeViewModelFactory)
 
                     LaunchedEffect(allInventoryItems, dietType, allergies, householdType) {
@@ -515,6 +505,33 @@ fun AppNavigation(
                         }
                     )
                 }
+            }
+
+            composable(
+                route = AppRoutes.RECIPE_DETAIL_PATTERN,
+                arguments = listOf(navArgument("recipeIndex") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val recipeIndex = backStackEntry.arguments?.getInt("recipeIndex") ?: 0
+
+                val parentEntry = remember(backStackEntry) {
+                    try {
+                        navController.getBackStackEntry(AppRoutes.RECIPE_PATTERN)
+                    } catch (e: Exception) {
+                        null
+                    }
+                }
+
+                val recipeViewModel: RecipeViewModel = if (parentEntry != null) {
+                    viewModel(viewModelStoreOwner = parentEntry, factory = recipeViewModelFactory)
+                } else {
+                    viewModel(factory = recipeViewModelFactory)
+                }
+
+                RecipeDetailScreen(
+                    recipeIndex = recipeIndex,
+                    viewModel = recipeViewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
 
             // Recipe Detail route
