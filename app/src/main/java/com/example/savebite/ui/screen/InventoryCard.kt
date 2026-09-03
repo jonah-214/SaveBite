@@ -85,10 +85,7 @@ fun InventoryCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (food.isConsumed)
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            else
-                MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -98,13 +95,11 @@ fun InventoryCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // --- TOP ROW ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Checkbox 放在第一位，不加任何外部 clickable 干扰
                 Checkbox(
                     checked = food.isConsumed,
                     onCheckedChange = { onToggleConsume(food) },
@@ -137,7 +132,6 @@ fun InventoryCard(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Days Left Badge - same Red/Yellow/Green urgency scheme and text as the Reminder screen
                 val (badgeBg, badgeFg) = expirySectionColors(food.daysLeft)
                 Text(
                     text = if (food.daysLeft <= 0) {
