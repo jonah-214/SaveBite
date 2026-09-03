@@ -26,12 +26,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.savebite.R
 import com.example.savebite.ui.viewmodel.AuthViewModel
 
 @Composable
@@ -45,7 +47,7 @@ fun ForgotPasswordScreen(
     val resetEmailSent by viewModel.resetEmailSent
     val isLoading by viewModel.isLoading
 
-    // Clear errors when the screen is first displayed
+    // Clear errors when the screen is first displayed to ensure a clean state
     LaunchedEffect(Unit) {
         viewModel.clearErrors()
     }
@@ -60,8 +62,9 @@ fun ForgotPasswordScreen(
         verticalArrangement = Arrangement.Center
     ) {
         if (!resetEmailSent) {
+            // Request Email to send reset link
             Text(
-                text = "Forget Password?",
+                text = stringResource(R.string.auth_forgot_password_title),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -69,7 +72,7 @@ fun ForgotPasswordScreen(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text = "Enter your email and we'll send you a link to reset your password.",
+                text = stringResource(R.string.auth_forgot_password_subtitle),
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -77,7 +80,6 @@ fun ForgotPasswordScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // Email Input Field
             OutlinedTextField(
                 value = email,
                 onValueChange = {
@@ -86,8 +88,8 @@ fun ForgotPasswordScreen(
                         viewModel.clearForgotPasswordEmailError()
                     }
                 },
-                label = { Text("Email") },
-                placeholder = { Text("johndoe@example.com") },
+                label = { Text(stringResource(R.string.auth_email_label)) },
+                placeholder = { Text(stringResource(R.string.auth_email_placeholder)) },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 isError = emailError != null,
@@ -105,7 +107,6 @@ fun ForgotPasswordScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // Send Reset Link Button
             Button(
                 onClick =  { viewModel.sendPasswordReset(email) },
                 enabled = !isLoading,
@@ -120,22 +121,22 @@ fun ForgotPasswordScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Send Reset Link", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.auth_send_reset_link), fontWeight = FontWeight.Bold)
                 }
             }
 
             Spacer(Modifier.height(8.dp))
 
-            // Cancel Button
             TextButton(
                 onClick = onBackToLogin,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Cancel", color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.auth_cancel), color = MaterialTheme.colorScheme.primary)
             }
         } else {
+            // Confirmation message after email is sent
             Text(
-                text = "Check Your Email",
+                text = stringResource(R.string.auth_check_email_title),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -143,7 +144,7 @@ fun ForgotPasswordScreen(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text = "We've sent a password reset link to $email. Please check your inbox.",
+                text = stringResource(R.string.auth_reset_sent_message, email),
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -151,7 +152,6 @@ fun ForgotPasswordScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // Back to Log in Button
             Button(
                 onClick = onBackToLogin,
                 shape = RoundedCornerShape(50),
@@ -159,7 +159,7 @@ fun ForgotPasswordScreen(
                     .fillMaxWidth()
                     .height(52.dp)
             ) {
-                Text(text = "Back to Login", fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.auth_back_to_login), fontWeight = FontWeight.Bold)
             }
         }
     }

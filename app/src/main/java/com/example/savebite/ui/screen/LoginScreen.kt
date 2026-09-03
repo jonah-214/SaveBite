@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -63,12 +64,12 @@ fun LoginScreen(
     val context = LocalContext.current
     val successMessage by viewModel.successMessage
 
-    // Clear errors when the screen is first displayed
+    // Clear errors when the screen is first displayed to ensure a fresh state
     LaunchedEffect(Unit) {
         viewModel.clearErrors()
     }
 
-    // Show success message
+    // Show success message as a Toast when the login is successful
     LaunchedEffect(successMessage) {
         successMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -86,7 +87,7 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Welcome Back!",
+            text = stringResource(R.string.auth_welcome_back),
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold
         )
@@ -94,7 +95,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Sign in to access smart, personalized food inventory management for you.",
+            text = stringResource(R.string.auth_login_subtitle),
             fontSize = 14.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
@@ -102,7 +103,6 @@ fun LoginScreen(
 
         Spacer(Modifier.height(32.dp))
 
-        // Email/Phone Input field
         OutlinedTextField(
             value = identifier,
             onValueChange = {
@@ -111,15 +111,15 @@ fun LoginScreen(
                     viewModel.clearLoginIdentifierError()
                 }
             },
-            label = { Text("Email/Phone Number") },
-            placeholder = { Text("Enter your email or phone number") },
+            label = { Text(stringResource(R.string.auth_email_phone_label)) },
+            placeholder = { Text(stringResource(R.string.auth_email_phone_placeholder)) },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             enabled = !isLoading,
             isError = identifierError != null,
             supportingText = {
                 Text(
-                    text = identifierError ?: "Supported phone formats: 60123456789, 0123456789, 123456789",
+                    text = identifierError ?: stringResource(R.string.auth_phone_formats_hint),
                     color = if (identifierError != null) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -133,7 +133,6 @@ fun LoginScreen(
 
         Spacer(Modifier.height(4.dp))
 
-        // Password Input field
         OutlinedTextField(
             value = password,
             onValueChange = {
@@ -142,8 +141,8 @@ fun LoginScreen(
                     viewModel.clearLoginPasswordError()
                 }
             },
-            label = { Text("Password") },
-            placeholder = { Text("Enter your password") },
+            label = { Text(stringResource(R.string.auth_password_label)) },
+            placeholder = { Text(stringResource(R.string.auth_password_placeholder)) },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             enabled = !isLoading,
@@ -163,7 +162,7 @@ fun LoginScreen(
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         painter = painterResource(id = iconRes),
-                        contentDescription = "Toggle password visibility",
+                        contentDescription = stringResource(R.string.content_desc_toggle_password),
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -173,9 +172,8 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Forgot Password clickable text
         Text(
-            text = "Forgot Password?",
+            text = stringResource(R.string.auth_forgot_password),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             color = if (isLoading) {
@@ -189,7 +187,7 @@ fun LoginScreen(
             textAlign = TextAlign.End
         )
 
-        // Display login error if present
+        // Display general login error if authentication fails
         if (loginError != null) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -200,7 +198,6 @@ fun LoginScreen(
 
         Spacer(Modifier.height(20.dp))
 
-        // Login Button
         Button(
             onClick = {
                 viewModel.login(identifier, password, onLoginSuccess)
@@ -219,7 +216,7 @@ fun LoginScreen(
                 )
             } else {
                 Text(
-                    text = "Login",
+                    text = stringResource(R.string.auth_login_button),
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -227,15 +224,14 @@ fun LoginScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // Sign Up Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Don't have an account? ")
+            Text(stringResource(R.string.auth_no_account))
             Text(
-                text = "Sign Up",
+                text = stringResource(R.string.auth_signup_link),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.clickable { onNavigateToSignup() }
             )

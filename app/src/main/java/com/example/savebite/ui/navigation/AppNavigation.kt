@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,8 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -24,13 +21,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
-import kotlinx.coroutines.launch
-import com.example.savebite.data.ai.GeminiRecipeService
+import com.example.savebite.SaveBiteApp
 import com.example.savebite.data.local.RecipeUserPreferences
-import com.example.savebite.data.local.db.AppDatabase
-import com.example.savebite.data.repo.InventoryRepository
-import com.example.savebite.data.repo.RecipeRepository
-import com.example.savebite.data.repo.ShoppingRepository
 import com.example.savebite.model.ReportStatus
 import com.example.savebite.ui.screen.AboutUsScreen
 import com.example.savebite.ui.screen.AddInventoryScreen
@@ -38,8 +30,8 @@ import com.example.savebite.ui.screen.AddShoppingItemScreen
 import com.example.savebite.ui.screen.ChangePasswordScreen
 import com.example.savebite.ui.screen.DashboardScreen
 import com.example.savebite.ui.screen.DeactivateAccountScreen
-import com.example.savebite.ui.screen.EditRecipePreferencesScreen
 import com.example.savebite.ui.screen.EditProfileScreen
+import com.example.savebite.ui.screen.EditRecipePreferencesScreen
 import com.example.savebite.ui.screen.ForgotPasswordScreen
 import com.example.savebite.ui.screen.InventoryDetailScreen
 import com.example.savebite.ui.screen.InventoryItemToReportScreen
@@ -57,20 +49,24 @@ import com.example.savebite.ui.screen.ShoppingListScreen
 import com.example.savebite.ui.screen.SignUpScreen
 import com.example.savebite.ui.screen.SplashScreen
 import com.example.savebite.ui.screen.WasteBreakdownDetailScreen
-import com.example.savebite.data.repo.ReportRepositoryImpl
 import com.example.savebite.ui.viewmodel.AuthViewModel
 import com.example.savebite.ui.viewmodel.DashboardViewModel
 import com.example.savebite.ui.viewmodel.DashboardViewModelFactory
 import com.example.savebite.ui.viewmodel.InventoryViewModel
+import com.example.savebite.ui.viewmodel.InventoryViewModelFactory
 import com.example.savebite.ui.viewmodel.ProfileViewModel
 import com.example.savebite.ui.viewmodel.ProfileViewModelFactory
 import com.example.savebite.ui.viewmodel.RecipeViewModel
+import com.example.savebite.ui.viewmodel.RecipeViewModelFactory
 import com.example.savebite.ui.viewmodel.ReminderViewModel
 import com.example.savebite.ui.viewmodel.ReminderViewModelFactory
 import com.example.savebite.ui.viewmodel.ReportViewModel
+import com.example.savebite.ui.viewmodel.ReportViewModelFactory
 import com.example.savebite.ui.viewmodel.ShoppingViewModel
+import com.example.savebite.ui.viewmodel.ShoppingViewModelFactory
 import com.example.savebite.ui.viewmodel.ThemeViewModel
 import com.example.savebite.utils.SessionManager
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavigation(
@@ -81,6 +77,10 @@ fun AppNavigation(
     reminderViewModelFactory: ReminderViewModelFactory,
     profileViewModelFactory: ProfileViewModelFactory,
     themeViewModel: ThemeViewModel,
+    inventoryViewModelFactory: InventoryViewModelFactory,
+    shoppingViewModelFactory: ShoppingViewModelFactory,
+    recipeViewModelFactory: RecipeViewModelFactory,
+    reportViewModelFactory: ReportViewModelFactory,
     modifier: Modifier = Modifier
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -203,7 +203,7 @@ fun AppNavigation(
 
             // Food Inventory route
             composable(AppRoutes.INVENTORY) {
-                val inventoryViewModel: InventoryViewModel = viewModel()
+                val inventoryViewModel: InventoryViewModel = viewModel(factory = inventoryViewModelFactory)
                 val inventoryList by inventoryViewModel.inventoryList.collectAsState()
                 val storageList by inventoryViewModel.storageList.collectAsState()
                 val searchQuery by inventoryViewModel.searchQuery.collectAsState()
@@ -257,7 +257,10 @@ fun AppNavigation(
                 arguments = listOf(navArgument("status") { type = NavType.StringType })
             ) { backStackEntry ->
                 val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(AppRoutes.INVENTORY) }
-                val inventoryViewModel: InventoryViewModel = viewModel(viewModelStoreOwner = parentEntry)
+                val inventoryViewModel: InventoryViewModel = viewModel(
+                    viewModelStoreOwner = parentEntry,
+                    factory = inventoryViewModelFactory
+                )
 
                 val statusStr = backStackEntry.arguments?.getString("status") ?: "CONSUMED"
                 val targetStatus = if (statusStr == "WASTED") ReportStatus.WASTED else ReportStatus.CONSUMED
@@ -283,7 +286,7 @@ fun AppNavigation(
                     defaultValue = null
                 })
             ) { backStackEntry ->
-                val inventoryViewModel: InventoryViewModel = viewModel()
+                val inventoryViewModel: InventoryViewModel = viewModel(factory = inventoryViewModelFactory)
                 val storageList by inventoryViewModel.storageList.collectAsState()
                 val itemId = backStackEntry.arguments?.getString("itemId")
 
@@ -308,11 +311,9 @@ fun AppNavigation(
                     batchItems = batchItems,
                     storageLocations = storageList,
                     onBackClick = {
-                        // 普通模式/底部的 Back 按钮：返回上一页
                         navController.previousBackStackEntry?.savedStateHandle?.remove<List<Any>>("batch_items")
                         navController.popBackStack()
                     },
-                    // 关键补全：传入控制直接跳回 Shopping List 的回调
                     onNavigateToShoppingList = {
                         navController.previousBackStackEntry?.savedStateHandle?.remove<List<Any>>("batch_items")
                         navController.popBackStack(
@@ -320,7 +321,6 @@ fun AppNavigation(
                             inclusive = false
                         )
                     },
-
                     onSaveClick = { itemList ->
                         itemList.forEach { item ->
                             inventoryViewModel.saveItem(item)
@@ -347,7 +347,7 @@ fun AppNavigation(
                 route = AppRoutes.INVENTORY_DETAILS_PATTERN,
                 arguments = listOf(navArgument("itemId") { type = NavType.StringType })
             ) { backStackEntry ->
-                val inventoryViewModel: InventoryViewModel = viewModel()
+                val inventoryViewModel: InventoryViewModel = viewModel(factory = inventoryViewModelFactory)
                 val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
                 val itemState by inventoryViewModel.getItemById(itemId).collectAsState(initial = null)
 
@@ -378,7 +378,7 @@ fun AppNavigation(
 
             // Manage Food Storage route
             composable(AppRoutes.MANAGE_STORAGE) {
-                val inventoryViewModel: InventoryViewModel = viewModel()
+                val inventoryViewModel: InventoryViewModel = viewModel(factory = inventoryViewModelFactory)
                 val storageList by inventoryViewModel.storageList.collectAsState()
                 ManageStorageScreen(
                     storages = storageList,
@@ -390,19 +390,7 @@ fun AppNavigation(
 
             // Shopping Items Routes
             composable(AppRoutes.SHOPPING) {
-                val context = navController.context
-                val db = AppDatabase.getDatabase(context)
-                val inventoryRepository = remember { InventoryRepository(db.inventoryDao(), db.storageDao(), db.reportDao()) }
-                val shoppingRepository = remember { ShoppingRepository(db.shoppingDao()) }
-
-                val shoppingViewModel: ShoppingViewModel = viewModel(
-                    factory = object : ViewModelProvider.Factory {
-                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                            @Suppress("UNCHECKED_CAST")
-                            return ShoppingViewModel(shoppingRepository, inventoryRepository) as T
-                        }
-                    }
-                )
+                val shoppingViewModel: ShoppingViewModel = viewModel(factory = shoppingViewModelFactory)
 
                 ShoppingListScreen(
                     viewModel = shoppingViewModel,
@@ -463,7 +451,6 @@ fun AppNavigation(
 
             composable(AppRoutes.RECIPE) {
                 val context = LocalContext.current
-                val db = AppDatabase.getDatabase(context)
                 val scope = androidx.compose.runtime.rememberCoroutineScope()
 
                 // 读取 Recipe 专属的首次运行状态
@@ -488,9 +475,8 @@ fun AppNavigation(
                     )
                 } else {
                     // 非首次打开，正常展示 RecipeScreen
-                    val inventoryDao = db.inventoryDao()
-                    val recipeDao = db.recipeDao()
-                    val allInventoryItems by inventoryDao.getAllInventory().collectAsState(initial = emptyList())
+                    val inventoryRepository = (context.applicationContext as SaveBiteApp).container.inventoryRepository
+                    val allInventoryItems by inventoryRepository.allInventory.collectAsState(initial = emptyList())
 
                     // Dietary Preference / Allergies / Household Type — read live so a change
                     // made later in Profile & Settings is picked up next time this screen composes.
@@ -498,22 +484,7 @@ fun AppNavigation(
                     val allergies by userPreferences.allergies.collectAsState(initial = emptySet())
                     val householdType by userPreferences.householdType.collectAsState(initial = "Student")
 
-                    val aiService = remember {
-                        GeminiRecipeService(apiKey = com.example.savebite.BuildConfig.GEMINI_API_KEY)
-                    }
-
-                    val repository = remember {
-                        RecipeRepository(aiService, recipeDao)
-                    }
-
-                    val recipeViewModel: RecipeViewModel = viewModel(
-                        factory = object : ViewModelProvider.Factory {
-                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                @Suppress("UNCHECKED_CAST")
-                                return RecipeViewModel(repository) as T
-                            }
-                        }
-                    )
+                    val recipeViewModel: RecipeViewModel = viewModel(factory = recipeViewModelFactory)
 
                     LaunchedEffect(allInventoryItems, dietType, allergies, householdType) {
                         recipeViewModel.fetchAIRecipes(allInventoryItems, dietType, allergies, householdType)
@@ -524,18 +495,7 @@ fun AppNavigation(
             }
 
             composable(AppRoutes.REPORTS) { backStackEntry ->
-                val context = navController.context
-                val db = AppDatabase.getDatabase(context)
-
-                val reportViewModel: ReportViewModel = viewModel(
-                    factory = object : ViewModelProvider.Factory {
-                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                            val repo = ReportRepositoryImpl(db.reportDao())
-                            @Suppress("UNCHECKED_CAST")
-                            return ReportViewModel(repo) as T
-                        }
-                    }
-                )
+                val reportViewModel: ReportViewModel = viewModel(factory = reportViewModelFactory)
 
                 ReportScreen(
                     viewModel = reportViewModel,
@@ -638,8 +598,7 @@ fun AppNavigation(
                 )
             }
 
-            // Edit Recipe Preferences route — standalone (its ViewModel reads/writes
-            // DataStore directly), no need to share ProfileViewModel's back stack entry.
+            // Edit Recipe Preferences route
             composable(AppRoutes.EDIT_RECIPE_PREFERENCES) {
                 EditRecipePreferencesScreen(navController = navController)
             }

@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -65,13 +66,12 @@ fun SignUpScreen(
     val context = LocalContext.current
     val successMessage by viewModel.successMessage
 
-    /* Reset any leftover errors whenever this screen is (re)entered
-    which covers both button navigation and the system back button. */
+    // Clear errors when the screen is first displayed to ensure a fresh state
     LaunchedEffect(Unit) {
         viewModel.clearErrors()
     }
 
-    // Show success message
+    // Show success message as a Toast when the account is created successfully
     LaunchedEffect(successMessage) {
         successMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -89,7 +89,7 @@ fun SignUpScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Create Your Account?",
+            text = stringResource(R.string.auth_create_account_title),
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -97,7 +97,7 @@ fun SignUpScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Create your account to get started with smart food inventory management.",
+            text = stringResource(R.string.auth_signup_subtitle),
             fontSize = 14.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
@@ -105,7 +105,6 @@ fun SignUpScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Username field
         OutlinedTextField(
             value = username,
             onValueChange = {
@@ -114,15 +113,15 @@ fun SignUpScreen(
                     viewModel.clearSignupUsernameError()
                 }
             },
-            label = { Text("Username") },
-            placeholder = { Text("John_Doe") },
+            label = { Text(stringResource(R.string.auth_username_label)) },
+            placeholder = { Text(stringResource(R.string.auth_username_placeholder)) },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             enabled = !isLoading,
             isError = usernameError != null,
             supportingText = {
                 Text(
-                    text = usernameError ?: "3-20 characters. Letters, numbers and underscore only.",
+                    text = usernameError ?: stringResource(R.string.auth_username_hint),
                     color = if (usernameError != null) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -136,7 +135,6 @@ fun SignUpScreen(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Email field
         OutlinedTextField(
             value = email,
             onValueChange = {
@@ -145,8 +143,8 @@ fun SignUpScreen(
                     viewModel.clearSignupEmailError()
                 }
             },
-            label = { Text("Email") },
-            placeholder = { Text("johndoe@example.com") },
+            label = { Text(stringResource(R.string.auth_email_label)) },
+            placeholder = { Text(stringResource(R.string.auth_email_placeholder)) },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             enabled = !isLoading,
@@ -165,7 +163,6 @@ fun SignUpScreen(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Phone field
         OutlinedTextField(
             value = phone,
             onValueChange = {
@@ -174,16 +171,16 @@ fun SignUpScreen(
                     viewModel.clearSignupPhoneError()
                 }
             },
-            label = { Text("Phone Number") },
-            placeholder = { Text("123456789") },
-            prefix = { Text("+60 ") },
+            label = { Text(stringResource(R.string.auth_phone_label)) },
+            placeholder = { Text(stringResource(R.string.auth_phone_placeholder)) },
+            prefix = { Text(stringResource(R.string.auth_phone_prefix)) },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             enabled = !isLoading,
             isError = phoneError != null,
             supportingText = {
                 Text(
-                    text = phoneError ?: "Only Malaysian phone numbers allowed.",
+                    text = phoneError ?: stringResource(R.string.auth_phone_hint),
                     color = if (phoneError != null) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -197,7 +194,6 @@ fun SignUpScreen(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Password field
         OutlinedTextField(
             value = password,
             onValueChange = {
@@ -206,16 +202,15 @@ fun SignUpScreen(
                     viewModel.clearSignupPasswordError()
                 }
             },
-            label = { Text("Password") },
-            placeholder = { Text("Enter your password") },
+            label = { Text(stringResource(R.string.auth_password_label)) },
+            placeholder = { Text(stringResource(R.string.auth_password_placeholder)) },
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             enabled = !isLoading,
             isError = passwordError != null,
             supportingText = {
                 Text(
-                    text = passwordError
-                        ?: "At least 6 characters, with uppercase, lowercase and a number.",
+                    text = passwordError ?: stringResource(R.string.auth_password_hint),
                     color = if (passwordError != null) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -230,7 +225,7 @@ fun SignUpScreen(
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         painter = painterResource(id = iconRes),
-                        contentDescription = "Toggle password visibility",
+                        contentDescription = stringResource(R.string.content_desc_toggle_password),
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -258,7 +253,7 @@ fun SignUpScreen(
                 )
             } else {
                 Text(
-                    text = "Sign Up",
+                    text = stringResource(R.string.auth_signup_link),
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -271,9 +266,9 @@ fun SignUpScreen(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Already have an account? ")
+            Text(stringResource(R.string.auth_already_have_account))
             Text(
-                text = "Login",
+                text = stringResource(R.string.auth_login_link),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.clickable { onNavigateToLogin() }
             )

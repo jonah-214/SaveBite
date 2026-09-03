@@ -103,4 +103,70 @@
     <string name="about_us_tagline">Track it. Use it. Waste less.</string>
     <string name="about_us_version">Version 1.3.3</string>
     <string name="content_desc_savebite_logo">SaveBite logo</string>
+
+    <!-- Authentication Module -->
+    <string name="auth_welcome_back">Welcome Back!</string>
+    <string name="auth_login_subtitle">Sign in to access smart, personalized food inventory management for you.</string>
+    <string name="auth_email_phone_label">Email/Phone Number</string>
+    <string name="auth_email_phone_placeholder">Enter your email or phone number</string>
+    <string name="auth_phone_formats_hint">Supported phone formats: 60123456789, 0123456789, 123456789</string>
+    <string name="auth_password_label">Password</string>
+    <string name="auth_password_placeholder">Enter your password</string>
+    <string name="auth_forgot_password">Forgot Password?</string>
+    <string name="auth_login_button">Login</string>
+    <string name="auth_no_account">Don\'t have an account? </string>
+    <string name="auth_signup_link">Sign Up</string>
+
+    <string name="auth_create_account_title">Create Your Account?</string>
+    <string name="auth_signup_subtitle">Create your account to get started with smart food inventory management.</string>
+    <string name="auth_username_label">Username</string>
+    <string name="auth_username_placeholder">John_Doe</string>
+    <string name="auth_username_hint">3-20 characters. Letters, numbers and underscore only.</string>
+    <string name="auth_email_label">Email</string>
+    <string name="auth_email_placeholder">johndoe@example.com</string>
+    <string name="auth_phone_label">Phone Number</string>
+    <string name="auth_phone_placeholder">123456789</string>
+    <string name="auth_phone_prefix">+60 </string>
+    <string name="auth_phone_hint">Only Malaysian phone numbers allowed.</string>
+    <string name="auth_password_hint">At least 6 characters, with uppercase, lowercase and a number.</string>
+    <string name="auth_already_have_account">Already have an account? </string>
+    <string name="auth_login_link">Login</string>
+
+    <string name="auth_forgot_password_title">Forget Password?</string>
+    <string name="auth_forgot_password_subtitle">Enter your email and we\'ll send you a link to reset your password.</string>
+    <string name="auth_send_reset_link">Send Reset Link</string>
+    <string name="auth_cancel">Cancel</string>
+    <string name="auth_check_email_title">Check Your Email</string>
+    <string name="auth_reset_sent_message">We\'ve sent a password reset link to %1$s. Please check your inbox.</string>
+    <string name="auth_back_to_login">Back to Login</string>
+
+    <string name="content_desc_toggle_password">Toggle password visibility</string>
+
+    <!-- Authentication Validation & Feedback -->
+    <string name="err_email_phone_required">Email or phone number is required</string>
+    <string name="err_password_required">Password is required</string>
+    <string name="err_invalid_credentials">Invalid email/phone number or password</string>
+    <string name="err_reset_email_failed">Failed to send password reset email. Please try again.</string>
+    <string name="msg_account_reactivated">Welcome back! Your account has been reactivated.</string>
+    <string name="msg_login_success">Login successful</string>
+    <string name="msg_signup_success">Account created successfully</string>
+    <string name="err_username_taken">Username is already taken</string>
+    <string name="err_email_registered">Email is already registered</string>
+    <string name="err_phone_registered">Phone number is already registered</string>
+    <string name="err_signup_failed">Signup failed. Please try again.</string>
+
+    <string name="err_username_required">Username is required</string>
+    <string name="err_username_length">Username must be 3-20 characters</string>
+    <string name="err_username_chars">Username can only contain letters, numbers and underscores</string>
+    <string name="err_username_consecutive_underscores">Username cannot contain consecutive underscores</string>
+    <string name="err_username_underscore_start_end">Username cannot start or end with an underscore</string>
+    <string name="err_email_required">Email is required</string>
+    <string name="err_email_invalid">Enter a valid email address</string>
+    <string name="err_phone_required">Phone number is required</string>
+    <string name="err_phone_invalid">Enter a valid Malaysian phone number (e.g. 60123456789)</string>
+    <string name="err_password_length">Password must be at least 6 characters</string>
+    <string name="err_password_max_length">Password must be at most 64 characters</string>
+    <string name="err_password_uppercase">Include at least one uppercase letter</string>
+    <string name="err_password_lowercase">Include at least one lowercase letter</string>
+    <string name="err_password_number">Include at least one number</string>
 </resources>

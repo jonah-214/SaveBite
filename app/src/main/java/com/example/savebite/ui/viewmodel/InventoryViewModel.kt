@@ -1,9 +1,7 @@
 package com.example.savebite.ui.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.InventorySortOption
@@ -20,9 +18,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class InventoryViewModel(application: Application) : AndroidViewModel(application) {
+class InventoryViewModel(private val repository: InventoryRepository) : ViewModel() {
 
-    private val repository: InventoryRepository
     val searchQuery = MutableStateFlow("")
     val selectedStorage = MutableStateFlow("All")
 
@@ -37,9 +34,6 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     val inventoryList: StateFlow<List<Inventory>>
 
     init {
-        val db = AppDatabase.getDatabase(application)
-        repository = InventoryRepository(db.inventoryDao(), db.storageDao(), db.reportDao())
-
         // Combine default storages with dynamic storages from Room DB
         storageList = repository.allStorageNames.map { dbStorages ->
             (defaultStorages + dbStorages).distinct()

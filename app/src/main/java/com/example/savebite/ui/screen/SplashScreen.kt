@@ -21,16 +21,27 @@ fun SplashScreen(
     onSessionFound: () -> Unit,
     onNoSession: () -> Unit
 ) {
-    // Check for an existing user session
     LaunchedEffect(Unit) {
+        /**
+         * Check local session first. If no ID is saved, we are definitely logged out.
+         * This makes the transition to Login screen instant for new/logged-out users.
+        **/
+        if (sessionManager.userIdFlow.value == -1) {
+            onNoSession()
+            return@LaunchedEffect
+        }
+
+        // If we have a local ID, verify if the remote (Supabase) session is still valid.
         val status = withTimeoutOrNull(5000L.milliseconds) {
             SupabaseClientProvider.client.auth.sessionStatus
                 .first { it !is SessionStatus.Initializing }
         }
 
         if (status is SessionStatus.Authenticated) {
+            // Session is valid, go to Dashboard
             onSessionFound()
         } else {
+            // Remote session expired or invalid, clear local data and go to Log in
             sessionManager.clearUserSession()
             onNoSession()
         }

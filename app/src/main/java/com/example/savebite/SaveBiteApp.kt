@@ -4,8 +4,13 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import com.example.savebite.data.AppContainer
+import com.example.savebite.data.DefaultAppContainer
 
 class SaveBiteApp : Application() {
+
+    // AppContainer instance used by the rest of the app to get dependencies
+    lateinit var container: AppContainer
 
     companion object {
         const val EXPIRY_CHANNEL_ID = "expiry_reminders"
@@ -13,6 +18,8 @@ class SaveBiteApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Initialize the Dependency Injection container
+        container = DefaultAppContainer(this)
         createExpiryNotificationChannel()
     }
 

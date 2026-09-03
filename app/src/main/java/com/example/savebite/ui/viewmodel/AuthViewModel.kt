@@ -109,6 +109,7 @@ class AuthViewModel(
                 Validators.normalizeMalaysianPhone(trimmedIdentifier)
             }
 
+            // Pre-validation checks to catch simple errors before hitting the network
             val identifierErr = when {
                 trimmedIdentifier.isBlank() -> "Email or phone number is required"
                 normalizedIdentifier.contains("@") -> Validators.validateEmail(normalizedIdentifier)
@@ -125,14 +126,17 @@ class AuthViewModel(
 
             _isLoading.value = true
 
-            // Supabase Auth only accepts email, so resolve phone -> email locally first
+            // Resolve Phone -> Email. Supabase Auth only accepts email for standard login,
+            // so if a user enters a phone, we find the email they registered with first.
             val email = if (normalizedIdentifier.contains("@")) {
                 normalizedIdentifier
             } else {
+                // Check Room (local cache) first for speed
                 val localUser = userRepository.getUserByPhone(normalizedIdentifier)
                 if (localUser != null) {
                     localUser.email
                 } else {
+                    // If not local, ask Supabase (remote) via a custom function
                     val remoteEmail = supabaseAuthRepository.getEmailByPhone(normalizedIdentifier)
                     if (remoteEmail == null) {
                         _isLoading.value = false
@@ -143,11 +147,11 @@ class AuthViewModel(
                 }
             }
 
+            // Perform the actual login with Supabase
             val result = supabaseAuthRepository.login(email, password)
 
             result.onSuccess { loginResult ->
-                // The account was correct-password-authenticated but was marked deactivated —
-                // this login is the (only) way back in, so flip it active again before continuing.
+                // Account Reactivation: If the account was deactivated, logging in reactivates it automatically.
                 if (loginResult.wasReactivated) {
                     val uid = loginResult.user.supabaseUid
                     if (uid != null) {
@@ -155,6 +159,7 @@ class AuthViewModel(
                     }
                 }
                 _isLoading.value = false
+                // Save session ID for auto-login and persistence
                 sessionManager.saveUserSession(loginResult.user.id)
                 _successMessage.value = if (loginResult.wasReactivated) {
                     "Welcome back! Your account has been reactivated."

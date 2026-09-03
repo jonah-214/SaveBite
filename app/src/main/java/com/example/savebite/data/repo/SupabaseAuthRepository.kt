@@ -17,13 +17,9 @@ data class ProfileRow(
     val email: String,
     val phone: String,
     val avatar_url: String? = null,
-    // Defaults to true so this still decodes correctly on a project where the
-    // is_active column hasn't been added yet (see ProfileRepository.setAccountActive).
     val is_active: Boolean = true
 )
 
-// Returned by login() so the caller can tell a fresh sign-in apart from one that
-// just auto-reactivated a previously deactivated account.
 data class LoginResult(
     val user: User,
     val wasReactivated: Boolean
@@ -36,8 +32,6 @@ data class AvailabilityResponse(
     val phone_taken: Boolean
 )
 
-// Handles Supabase Auth: sign-up, login, password changes and logout.
-// Profile field/avatar editing lives in ProfileRepository — see that class for why.
 class SupabaseAuthRepository(
     private val userRepository: UserRepository
 ) {
@@ -55,6 +49,7 @@ class SupabaseAuthRepository(
         password: String
     ): Result<User> {
         return try {
+            // Check availability of credentials using a custom database function (RPC)
             val availability = client.postgrest.rpc(
                 function = "check_availability",
                 parameters = buildJsonObject {
@@ -64,6 +59,7 @@ class SupabaseAuthRepository(
                 }
             ).decodeSingle<AvailabilityResponse>()
 
+            // Return early if any field is already taken
             if (availability.username_taken) {
                 return Result.failure(Exception("CONFLICT_USERNAME"))
             }
@@ -74,6 +70,7 @@ class SupabaseAuthRepository(
                 return Result.failure(Exception("CONFLICT_PHONE"))
             }
 
+            // Create the user in Supabase Auth
             val signUpResult = client.auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
@@ -83,17 +80,18 @@ class SupabaseAuthRepository(
                 }
             }
 
-            // Supabase returns an empty identities list (no exception) when the email is already registered, to prevent email enumeration.
+            // Handle Supabase email enumeration prevention
             if (signUpResult?.identities?.isEmpty() == true) {
                 return Result.failure(Exception("CONFLICT_EMAIL"))
             }
 
             val uid = client.auth.currentUserOrNull()?.id
             if (uid == null) {
-                // No session but identities were present -> likely "Confirm email" is enabled and a confirmation email was just sent.
+                // If email confirmation is required, the user won't have a session yet
                 return Result.failure(Exception("EMAIL_CONFIRMATION_REQUIRED"))
             }
 
+            // Mirror the new user into the local Room database for offline access
             val localUser = User(
                 supabaseUid = uid,
                 username = username,
@@ -109,14 +107,12 @@ class SupabaseAuthRepository(
     }
 
     // Login: authenticates with Supabase, syncs profile into Room, returns local User.
-    // If the account was previously deactivated, this signals that via wasReactivated
-    // rather than refusing the login — reactivating it is the caller's job (ProfileRepository
-    // owns writes to the profiles table), see AuthViewModel.login().
     suspend fun login(
         email: String,
         password: String
     ): Result<LoginResult> {
         return try {
+            // Authenticate with Supabase Auth
             val reauth = reauthenticate(email, password)
             if (reauth.isFailure) {
                 return Result.failure(reauth.exceptionOrNull() ?: Exception("Login failed"))
@@ -124,12 +120,12 @@ class SupabaseAuthRepository(
             val uid = client.auth.currentUserOrNull()?.id
                 ?: return Result.failure(Exception("Login failed: no session"))
 
-            // Pull latest profile from Supabase (source of truth for profile fields)
+            // Pull the latest profile data from Supabase
             val remoteProfile = client.postgrest.from("profiles")
                 .select { filter { eq("id", uid) } }
                 .decodeSingle<ProfileRow>()
 
-            // Upsert into local Room
+            // Sync this data into the local Room database (Offline-First)
             var localUser = userRepository.getUserBySupabaseUid(uid)
             if (localUser == null) {
                 val newUser = User(
@@ -150,10 +146,7 @@ class SupabaseAuthRepository(
                 localUser = updated
             }
 
-            // Inventory/shopping/report data is synced independently by each
-            // feature's own ViewModel when its screen loads (see InventoryViewModel,
-            // ShoppingViewModel, ReportViewModel) — no post-login sync needed here.
-
+            // Return success with reactivation flag if the account was inactive
             Result.success(LoginResult(localUser, wasReactivated = !remoteProfile.is_active))
         } catch (e: Exception) {
             Log.e(TAG, "login failed for email=$email", e)
@@ -161,9 +154,7 @@ class SupabaseAuthRepository(
         }
     }
 
-    // Authenticate with an email/password pair without touching anything else.
-    // Used both as the first step of login() and to verify the current password
-    // before a sensitive action (change password, deactivate account).
+    // Used for reactivate account after account was deactivated
     suspend fun reauthenticate(email: String, password: String): Result<Unit> {
         return try {
             client.auth.signInWith(Email) {
