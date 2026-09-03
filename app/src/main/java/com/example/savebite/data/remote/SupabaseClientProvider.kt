@@ -5,10 +5,8 @@ import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.storage.Storage
 
-/**
- * SupabaseClientProvider initializes and holds the singleton instance of the Supabase Client.
- * It installs the necessary modules: Auth, Postgrest (Database), and Storage.
- */
+// SupabaseClientProvider initializes and holds the singleton instance of the Supabase Client
+// It installs the necessary modules: Auth, Postgrest (Database), and Storage
 object SupabaseClientProvider {
     val client = createSupabaseClient(
         supabaseUrl = "https://ehjkuwpuwqthgzueezpi.supabase.co",

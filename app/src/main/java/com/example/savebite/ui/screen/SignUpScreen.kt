@@ -66,12 +66,12 @@ fun SignUpScreen(
     val context = LocalContext.current
     val successMessage by viewModel.successMessage
 
-    // Clear errors when the screen is first displayed to ensure a fresh state
+    // Ensure the screen starts with no residual errors
     LaunchedEffect(Unit) {
         viewModel.clearErrors()
     }
 
-    // Show success message as a Toast when the account is created successfully
+    // React to success messages by showing a Toast
     LaunchedEffect(successMessage) {
         successMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -270,7 +270,7 @@ fun SignUpScreen(
             Text(
                 text = stringResource(R.string.auth_login_link),
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { onNavigateToLogin() }
+                modifier = Modifier.clickable(enabled = !isLoading) { onNavigateToLogin() }
             )
         }
     }

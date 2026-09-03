@@ -183,7 +183,7 @@ fun LoginScreen(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onNavigateToForgotPassword() },
+                .clickable(enabled = !isLoading) { onNavigateToForgotPassword() },
             textAlign = TextAlign.End
         )
 
@@ -233,7 +233,7 @@ fun LoginScreen(
             Text(
                 text = stringResource(R.string.auth_signup_link),
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { onNavigateToSignup() }
+                modifier = Modifier.clickable(enabled = !isLoading) { onNavigateToSignup() }
             )
         }
     }

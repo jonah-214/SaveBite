@@ -18,51 +18,45 @@ class AuthViewModel(
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
-    // Login Errors - Phone or Email
+    // --- Login State ---
     private val _loginIdentifierError = mutableStateOf<String?>(null)
     val loginIdentifierError: State<String?> = _loginIdentifierError
 
-    // Login Errors - Password
     private val _loginPasswordError = mutableStateOf<String?>(null)
     val loginPasswordError: State<String?> = _loginPasswordError
 
-    // Login Errors - When credentials are invalid
     private val _loginError = mutableStateOf<String?>(null)
     val loginError: State<String?> = _loginError
 
-    // Forgot Password Errors - Email field error
+    // --- Forgot Password State ---
     private val _forgotPasswordEmailError = mutableStateOf<String?>(null)
     val forgotPasswordEmailError: State<String?> = _forgotPasswordEmailError
 
-    // Forgot Password - Reset email sent success message
     private val _resetEmailSent = mutableStateOf(false)
     val resetEmailSent: State<Boolean> = _resetEmailSent
 
-    // Sign Up Errors - Username
+    // --- Sign Up State ---
     private val _signupUsernameError = mutableStateOf<String?>(null)
     val signupUsernameError: State<String?> = _signupUsernameError
 
-    // Sign Up Errors - Email
     private val _signupEmailError = mutableStateOf<String?>(null)
     val signupEmailError: State<String?> = _signupEmailError
 
-    // Sign Up Errors - Phone
     private val _signupPhoneError = mutableStateOf<String?>(null)
     val signupPhoneError: State<String?> = _signupPhoneError
 
-    // Sign Up Errors - Password
     private val _signupPasswordError = mutableStateOf<String?>(null)
     val signupPasswordError: State<String?> = _signupPasswordError
 
-    // Loading state - used to show loading spinner
+    // --- Global UI State ---
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
-    // Login/Sign Up Success Message
     private val _successMessage = mutableStateOf<String?>(null)
     val successMessage: State<String?> = _successMessage
 
-    // Clear all errors when switching Login or Signup screens
+    // Resets all error states and success messages
+    // Should be called when navigating between auth screens
     fun clearErrors() {
         _loginIdentifierError.value = null
         _loginPasswordError.value = null
@@ -72,27 +66,22 @@ class AuthViewModel(
         _signupPhoneError.value = null
         _signupPasswordError.value = null
         _successMessage.value = null
-        _forgotPasswordEmailError .value = null
+        _forgotPasswordEmailError.value = null
         _resetEmailSent.value = false
     }
 
-    // Clear individual field errors as the user edits (Login screen)
+    // --- Clear Individual Error Methods ---
     fun clearLoginIdentifierError() { _loginIdentifierError.value = null }
     fun clearLoginPasswordError() { _loginPasswordError.value = null }
-
-    // Clear individual field errors as the user edits (Sign Up screen)
     fun clearSignupUsernameError() { _signupUsernameError.value = null }
     fun clearSignupEmailError() { _signupEmailError.value = null }
     fun clearSignupPhoneError() { _signupPhoneError.value = null }
     fun clearSignupPasswordError() { _signupPasswordError.value = null }
-
-    // Clear field error (Forgot Password screen)
     fun clearForgotPasswordEmailError() { _forgotPasswordEmailError.value = null }
-
-    // Clear only the success message after it's been shown as a toast
     fun clearSuccessMessage() { _successMessage.value = null }
 
-    // Login user
+    // Attempts to log in the user using either email or phone number.
+    // Handles account reactivation if the user was previously deactivated.
     fun login(identifier: String, password: String, onSuccess: () -> Unit) {
         if (_isLoading.value) return
 
@@ -109,7 +98,7 @@ class AuthViewModel(
                 Validators.normalizeMalaysianPhone(trimmedIdentifier)
             }
 
-            // Pre-validation checks to catch simple errors before hitting the network
+            // Perform initial validation before network request
             val identifierErr = when {
                 trimmedIdentifier.isBlank() -> "Email or phone number is required"
                 normalizedIdentifier.contains("@") -> Validators.validateEmail(normalizedIdentifier)
@@ -126,17 +115,14 @@ class AuthViewModel(
 
             _isLoading.value = true
 
-            // Resolve Phone -> Email. Supabase Auth only accepts email for standard login,
-            // so if a user enters a phone, we find the email they registered with first.
+            // Resolve identifier to email for Supabase Auth
             val email = if (normalizedIdentifier.contains("@")) {
                 normalizedIdentifier
             } else {
-                // Check Room (local cache) first for speed
                 val localUser = userRepository.getUserByPhone(normalizedIdentifier)
                 if (localUser != null) {
                     localUser.email
                 } else {
-                    // If not local, ask Supabase (remote) via a custom function
                     val remoteEmail = supabaseAuthRepository.getEmailByPhone(normalizedIdentifier)
                     if (remoteEmail == null) {
                         _isLoading.value = false
@@ -147,11 +133,9 @@ class AuthViewModel(
                 }
             }
 
-            // Perform the actual login with Supabase
             val result = supabaseAuthRepository.login(email, password)
 
             result.onSuccess { loginResult ->
-                // Account Reactivation: If the account was deactivated, logging in reactivates it automatically.
                 if (loginResult.wasReactivated) {
                     val uid = loginResult.user.supabaseUid
                     if (uid != null) {
@@ -159,7 +143,6 @@ class AuthViewModel(
                     }
                 }
                 _isLoading.value = false
-                // Save session ID for auto-login and persistence
                 sessionManager.saveUserSession(loginResult.user.id)
                 _successMessage.value = if (loginResult.wasReactivated) {
                     "Welcome back! Your account has been reactivated."
@@ -174,7 +157,7 @@ class AuthViewModel(
         }
     }
 
-    // Reset Password
+    // Sends a password reset link to the specified email address
     fun sendPasswordReset(email: String) {
         viewModelScope.launch {
             _forgotPasswordEmailError.value = null
@@ -198,7 +181,7 @@ class AuthViewModel(
         }
     }
 
-    // Signup user
+    // Creates a new user account with Supabase and mirrors it to the local database.
     fun signup(
         username: String,
         email: String,
@@ -218,7 +201,6 @@ class AuthViewModel(
             _signupPhoneError.value = null
             _signupPasswordError.value = null
 
-            // Validation checks all fields (format only - uniqueness is enforced by Supabase)
             val usernameFormatError = Validators.validateUsername(trimmedUsername)
             val emailFormatError = Validators.validateEmail(trimmedEmail)
             val phoneFormatError = Validators.validatePhone(trimmedPhone)
@@ -260,7 +242,7 @@ class AuthViewModel(
         }
     }
 
-    // Logout user
+    // Logs out the current user and clears the local session
     fun logout(onLoggedOut: () -> Unit) {
         viewModelScope.launch {
             supabaseAuthRepository.logout()

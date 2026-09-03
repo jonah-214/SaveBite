@@ -171,34 +171,6 @@
 
     <string name="content_desc_toggle_password">Toggle password visibility</string>
 
-    <!-- Authentication Validation & Feedback -->
-    <string name="err_email_phone_required">Email or phone number is required</string>
-    <string name="err_password_required">Password is required</string>
-    <string name="err_invalid_credentials">Invalid email/phone number or password</string>
-    <string name="err_reset_email_failed">Failed to send password reset email. Please try again.</string>
-    <string name="msg_account_reactivated">Welcome back! Your account has been reactivated.</string>
-    <string name="msg_login_success">Login successful</string>
-    <string name="msg_signup_success">Account created successfully</string>
-    <string name="err_username_taken">Username is already taken</string>
-    <string name="err_email_registered">Email is already registered</string>
-    <string name="err_phone_registered">Phone number is already registered</string>
-    <string name="err_signup_failed">Signup failed. Please try again.</string>
-
-    <string name="err_username_required">Username is required</string>
-    <string name="err_username_length">Username must be 3-20 characters</string>
-    <string name="err_username_chars">Username can only contain letters, numbers and underscores</string>
-    <string name="err_username_consecutive_underscores">Username cannot contain consecutive underscores</string>
-    <string name="err_username_underscore_start_end">Username cannot start or end with an underscore</string>
-    <string name="err_email_required">Email is required</string>
-    <string name="err_email_invalid">Enter a valid email address</string>
-    <string name="err_phone_required">Phone number is required</string>
-    <string name="err_phone_invalid">Enter a valid Malaysian phone number (e.g. 60123456789)</string>
-    <string name="err_password_length">Password must be at least 6 characters</string>
-    <string name="err_password_max_length">Password must be at most 64 characters</string>
-    <string name="err_password_uppercase">Include at least one uppercase letter</string>
-    <string name="err_password_lowercase">Include at least one lowercase letter</string>
-    <string name="err_password_number">Include at least one number</string>
-
     <!-- Dashboard Module -->
     <string name="dashboard_sync_error">Couldn\'t refresh — showing saved data</string>
     <string name="dashboard_sync_retry">Retry</string>

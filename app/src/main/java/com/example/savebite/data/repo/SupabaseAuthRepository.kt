@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
+// Data transfer object representing a row in the Supabase 'profiles' table
 @Serializable
 data class ProfileRow(
     val id: String,
@@ -20,11 +21,15 @@ data class ProfileRow(
     val is_active: Boolean = true
 )
 
+
+// Result of a successful login attempt, including the user entity and a reactivation flag
 data class LoginResult(
     val user: User,
     val wasReactivated: Boolean
 )
 
+
+// Response from the Supabase RPC checking for credential availability.
 @Serializable
 data class AvailabilityResponse(
     val username_taken: Boolean,
@@ -41,7 +46,12 @@ class SupabaseAuthRepository(
         private const val TAG = "SupabaseAuthRepository"
     }
 
-    // Sign up: creates Supabase Auth user, inserts profile row, mirrors into Room
+    /*
+    * Signs up a new user
+    * 1. Checks for credential availability via Supabase RPC
+    * 2. Creates the user in Supabase Auth
+    * 3. Mirrors the user profile into the local Room database
+    */
     suspend fun signUp(
         username: String,
         email: String,
@@ -106,7 +116,12 @@ class SupabaseAuthRepository(
         }
     }
 
-    // Login: authenticates with Supabase, syncs profile into Room, returns local User.
+    /*
+     * Authenticates a user with email/password.
+     * 1. Performs remote authentication via Supabase.
+     * 2. Fetches the latest profile data.
+     * 3. Syncs the profile to the local Room database.
+     */
     suspend fun login(
         email: String,
         password: String
@@ -154,7 +169,8 @@ class SupabaseAuthRepository(
         }
     }
 
-    // Used for reactivate account after account was deactivated
+    // Performs a standard sign-in request. Used for both login and verification
+    // before sensitive operations like password changes.
     suspend fun reauthenticate(email: String, password: String): Result<Unit> {
         return try {
             client.auth.signInWith(Email) {
@@ -167,7 +183,9 @@ class SupabaseAuthRepository(
         }
     }
 
-    // Resolve a phone number login to its registered email via Supabase
+
+    // Resolves a phone number to its primary registered email address
+    // This allows users to log in with a phone number even though Supabase uses email
     suspend fun getEmailByPhone(phone: String): String? {
         return try {
             client.postgrest.rpc(
@@ -182,7 +200,8 @@ class SupabaseAuthRepository(
         }
     }
 
-    // Change password: re-authenticate with the current password first (to verify it's correct), then update to the new one.
+    // Updates the user's password in Supabase
+    // Verifies the current password before applying the new one
     suspend fun changePassword(
         email: String,
         currentPassword: String,
@@ -198,13 +217,12 @@ class SupabaseAuthRepository(
             }
             Result.success(Unit)
         } catch (e: Exception) {
-            // Never log password values, only the outcome/context.
             Log.e(TAG, "changePassword failed for email=$email", e)
             Result.failure(e)
         }
     }
 
-    // Send a password reset email via Supabase Auth
+    // Triggers a password reset email via Supabase Auth.
     suspend fun sendPasswordReset(email: String): Result<Unit> {
         return try {
             client.auth.resetPasswordForEmail(email)
@@ -215,7 +233,8 @@ class SupabaseAuthRepository(
         }
     }
 
-    // Logout user
+
+    // Terminates the current Supabase session.
     suspend fun logout() {
         client.auth.signOut()
     }
