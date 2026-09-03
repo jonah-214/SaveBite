@@ -169,4 +169,32 @@
     <string name="err_password_uppercase">Include at least one uppercase letter</string>
     <string name="err_password_lowercase">Include at least one lowercase letter</string>
     <string name="err_password_number">Include at least one number</string>
+
+    <!-- Dashboard Module -->
+    <string name="dashboard_sync_error">Couldn\'t refresh — showing saved data</string>
+    <string name="dashboard_sync_retry">Retry</string>
+    <string name="dashboard_syncing">Syncing…</string>
+    <string name="dashboard_welcome">Welcome, %1$s</string>
+    <string name="dashboard_motto">Track your food, save the planet</string>
+    <string name="dashboard_expiry_title">Expiry Reminder</string>
+    <string name="dashboard_expiry_empty">No items expiring soon</string>
+    <string name="dashboard_expiry_count_singular">%1$d item expiring soon</string>
+    <string name="dashboard_expiry_count_plural">%1$d items expiring soon</string>
+    <string name="dashboard_expiry_today">Today</string>
+    <string name="dashboard_expiry_days_left">%1$dd left</string>
+    <string name="dashboard_inventory_label">Inventory</string>
+    <string name="dashboard_shopping_label">Shopping List</string>
+    <string name="dashboard_waste_title">Waste Report</string>
+    <string name="dashboard_waste_empty">No waste recorded for this period</string>
+    <string name="dashboard_saved_month">Saved This Month</string>
+    <string name="dashboard_waste_caption_weekly">Items wasted, last 4 weeks</string>
+    <string name="dashboard_waste_caption_monthly">Items wasted, last 6 months</string>
+    <string name="dashboard_waste_caption_yearly">Items wasted, last 3 years</string>
+    <string name="dashboard_recipes_title">Recipe Suggestions</string>
+    <string name="dashboard_recipes_empty">No recipe suggestions right now</string>
+    <string name="dashboard_recipe_uses_singular">Uses %1$d expiring item</string>
+    <string name="dashboard_recipe_uses_plural">Uses %1$d expiring items</string>
+    <string name="dashboard_see_all">See All</string>
+    <string name="dashboard_default_user">User</string>
+    <string name="dashboard_sync_failed_generic">Couldn\'t refresh from the cloud</string>
 </resources>

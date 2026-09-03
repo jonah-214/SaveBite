@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,6 +57,82 @@ fun DashboardScreen(
     navController: NavHostController,
     dashboardViewModel: DashboardViewModel
 ) {
+    val syncStatus by dashboardViewModel.syncStatus.collectAsStateWithLifecycle()
+    val username by dashboardViewModel.username.collectAsStateWithLifecycle()
+    val avatarUrl by dashboardViewModel.avatarUrl.collectAsStateWithLifecycle()
+    val expiringItems by dashboardViewModel.expiringItems.collectAsStateWithLifecycle()
+    val inventoryCount by dashboardViewModel.inventoryCount.collectAsStateWithLifecycle()
+    val shoppingCount by dashboardViewModel.shoppingListCount.collectAsStateWithLifecycle()
+    val savedAmount by dashboardViewModel.savedThisMonth.collectAsStateWithLifecycle()
+    val wasteTrackerData by dashboardViewModel.wasteTrackerData.collectAsStateWithLifecycle()
+    val wastePeriod by dashboardViewModel.wastePeriod.collectAsStateWithLifecycle()
+    val recipeSuggestions by dashboardViewModel.recipeSuggestions.collectAsStateWithLifecycle()
+
+    DashboardContent(
+        syncStatus = syncStatus,
+        username = username,
+        avatarUrl = avatarUrl,
+        expiringItems = expiringItems,
+        inventoryCount = inventoryCount,
+        shoppingCount = shoppingCount,
+        savedAmount = savedAmount,
+        wasteTrackerData = wasteTrackerData,
+        wastePeriod = wastePeriod,
+        recipeSuggestions = recipeSuggestions,
+        onRetrySync = dashboardViewModel::syncFromCloud,
+        onWastePeriodSelected = dashboardViewModel::onWastePeriodSelected,
+        onProfileClick = {
+            navController.navigate(AppRoutes.PROFILE) {
+                launchSingleTop = true
+            }
+        },
+        onSeeAllExpiryClick = {
+            navController.navigate(AppRoutes.REMINDER) {
+                launchSingleTop = true
+            }
+        },
+        onExpiryItemClick = { item ->
+            navController.navigate("${AppRoutes.INVENTORY_DETAILS}/${item.id}")
+        },
+        onInventoryClick = {
+            navController.navigate(AppRoutes.INVENTORY) {
+                launchSingleTop = true
+            }
+        },
+        onShoppingClick = {
+            navController.navigate(AppRoutes.SHOPPING) {
+                launchSingleTop = true
+            }
+        },
+        onSeeAllRecipesClick = {
+            navController.navigate(AppRoutes.RECIPE) {
+                launchSingleTop = true
+            }
+        }
+    )
+}
+
+@Composable
+fun DashboardContent(
+    syncStatus: SyncStatus,
+    username: String,
+    avatarUrl: String?,
+    expiringItems: List<ExpiryItem>,
+    inventoryCount: Int,
+    shoppingCount: Int,
+    savedAmount: Double,
+    wasteTrackerData: List<Int>,
+    wastePeriod: WastePeriod,
+    recipeSuggestions: List<RecipeSuggestion>,
+    onRetrySync: () -> Unit,
+    onWastePeriodSelected: (WastePeriod) -> Unit,
+    onProfileClick: () -> Unit,
+    onSeeAllExpiryClick: () -> Unit,
+    onExpiryItemClick: (ExpiryItem) -> Unit,
+    onInventoryClick: () -> Unit,
+    onShoppingClick: () -> Unit,
+    onSeeAllRecipesClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -64,77 +141,51 @@ fun DashboardScreen(
             .padding(horizontal = 16.dp)
             .padding(bottom = 16.dp)
     ) {
-        // Cloud sync status — only visible while syncing or after a failed refresh
+        // Sync status banner
         SyncStatusBanner(
-            status = dashboardViewModel.syncStatus.collectAsStateWithLifecycle().value,
-            onRetryClick = dashboardViewModel::syncFromCloud
+            status = syncStatus,
+            onRetryClick = onRetrySync
         )
 
-        // Greeting user Header Area
+        // User header
         DashboardHeader(
-            username = dashboardViewModel.username.collectAsStateWithLifecycle().value,
-            avatarUrl = dashboardViewModel.avatarUrl.collectAsStateWithLifecycle().value,
-            onProfileClick = {
-                navController.navigate(AppRoutes.PROFILE) {
-                    launchSingleTop = true
-                }
-            }
+            username = username,
+            avatarUrl = avatarUrl,
+            onProfileClick = onProfileClick
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Expiry Reminder Card Area
+        // Expiry reminders
         ExpiryReminderCard(
-            items = dashboardViewModel.expiringItems.collectAsStateWithLifecycle().value,
-            onSeeAllClick = {
-                navController.navigate(AppRoutes.REMINDER) {
-                    launchSingleTop = true
-                }
-            },
-            onItemClick = { item ->
-                navController.navigate("${AppRoutes.INVENTORY_DETAILS}/${item.id}")
-            }
+            items = expiringItems,
+            onSeeAllClick = onSeeAllExpiryClick,
+            onItemClick = onExpiryItemClick
         )
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Inventory & Shopping List Stats Area
+        // Inventory and shopping stats
         StatsRow(
-            inventoryCount = dashboardViewModel.inventoryCount.collectAsStateWithLifecycle().value,
-            shoppingCount = dashboardViewModel.shoppingListCount.collectAsStateWithLifecycle().value,
-            onInventoryClick = {
-                navController.navigate(AppRoutes.INVENTORY) {
-                    launchSingleTop = true
-                }
-            },
-            onShoppingClick = {
-                navController.navigate(AppRoutes.SHOPPING) {
-                    launchSingleTop = true
-                }
-            }
+            inventoryCount = inventoryCount,
+            shoppingCount = shoppingCount,
+            onInventoryClick = onInventoryClick,
+            onShoppingClick = onShoppingClick
         )
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Waste Tracker Report Area
-        val savedAmount by dashboardViewModel.savedThisMonth.collectAsStateWithLifecycle()
-        val wasteTrackerData by dashboardViewModel.wasteTrackerData.collectAsStateWithLifecycle()
-        val wastePeriod by dashboardViewModel.wastePeriod.collectAsStateWithLifecycle()
-
+        // Waste report
         WasteReportSection(
             savedAmount = savedAmount,
             wasteData = wasteTrackerData,
             selectedPeriod = wastePeriod,
-            onPeriodSelected = dashboardViewModel::onWastePeriodSelected
+            onPeriodSelected = onWastePeriodSelected
         )
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Recipe Suggestions Area
+        // Recipe suggestions
         RecipeSuggestionsRow(
-            recipes = dashboardViewModel.recipeSuggestions.collectAsStateWithLifecycle().value,
-            onSeeAllClick = {
-                navController.navigate(AppRoutes.RECIPE) {
-                    launchSingleTop = true
-                }
-            }
+            recipes = recipeSuggestions,
+            onSeeAllClick = onSeeAllRecipesClick
         )
     }
 }
@@ -156,7 +207,7 @@ fun SyncStatusBanner(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Couldn't refresh — showing saved data",
+                    text = stringResource(R.string.dashboard_sync_error),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                     maxLines = 1,
@@ -164,7 +215,7 @@ fun SyncStatusBanner(
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = "Retry",
+                    text = stringResource(R.string.dashboard_sync_retry),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onErrorContainer,
@@ -178,7 +229,7 @@ fun SyncStatusBanner(
 
         SyncStatus.Syncing -> {
             Text(
-                text = "Syncing…",
+                text = stringResource(R.string.dashboard_syncing),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -204,7 +255,7 @@ fun DashboardHeader(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = "Welcome, $username",
+                text = stringResource(R.string.dashboard_welcome, username),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -212,7 +263,7 @@ fun DashboardHeader(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "Track your food, save the planet",
+                text = stringResource(R.string.dashboard_motto),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -234,7 +285,7 @@ fun DashboardHeader(
             if (avatarUrl != null) {
                 AsyncImage(
                     model = avatarUrl,
-                    contentDescription = "Profile",
+                    contentDescription = stringResource(R.string.content_desc_profile_picture),
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
@@ -242,7 +293,7 @@ fun DashboardHeader(
             } else {
                 Icon(
                     painter = painterResource(id = R.drawable.account_circle),
-                    contentDescription = "Profile",
+                    contentDescription = stringResource(R.string.content_desc_profile_picture),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(28.dp)
                 )
@@ -271,28 +322,33 @@ fun ExpiryReminderCard(
                 .padding(16.dp)
         ) {
             SectionHeader(
-                title = "Expiry Reminder",
+                title = stringResource(R.string.dashboard_expiry_title),
                 icon = R.drawable.notifications,
                 onSeeAllClick = onSeeAllClick
             )
 
             if (items.isEmpty()) {
                 Text(
-                    text = "No items expiring soon",
+                    text = stringResource(R.string.dashboard_expiry_empty),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 12.dp)
                 )
             } else {
+                val countText = if (items.size == 1) {
+                    stringResource(R.string.dashboard_expiry_count_singular, items.size)
+                } else {
+                    stringResource(R.string.dashboard_expiry_count_plural, items.size)
+                }
                 Text(
-                    text = "${items.size} item${if (items.size == 1) "" else "s"} expiring soon",
+                    text = countText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
-                // Only show top 3 most urgent
+                // Top 3 urgent items
                 items.take(3).forEach { item ->
                     ExpiryItemRow(item, onClick = { onItemClick(item) })
                     Spacer(modifier = Modifier.height(8.dp))
@@ -346,8 +402,13 @@ fun ExpiryItemRow(
         Spacer(modifier = Modifier.width(8.dp))
 
         val (bg, fg) = expirySectionColors(item.daysLeft)
+        val dayText = if (item.daysLeft <= 0) {
+            stringResource(R.string.dashboard_expiry_today)
+        } else {
+            stringResource(R.string.dashboard_expiry_days_left, item.daysLeft)
+        }
         Text(
-            text = if (item.daysLeft <= 0) "Today" else "${item.daysLeft}d left",
+            text = dayText,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
             color = fg,
@@ -372,7 +433,7 @@ fun StatsRow(
     ) {
         StatsCard(
             count = inventoryCount,
-            label = "Inventory",
+            label = stringResource(R.string.dashboard_inventory_label),
             icon = R.drawable.inventory_2,
             modifier = Modifier
                 .weight(1f),
@@ -380,7 +441,7 @@ fun StatsRow(
         )
         StatsCard(
             count = shoppingCount,
-            label = "Shopping List",
+            label = stringResource(R.string.dashboard_shopping_label),
             icon = R.drawable.shopping_cart,
             modifier = Modifier
                 .weight(1f),
@@ -437,10 +498,8 @@ fun WasteReportSection(
     onPeriodSelected: (WastePeriod) -> Unit
 ) {
     Column {
-        // No "See All" here — Waste Report is a self-contained summary,
-        // there's no separate detail screen it would link to.
         SectionHeader(
-            title = "Waste Report",
+            title = stringResource(R.string.dashboard_waste_title),
             icon = R.drawable.assignment
         )
 
@@ -454,7 +513,7 @@ fun WasteReportSection(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Saved This Month",
+                text = stringResource(R.string.dashboard_saved_month),
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.Medium
             )
@@ -467,31 +526,47 @@ fun WasteReportSection(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Chart and "Items Wasted" text moved above the selection tabs
-        val maxValue = (wasteData.maxOrNull() ?: 1).coerceAtLeast(1)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            wasteData.forEach { value ->
-                val barHeight = (value.toFloat() / maxValue) * 60.dp.value
-                val barColor = if (value == maxValue) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primary
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(barHeight.dp)
-                        .align(Alignment.Bottom)
-                        .background(barColor, RoundedCornerShape(6.dp))
+        // Waste chart
+        val totalWaste = wasteData.sum()
+        if (totalWaste == 0) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.dashboard_waste_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+        } else {
+            val maxValue = (wasteData.maxOrNull() ?: 1).coerceAtLeast(1)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                wasteData.forEach { value ->
+                    val barHeight = (value.toFloat() / maxValue) * 60.dp.value
+                    val barColor = if (value == maxValue) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primary
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(barHeight.dp)
+                            .align(Alignment.Bottom)
+                            .background(barColor, RoundedCornerShape(6.dp))
+                    )
+                }
             }
         }
 
         val caption = when (selectedPeriod) {
-            WastePeriod.WEEKLY -> "Items wasted, last 4 weeks"
-            WastePeriod.MONTHLY -> "Items wasted, last 6 months"
-            WastePeriod.YEARLY -> "Items wasted, last 3 years"
+            WastePeriod.WEEKLY -> stringResource(R.string.dashboard_waste_caption_weekly)
+            WastePeriod.MONTHLY -> stringResource(R.string.dashboard_waste_caption_monthly)
+            WastePeriod.YEARLY -> stringResource(R.string.dashboard_waste_caption_yearly)
         }
         Text(
             text = caption,
@@ -510,7 +585,6 @@ fun WasteReportSection(
     }
 }
 
-/** Three-way Weekly / Monthly / Yearly switch for the waste bar chart above. */
 @Composable
 fun WastePeriodToggle(
     selectedPeriod: WastePeriod,
@@ -553,7 +627,7 @@ fun RecipeSuggestionsRow(
 ) {
     Column {
         SectionHeader(
-            title = "Recipe Suggestions",
+            title = stringResource(R.string.dashboard_recipes_title),
             icon = R.drawable.chef_hat,
             onSeeAllClick = onSeeAllClick
         )
@@ -568,7 +642,7 @@ fun RecipeSuggestionsRow(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No recipe suggestions right now",
+                    text = stringResource(R.string.dashboard_recipes_empty),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -610,8 +684,13 @@ fun RecipeCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            val usesText = if (recipe.expiringCount == 1) {
+                stringResource(R.string.dashboard_recipe_uses_singular, recipe.expiringCount)
+            } else {
+                stringResource(R.string.dashboard_recipe_uses_plural, recipe.expiringCount)
+            }
             Text(
-                text = recipe.usesText,
+                text = usesText,
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -624,7 +703,7 @@ fun RecipeCard(
 @Composable
 fun SeeAllText(onClick: () -> Unit) {
     Text(
-        text = "See All",
+        text = stringResource(R.string.dashboard_see_all),
         color = MaterialTheme.colorScheme.primary,
         style = MaterialTheme.typography.labelLarge,
         modifier = Modifier
@@ -661,7 +740,6 @@ fun SectionHeader(
                 fontWeight = FontWeight.Bold
             )
         }
-        // Only sections that link to a detail screen show "See All".
         if (onSeeAllClick != null) {
             SeeAllText(onSeeAllClick)
         }

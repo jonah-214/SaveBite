@@ -10,5 +10,5 @@ data class ExpiryItem(
 
 data class RecipeSuggestion(
     val name: String,
-    val usesText: String,
+    val expiringCount: Int,
 )
