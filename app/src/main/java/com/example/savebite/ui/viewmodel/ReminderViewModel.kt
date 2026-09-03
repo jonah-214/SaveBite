@@ -6,6 +6,7 @@ import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.utils.ExpiryGrouping
 import com.example.savebite.utils.ExpirySection
 import com.example.savebite.model.Inventory
+import com.example.savebite.R
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,11 +16,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-enum class SortOrder(val label: String) {
-    EXPIRY_ASC("Soonest First"),
-    EXPIRY_DESC("Latest First"),
-    NAME_ASC("Name (A-Z)"),
-    NAME_DESC("Name (Z-A)")
+enum class SortOrder(val labelRes: Int) {
+    EXPIRY_ASC(R.string.sort_expiry_asc),
+    EXPIRY_DESC(R.string.sort_expiry_desc),
+    NAME_ASC(R.string.sort_name_asc),
+    NAME_DESC(R.string.sort_name_desc)
 }
 
 class ReminderViewModel(
@@ -34,7 +35,7 @@ class ReminderViewModel(
     private val _sortOrder = MutableStateFlow(SortOrder.EXPIRY_ASC)
     val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
 
-    // Filtered + sorted + grouped items
+    // Filtered items
     private val filteredItems: Flow<List<Inventory>> = combine(
         inventoryRepository.allInventory,
         _searchQuery,
@@ -60,7 +61,7 @@ class ReminderViewModel(
         .map { ExpiryGrouping.group(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    // Total count before filtering
+    // Total count
     val totalItemCount: StateFlow<Int> = inventoryRepository.allInventory
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)

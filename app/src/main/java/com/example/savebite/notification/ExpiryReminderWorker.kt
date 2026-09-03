@@ -6,7 +6,6 @@ import androidx.work.WorkerParameters
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.utils.ExpiryGrouping
-import com.example.savebite.utils.ExpirySection
 import com.example.savebite.utils.NotificationPreferenceManager
 
 class ExpiryReminderWorker(
@@ -14,7 +13,7 @@ class ExpiryReminderWorker(
     params: WorkerParameters
 ) : CoroutineWorker(context, params) {
 
-    // This method runs in the background, even if the app is closed!
+    // Background task execution
     override suspend fun doWork(): Result {
         val database = AppDatabase.getDatabase(applicationContext)
         val inventoryRepository = InventoryRepository(
@@ -24,33 +23,28 @@ class ExpiryReminderWorker(
         )
 
         return try {
-            // 0. Respect the user's Notification preference from Profile & Settings.
-            //    If they've turned it off, skip straight to success without notifying.
+            // Check notification preference
             val notificationPreferenceManager = NotificationPreferenceManager(applicationContext)
             if (!notificationPreferenceManager.isNotificationEnabled()) {
                 return Result.success()
             }
 
-            // 1. Refresh daysLeft for every item first — without this, items whose
-            //    expiry has crept closer since the Inventory screen was last opened
-            //    would be checked against a stale, outdated daysLeft value.
+            // Update expiry days
             inventoryRepository.cleanupExpiredItems()
 
-            // 2. Get all food items from the local database (now up to date)
-            val allItems = database.inventoryDao().getAllInventorySync()
+            // Fetch items expiring soon via repository
+            val expiringSoonNames = inventoryRepository.getExpiringItemNames(
+                thresholdDays = ExpiryGrouping.SOON_THRESHOLD_DAYS
+            )
 
-            // 3. Filter for items that are "expiring soon"
-            val grouped = ExpiryGrouping.group(allItems)
-            val expiringSoon = grouped[ExpirySection.SOON].orEmpty()
-
-            // 4. If we found any, trigger the notification to show up
-            if (expiringSoon.isNotEmpty()) {
-                showExpiryNotification(applicationContext, expiringSoon.size)
+            // Show notification if items found
+            if (expiringSoonNames.isNotEmpty()) {
+                showExpiryNotification(applicationContext, expiringSoonNames)
             }
 
-            Result.success() // Task completed successfully
+            Result.success() // Task success
         } catch (e: Exception) {
-            Result.failure() // Something went wrong, try again later
+            Result.failure() // Task failure
         }
     }
 }

@@ -104,6 +104,35 @@
     <string name="about_us_version">Version 1.3.3</string>
     <string name="content_desc_savebite_logo">SaveBite logo</string>
 
+    <!-- Reminder screen -->
+    <string name="reminder_title">Expiry Reminder</string>
+    <string name="reminder_search_placeholder">Search items…</string>
+    <string name="reminder_expiry_today">Today</string>
+    <string name="reminder_expiry_days_left">%1$dd left</string>
+    <string name="reminder_content_desc_recipe">See recipes using %1$s</string>
+    <string name="reminder_empty_search_title">No items match your filter</string>
+    <string name="reminder_empty_no_items_title">Nothing expiring soon</string>
+    <string name="reminder_empty_search_body">Try clearing the search or storage filter.</string>
+    <string name="reminder_empty_no_items_body">Items you add to Inventory will show up here as they approach their expiry date.</string>
+    <string name="reminder_action_clear_filters">Clear All Filters</string>
+
+    <!-- Reminder sorting -->
+    <string name="sort_expiry_asc">Soonest First</string>
+    <string name="sort_expiry_desc">Latest First</string>
+    <string name="sort_name_asc">Name (A-Z)</string>
+    <string name="sort_name_desc">Name (Z-A)</string>
+
+    <!-- Notifications -->
+    <string name="notification_expiry_title">Food waste alert</string>
+    <string name="notification_expiry_single">%1$s is expiring soon</string>
+    <string name="notification_expiry_double">%1$s and 1 other item are expiring soon</string>
+    <string name="notification_expiry_multiple">%1$s and %2$d other items are expiring soon</string>
+
+    <!-- Expiry Sections -->
+    <string name="expiry_soon">Expiring Soon</string>
+    <string name="expiry_this_week">This Week</string>
+    <string name="expiry_later">Later</string>
+
     <!-- Authentication Module -->
     <string name="auth_welcome_back">Welcome Back!</string>
     <string name="auth_login_subtitle">Sign in to access smart, personalized food inventory management for you.</string>

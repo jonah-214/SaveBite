@@ -24,6 +24,8 @@ object AppRoutes {
     const val SHOPPING = "shopping"
     // Recipe Suggestions screen
     const val RECIPE = "recipe"
+    // Recipe Detail screen
+    const val RECIPE_PATTERN = "recipe?searchQuery={searchQuery}"
     // Waste Tracker Report screen
     const val REPORTS = "reports"
     // Profile & Settings screen

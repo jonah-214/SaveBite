@@ -24,6 +24,9 @@ interface InventoryDao {
     @Query("SELECT * FROM inventory_table WHERE id = :id")
     fun getInventoryById(id: String): Flow<Inventory?>
 
+    @Query("SELECT name FROM inventory_table WHERE daysLeft <= :thresholdDays")
+    suspend fun getExpiringItemNames(thresholdDays: Int): List<String>
+
     @Query("""
         SELECT * FROM inventory_table 
         WHERE (:storage = 'All' OR storage = :storage)

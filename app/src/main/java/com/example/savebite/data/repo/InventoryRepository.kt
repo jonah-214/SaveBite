@@ -137,6 +137,10 @@ class InventoryRepository(
         }
     }
 
+    suspend fun getExpiringItemNames(thresholdDays: Int): List<String> {
+        return inventoryDao.getExpiringItemNames(thresholdDays)
+    }
+
     suspend fun moveItemsToReport(
         itemsWithQty: List<Pair<Inventory, Int>>,
         status: ReportStatus,

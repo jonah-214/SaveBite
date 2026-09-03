@@ -25,10 +25,11 @@ import com.example.savebite.ui.viewmodel.RecipeViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeScreen(
-    viewModel: RecipeViewModel
+    viewModel: RecipeViewModel,
+    initialSearchQuery: String = ""
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var searchQuery by remember { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf(initialSearchQuery) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -178,6 +179,10 @@ fun RecipeScreen(
                     // 4. "Recommended for You" Horizontal Cards
                     item {
                         Column {
+                            val filteredRecommended = uiState.recipes.filter {
+                                searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true)
+                            }
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -198,16 +203,16 @@ fun RecipeScreen(
                             }
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            if (uiState.recipes.isEmpty()) {
+                            if (filteredRecommended.isEmpty()) {
                                 Text(
-                                    "No recipes found. Try adding expiring ingredients!",
+                                    if (searchQuery.isBlank()) "No recipes found. Try adding expiring ingredients!" else "No recipes match \"$searchQuery\"",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(vertical = 20.dp)
                                 )
                             } else {
                                 LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                                    items(uiState.recipes) { recipe ->
+                                    items(filteredRecommended) { recipe ->
                                         RecommendedCard(recipe = recipe)
                                     }
                                 }
@@ -216,7 +221,11 @@ fun RecipeScreen(
                     }
 
                     // 5. "Popular Recipes" Vertical Items
-                    if (uiState.recipes.isNotEmpty()) {
+                    val filteredPopular = uiState.recipes.reversed().filter {
+                        searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true)
+                    }
+
+                    if (filteredPopular.isNotEmpty()) {
                         item {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -238,7 +247,7 @@ fun RecipeScreen(
                             }
                         }
 
-                        items(uiState.recipes.reversed()) { recipe ->
+                        items(filteredPopular) { recipe ->
                             PopularRecipeRowCard(recipe = recipe)
                         }
                     }

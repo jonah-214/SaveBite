@@ -5,12 +5,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -41,7 +38,7 @@ fun <T> AppSearchBar(
     sortOptions: List<T> = emptyList(),
     selectedSortOption: T? = null,
     onSortOptionSelected: ((T) -> Unit)? = null,
-    getSortOptionLabel: (T) -> String = { it.toString() },
+    getSortOptionLabel: @Composable (T) -> String = { it.toString() },
     modifier: Modifier = Modifier
 ) {
     var sortMenuExpanded by remember { mutableStateOf(false) }
@@ -101,7 +98,7 @@ fun <T> AppSearchBar(
                     modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.FilterList,
+                        painter = painterResource(id = R.drawable.filter_list),
                         contentDescription = "Sort Options",
                         tint = MaterialTheme.colorScheme.primary
                     )

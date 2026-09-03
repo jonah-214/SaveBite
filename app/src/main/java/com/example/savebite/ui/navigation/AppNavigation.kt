@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,6 +24,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.savebite.SaveBiteApp
 import com.example.savebite.data.local.RecipeUserPreferences
+import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.model.ReportStatus
 import com.example.savebite.ui.screen.AboutUsScreen
 import com.example.savebite.ui.screen.AddInventoryScreen
@@ -449,9 +451,19 @@ fun AppNavigation(
                 )
             }
 
-            composable(AppRoutes.RECIPE) {
+            composable(
+                route = AppRoutes.RECIPE_PATTERN,
+                arguments = listOf(navArgument("searchQuery") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                })
+            ) { backStackEntry ->
                 val context = LocalContext.current
-                val scope = androidx.compose.runtime.rememberCoroutineScope()
+                val db = AppDatabase.getDatabase(context)
+                val scope = rememberCoroutineScope()
+
+                val initialSearchQuery = backStackEntry.arguments?.getString("searchQuery")
 
                 // 读取 Recipe 专属的首次运行状态
                 val userPreferences = remember { RecipeUserPreferences(context) }
@@ -478,8 +490,7 @@ fun AppNavigation(
                     val inventoryRepository = (context.applicationContext as SaveBiteApp).container.inventoryRepository
                     val allInventoryItems by inventoryRepository.allInventory.collectAsState(initial = emptyList())
 
-                    // Dietary Preference / Allergies / Household Type — read live so a change
-                    // made later in Profile & Settings is picked up next time this screen composes.
+                    // Dietary Preference / Allergies / Household Type
                     val dietType by userPreferences.dietType.collectAsState(initial = "None")
                     val allergies by userPreferences.allergies.collectAsState(initial = emptySet())
                     val householdType by userPreferences.householdType.collectAsState(initial = "Student")
@@ -490,7 +501,10 @@ fun AppNavigation(
                         recipeViewModel.fetchAIRecipes(allInventoryItems, dietType, allergies, householdType)
                     }
 
-                    RecipeScreen(viewModel = recipeViewModel)
+                    RecipeScreen(
+                        viewModel = recipeViewModel,
+                        initialSearchQuery = initialSearchQuery ?: ""
+                    )
                 }
             }
 

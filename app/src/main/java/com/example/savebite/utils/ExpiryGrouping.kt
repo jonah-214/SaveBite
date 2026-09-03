@@ -1,12 +1,13 @@
 package com.example.savebite.utils
 
+import com.example.savebite.R
 import com.example.savebite.model.Inventory
 
-// Show the section label in the UI, e.g. "Expiring Soon", "This Week", "Later"
-enum class ExpirySection(val label: String) {
-    SOON("Expiring Soon"),
-    THIS_WEEK("This Week"),
-    LATER("Later")
+// Expiry sections for grouping items
+enum class ExpirySection(val labelRes: Int) {
+    SOON(R.string.expiry_soon),
+    THIS_WEEK(R.string.expiry_this_week),
+    LATER(R.string.expiry_later)
 }
 
 object ExpiryGrouping {
