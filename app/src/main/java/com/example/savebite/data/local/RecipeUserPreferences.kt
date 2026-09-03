@@ -17,6 +17,7 @@ class RecipeUserPreferences(private val context: Context) {
         val IS_FIRST_RUN = booleanPreferencesKey("is_first_run")
         val DIET_TYPE = stringPreferencesKey("diet_type") // 例如：None, Vegetarian, Vegan
         val ALLERGIES = stringSetPreferencesKey("allergies") // 例如：["Peanuts", "Seafood"]
+        val HOUSEHOLD_TYPE = stringPreferencesKey("household_type") // Student, Adult, Family
     }
 
     // 判断是否是第一次进入 APP
@@ -33,11 +34,17 @@ class RecipeUserPreferences(private val context: Context) {
         preferences[ALLERGIES] ?: emptySet()
     }
 
+    // Defaults to "Student" since that's SaveBite's primary audience
+    val householdType: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[HOUSEHOLD_TYPE] ?: "Student"
+    }
+
     // 保存设置并标记完成引导
-    suspend fun saveUserPreferences(diet: String, allergySet: Set<String>) {
+    suspend fun saveUserPreferences(diet: String, allergySet: Set<String>, household: String) {
         context.dataStore.edit { preferences ->
             preferences[DIET_TYPE] = diet
             preferences[ALLERGIES] = allergySet
+            preferences[HOUSEHOLD_TYPE] = household
             preferences[IS_FIRST_RUN] = false // 标记以后不再弹出引导页
         }
     }

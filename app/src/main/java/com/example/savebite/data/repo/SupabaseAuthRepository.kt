@@ -16,7 +16,17 @@ data class ProfileRow(
     val username: String,
     val email: String,
     val phone: String,
-    val avatar_url: String? = null
+    val avatar_url: String? = null,
+    // Defaults to true so this still decodes correctly on a project where the
+    // is_active column hasn't been added yet (see ProfileRepository.setAccountActive).
+    val is_active: Boolean = true
+)
+
+// Returned by login() so the caller can tell a fresh sign-in apart from one that
+// just auto-reactivated a previously deactivated account.
+data class LoginResult(
+    val user: User,
+    val wasReactivated: Boolean
 )
 
 @Serializable
@@ -98,15 +108,18 @@ class SupabaseAuthRepository(
         }
     }
 
-    // Login: authenticates with Supabase, syncs profile into Room, returns local User
+    // Login: authenticates with Supabase, syncs profile into Room, returns local User.
+    // If the account was previously deactivated, this signals that via wasReactivated
+    // rather than refusing the login — reactivating it is the caller's job (ProfileRepository
+    // owns writes to the profiles table), see AuthViewModel.login().
     suspend fun login(
         email: String,
         password: String
-    ): Result<User> {
+    ): Result<LoginResult> {
         return try {
-            client.auth.signInWith(Email) {
-                this.email = email
-                this.password = password
+            val reauth = reauthenticate(email, password)
+            if (reauth.isFailure) {
+                return Result.failure(reauth.exceptionOrNull() ?: Exception("Login failed"))
             }
             val uid = client.auth.currentUserOrNull()?.id
                 ?: return Result.failure(Exception("Login failed: no session"))
@@ -141,9 +154,24 @@ class SupabaseAuthRepository(
             // feature's own ViewModel when its screen loads (see InventoryViewModel,
             // ShoppingViewModel, ReportViewModel) — no post-login sync needed here.
 
-            Result.success(localUser)
+            Result.success(LoginResult(localUser, wasReactivated = !remoteProfile.is_active))
         } catch (e: Exception) {
             Log.e(TAG, "login failed for email=$email", e)
+            Result.failure(e)
+        }
+    }
+
+    // Authenticate with an email/password pair without touching anything else.
+    // Used both as the first step of login() and to verify the current password
+    // before a sensitive action (change password, deactivate account).
+    suspend fun reauthenticate(email: String, password: String): Result<Unit> {
+        return try {
+            client.auth.signInWith(Email) {
+                this.email = email
+                this.password = password
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
@@ -169,12 +197,11 @@ class SupabaseAuthRepository(
         currentPassword: String,
         newPassword: String
     ): Result<Unit> {
+        val reauth = reauthenticate(email, currentPassword)
+        if (reauth.isFailure) {
+            return Result.failure(reauth.exceptionOrNull() ?: Exception("Current password is incorrect"))
+        }
         return try {
-            // Authenticate with the current password, check if it's correct.
-            client.auth.signInWith(Email) {
-                this.email = email
-                this.password = currentPassword
-            }
             client.auth.updateUser {
                 password = newPassword
             }

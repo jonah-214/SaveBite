@@ -22,6 +22,10 @@
     <string name="profile_appearance_label">Appearance</string>
     <string name="profile_about_us_label">About Us</string>
     <string name="profile_about_us_subtitle">Learn more about SaveBite</string>
+    <string name="profile_recipe_preferences_label">Dietary Preferences</string>
+    <string name="profile_recipe_preferences_subtitle">Diet, allergies and household type for recipe suggestions</string>
+    <string name="profile_deactivate_account_label">Deactivate Account</string>
+    <string name="profile_deactivate_account_subtitle">Temporarily disable your account</string>
     <string name="profile_logout">Logout</string>
     <string name="profile_logout_dialog_title">Log out?</string>
     <string name="profile_logout_dialog_message">You\'ll need to sign in again to access your account.</string>
@@ -65,6 +69,21 @@
     <string name="content_desc_toggle_current_password">Toggle current password visibility</string>
     <string name="content_desc_toggle_new_password">Toggle new password visibility</string>
     <string name="content_desc_toggle_confirm_password">Toggle confirm password visibility</string>
+
+    <!-- Deactivate Account screen -->
+    <string name="deactivate_account_title">Deactivate Account</string>
+    <string name="deactivate_account_warning_heading">Before you deactivate</string>
+    <string name="deactivate_account_warning_body">You\'ll be signed out immediately and won\'t receive expiry reminders. Your data (inventory, shopping lists, reports) is kept safe — log back in anytime with your email and password to reactivate your account.</string>
+    <string name="deactivate_account_password_label">Confirm Your Password</string>
+    <string name="deactivate_account_password_placeholder">Enter your password to confirm</string>
+    <string name="deactivate_account_button">Deactivate Account</string>
+    <string name="content_desc_toggle_deactivate_password">Toggle password visibility</string>
+
+    <!-- Edit Recipe Preferences screen -->
+    <string name="edit_recipe_preferences_title">Dietary Preferences</string>
+    <string name="edit_recipe_preferences_save">Save Preferences</string>
+    <string name="edit_recipe_preferences_header_title">Update Your Preferences</string>
+    <string name="edit_recipe_preferences_header_subtitle">Changes apply the next time recipe suggestions are generated.</string>
 
     <!-- About Us screen -->
     <string name="about_us_title">About Us</string>

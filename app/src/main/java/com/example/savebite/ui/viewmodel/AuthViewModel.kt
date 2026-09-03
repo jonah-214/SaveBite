@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.savebite.data.repo.ProfileRepository
 import com.example.savebite.data.repo.SupabaseAuthRepository
 import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.utils.SessionManager
@@ -13,6 +14,7 @@ import kotlinx.coroutines.launch
 class AuthViewModel(
     private val userRepository: UserRepository,
     private val supabaseAuthRepository: SupabaseAuthRepository,
+    private val profileRepository: ProfileRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -142,13 +144,26 @@ class AuthViewModel(
             }
 
             val result = supabaseAuthRepository.login(email, password)
-            _isLoading.value = false
 
-            result.onSuccess { user ->
-                sessionManager.saveUserSession(user.id)
-                _successMessage.value = "Login successful"
+            result.onSuccess { loginResult ->
+                // The account was correct-password-authenticated but was marked deactivated —
+                // this login is the (only) way back in, so flip it active again before continuing.
+                if (loginResult.wasReactivated) {
+                    val uid = loginResult.user.supabaseUid
+                    if (uid != null) {
+                        profileRepository.setAccountActive(uid, true)
+                    }
+                }
+                _isLoading.value = false
+                sessionManager.saveUserSession(loginResult.user.id)
+                _successMessage.value = if (loginResult.wasReactivated) {
+                    "Welcome back! Your account has been reactivated."
+                } else {
+                    "Login successful"
+                }
                 onSuccess()
             }.onFailure {
+                _isLoading.value = false
                 _loginError.value = "Invalid email/phone number or password"
             }
         }

@@ -33,7 +33,12 @@ class GeminiRecipeService(private val apiKey: String) {
         )
     }
 
-    suspend fun generateRecipes(expiringItems: List<Inventory>): List<Recipe> = withContext(Dispatchers.IO) {
+    suspend fun generateRecipes(
+        expiringItems: List<Inventory>,
+        dietType: String = "None",
+        allergies: Set<String> = emptySet(),
+        householdType: String = "Student"
+    ): List<Recipe> = withContext(Dispatchers.IO) {
         if (apiKey.isBlank()) {
             Log.e("GeminiRecipeService", "API key is blank")
             throw Exception("MISSING_API_KEY")
@@ -46,12 +51,36 @@ class GeminiRecipeService(private val apiKey: String) {
             "${it.name} (${it.quantity} ${it.unit}, ${it.daysLeft} days left)"
         }
 
+        // Household Type -> a rough serving count, so recipe quantities feel right for
+        // SaveBite's target users (students cooking solo vs. a family meal).
+        val servings = when (householdType) {
+            "Adult" -> 2
+            "Family" -> 4
+            else -> 1 // "Student" and any unrecognized value fall back to 1
+        }
+
+        val dietInstruction = if (dietType != "None") {
+            "The user follows a $dietType diet — every recipe must be strictly $dietType."
+        } else {
+            ""
+        }
+
+        val allergyInstruction = if (allergies.isNotEmpty()) {
+            "The user is allergic to: ${allergies.joinToString(", ")}. " +
+                "Do not include any of these ingredients, or anything derived from them, in any recipe."
+        } else {
+            ""
+        }
+
         val prompt = """
-            You are a creative zero-waste chef. 
+            You are a creative zero-waste chef.
             I have these expiring ingredients in my kitchen: $ingredientsPrompt.
-            
+
             Please suggest 3 distinct recipes that prioritize using these expiring ingredients.
-            
+            Scale each recipe for about $servings serving(s).
+            $dietInstruction
+            $allergyInstruction
+
             Return JSON in this exact structure:
             [
               {

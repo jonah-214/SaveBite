@@ -78,6 +78,10 @@ class ProfileViewModel(
     private val _passwordChangeSuccess = mutableStateOf(value = false)
     val changePasswordSuccess: State<Boolean> = _passwordChangeSuccess
 
+    // Deactivate Account Error - Password
+    private val _deactivatePasswordError = mutableStateOf<String?>(null)
+    val deactivatePasswordError: State<String?> = _deactivatePasswordError
+
     // Loading State
     private val _isLoading = mutableStateOf(value = false)
     val isLoading: State<Boolean> = _isLoading
@@ -126,6 +130,7 @@ class ProfileViewModel(
         _updateSuccess.value = false
         _emailConfirmationPending.value = false
         _passwordChangeSuccess.value = false
+        _deactivatePasswordError.value = null
         _pendingAvatarBytes.value = null
         _pendingAvatarUri.value = null
     }
@@ -139,6 +144,9 @@ class ProfileViewModel(
     fun clearCurrentPasswordError() { _currentPasswordError.value = null }
     fun clearNewPasswordError() { _newPasswordError.value = null }
     fun clearConfirmNewPasswordError() { _confirmNewPasswordError.value = null }
+
+    // Clear Deactivate Account error as the user retypes
+    fun clearDeactivatePasswordError() { _deactivatePasswordError.value = null }
 
     // Set pending avatar for preview
     fun setPendingAvatar(bytes: ByteArray, uri: android.net.Uri, mimeType: String?) {
@@ -386,6 +394,45 @@ class ProfileViewModel(
             sessionManager.clearUserSession()
             _isLoading.value = false
             onLoggedOut()
+        }
+    }
+
+    // Deactivate the account: verify the password first (so an accidental tap can't do this),
+    // mark it inactive in Supabase, then sign out. Logging back in with the same credentials
+    // later auto-reactivates it — see AuthViewModel.login().
+    fun deactivateAccount(
+        password: String,
+        onDeactivated: () -> Unit
+    ) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _deactivatePasswordError.value = null
+
+            val currentUser = _user.value
+            val uid = currentUser?.supabaseUid
+            if (currentUser == null || uid == null) {
+                _deactivatePasswordError.value = "User not loaded. Please try again."
+                _isLoading.value = false
+                return@launch
+            }
+
+            val reauth = supabaseAuthRepository.reauthenticate(currentUser.email, password)
+            if (reauth.isFailure) {
+                _deactivatePasswordError.value = "Incorrect password"
+                _isLoading.value = false
+                return@launch
+            }
+
+            val result = profileRepository.setAccountActive(uid, false)
+            result.onSuccess {
+                supabaseAuthRepository.logout()
+                sessionManager.clearUserSession()
+                _isLoading.value = false
+                onDeactivated()
+            }.onFailure {
+                _deactivatePasswordError.value = "Failed to deactivate account. Please try again."
+                _isLoading.value = false
+            }
         }
     }
 }

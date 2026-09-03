@@ -28,8 +28,13 @@ class RecipeRepository(
     }
 
     // 从 API 获取新数据并更新本地数据库
-    suspend fun fetchAndSaveRecipes(expiringItems: List<Inventory>): List<Recipe> {
-        val newRecipes = aiService.generateRecipes(expiringItems)
+    suspend fun fetchAndSaveRecipes(
+        expiringItems: List<Inventory>,
+        dietType: String = "None",
+        allergies: Set<String> = emptySet(),
+        householdType: String = "Student"
+    ): List<Recipe> {
+        val newRecipes = aiService.generateRecipes(expiringItems, dietType, allergies, householdType)
         if (newRecipes.isNotEmpty()) {
             val jsonString = Json.encodeToString(newRecipes)
             recipeDao.insertRecipes(RecipeEntity(jsonContent = jsonString))

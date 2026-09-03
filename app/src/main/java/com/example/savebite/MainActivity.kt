@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
         )
 
         // Set up the "Factories": These help create the ViewModels
-        val authViewModelFactory = AuthViewModelFactory(userRepository, supabaseAuthRepository, sessionManager)
+        val authViewModelFactory = AuthViewModelFactory(userRepository, supabaseAuthRepository, profileRepository, sessionManager)
         val dashboardViewModelFactory = DashboardViewModelFactory(userRepository, inventoryRepository, shoppingRepository, reportRepository, recipeRepository, sessionManager)
         val reminderViewModelFactory = ReminderViewModelFactory(inventoryRepository)
         val profileViewModelFactory = ProfileViewModelFactory(userRepository, supabaseAuthRepository, profileRepository, sessionManager, notificationPreferenceManager)

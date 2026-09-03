@@ -14,7 +14,8 @@ data class ProfileUpdate(
     val username: String? = null,
     val email: String? = null,
     val phone: String? = null,
-    val avatar_url: String? = null
+    val avatar_url: String? = null,
+    val is_active: Boolean? = null
 )
 
 // Handles editing an already-signed-in user's profile: field updates and avatar upload/removal.
@@ -132,6 +133,23 @@ class ProfileRepository {
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "removeAvatar failed for uid=$uid", e)
+            Result.failure(e)
+        }
+    }
+
+    // Flip the profiles.is_active flag — false to deactivate the account (Profile & Settings
+    // > Deactivate Account), true to auto-reactivate it on a later successful login
+    // (see SupabaseAuthRepository.login() / AuthViewModel.login()).
+    suspend fun setAccountActive(uid: String, isActive: Boolean): Result<Unit> {
+        return try {
+            client.postgrest.from("profiles").update(
+                ProfileUpdate(is_active = isActive)
+            ) {
+                filter { eq("id", uid) }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "setAccountActive($isActive) failed for uid=$uid", e)
             Result.failure(e)
         }
     }

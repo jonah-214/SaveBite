@@ -26,6 +26,12 @@ class RecipeViewModel(
 
     private var cachedInventory: List<Inventory> = emptyList()
 
+    // Cached alongside cachedInventory so retryFetch() can re-send the same request
+    // without the caller having to pass preferences in a second time.
+    private var cachedDietType: String = "None"
+    private var cachedAllergies: Set<String> = emptySet()
+    private var cachedHouseholdType: String = "Student"
+
     init {
         // ViewModel 初始化时立即监听 Room 缓存数据
         viewModelScope.launch {
@@ -37,14 +43,31 @@ class RecipeViewModel(
         }
     }
 
-    fun fetchAIRecipes(allInventoryItems: List<Inventory>) {
-        cachedInventory = allInventoryItems
+    fun fetchAIRecipes(
+        allInventoryItems: List<Inventory>,
+        dietType: String = "None",
+        allergies: Set<String> = emptySet(),
+        householdType: String = "Student"
+    ) {
         val urgentItems = allInventoryItems.filter { !it.isConsumed && it.daysLeft <= 3 }
+
+        // Compare against the OLD cached values before overwriting them below — this is what
+        // actually lets us tell whether the expiring items or the preferences changed, so a
+        // preference edit in Profile & Settings correctly triggers a fresh AI request.
+        val itemsChanged = urgentItems != _uiState.value.expiringItems
+        val preferencesChanged = dietType != cachedDietType ||
+            allergies != cachedAllergies ||
+            householdType != cachedHouseholdType
+
+        cachedInventory = allInventoryItems
+        cachedDietType = dietType
+        cachedAllergies = allergies
+        cachedHouseholdType = householdType
 
         _uiState.value = _uiState.value.copy(expiringItems = urgentItems)
 
-        // 如果已有数据且过期食材没变，不自动刷新
-        if (_uiState.value.recipes.isNotEmpty() && _uiState.value.expiringItems == urgentItems) {
+        // 如果已有数据且过期食材/偏好都没变，不自动刷新
+        if (!itemsChanged && !preferencesChanged && _uiState.value.recipes.isNotEmpty()) {
             return
         }
 
@@ -68,7 +91,12 @@ class RecipeViewModel(
 
             try {
                 // 调用 repository，成功后会自动存入 Room
-                val fetchedRecipes = repository.fetchAndSaveRecipes(urgentItems)
+                val fetchedRecipes = repository.fetchAndSaveRecipes(
+                    urgentItems,
+                    cachedDietType,
+                    cachedAllergies,
+                    cachedHouseholdType
+                )
 
                 _uiState.value = _uiState.value.copy(
                     recipes = fetchedRecipes,

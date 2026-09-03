@@ -32,6 +32,10 @@ object AppRoutes {
     const val EDIT_PROFILE = "edit_profile"
     // Change Password screen
     const val CHANGE_PASSWORD = "change_password"
+    // Deactivate Account screen
+    const val DEACTIVATE_ACCOUNT = "deactivate_account"
+    // Edit Recipe Preferences screen (Diet / Allergies / Household Type)
+    const val EDIT_RECIPE_PREFERENCES = "edit_recipe_preferences"
     // About Us screen
     const val ABOUT_US = "about_us"
 

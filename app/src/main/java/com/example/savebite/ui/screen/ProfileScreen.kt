@@ -137,6 +137,11 @@ fun ProfileScreen(
                     navController.navigate(AppRoutes.CHANGE_PASSWORD) {
                         launchSingleTop = true
                     }
+                },
+                onDeactivateAccountClick = {
+                    navController.navigate(AppRoutes.DEACTIVATE_ACCOUNT) {
+                        launchSingleTop = true
+                    }
                 }
             )
 
@@ -148,7 +153,12 @@ fun ProfileScreen(
                 notificationEnabled = profileViewModel.notificationEnabled.value,
                 onNotificationToggle = { profileViewModel.setNotificationEnabled(it) },
                 themeMode = themeMode,
-                onThemeModeChange = { themeViewModel.setThemeMode(it) }
+                onThemeModeChange = { themeViewModel.setThemeMode(it) },
+                onRecipePreferencesClick = {
+                    navController.navigate(AppRoutes.EDIT_RECIPE_PREFERENCES) {
+                        launchSingleTop = true
+                    }
+                }
             )
 
             // Support tab
@@ -288,7 +298,8 @@ fun ProfileHeaderCard(
 @Composable
 fun AccountSettingsCard(
     onEditProfileClick: () -> Unit,
-    onChangePasswordClick: () -> Unit
+    onChangePasswordClick: () -> Unit,
+    onDeactivateAccountClick: () -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -318,6 +329,15 @@ fun AccountSettingsCard(
                 subtitle = stringResource(R.string.profile_change_password_subtitle),
                 onClick = onChangePasswordClick
             )
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+            SettingsRow(
+                icon = R.drawable.removecircle,
+                label = stringResource(R.string.profile_deactivate_account_label),
+                subtitle = stringResource(R.string.profile_deactivate_account_subtitle),
+                onClick = onDeactivateAccountClick
+            )
         }
     }
 }
@@ -328,6 +348,7 @@ fun PreferencesCard(
     onNotificationToggle: (Boolean) -> Unit,
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
+    onRecipePreferencesClick: () -> Unit,
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -348,6 +369,15 @@ fun PreferencesCard(
                         onCheckedChange = onNotificationToggle
                     )
                 }
+            )
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+            SettingsRow(
+                icon = R.drawable.chef_hat,
+                label = stringResource(R.string.profile_recipe_preferences_label),
+                subtitle = stringResource(R.string.profile_recipe_preferences_subtitle),
+                onClick = onRecipePreferencesClick
             )
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))

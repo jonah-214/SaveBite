@@ -37,6 +37,8 @@ import com.example.savebite.ui.screen.AddInventoryScreen
 import com.example.savebite.ui.screen.AddShoppingItemScreen
 import com.example.savebite.ui.screen.ChangePasswordScreen
 import com.example.savebite.ui.screen.DashboardScreen
+import com.example.savebite.ui.screen.DeactivateAccountScreen
+import com.example.savebite.ui.screen.EditRecipePreferencesScreen
 import com.example.savebite.ui.screen.EditProfileScreen
 import com.example.savebite.ui.screen.ForgotPasswordScreen
 import com.example.savebite.ui.screen.InventoryDetailScreen
@@ -490,6 +492,12 @@ fun AppNavigation(
                     val recipeDao = db.recipeDao()
                     val allInventoryItems by inventoryDao.getAllInventory().collectAsState(initial = emptyList())
 
+                    // Dietary Preference / Allergies / Household Type — read live so a change
+                    // made later in Profile & Settings is picked up next time this screen composes.
+                    val dietType by userPreferences.dietType.collectAsState(initial = "None")
+                    val allergies by userPreferences.allergies.collectAsState(initial = emptySet())
+                    val householdType by userPreferences.householdType.collectAsState(initial = "Student")
+
                     val aiService = remember {
                         GeminiRecipeService(apiKey = com.example.savebite.BuildConfig.GEMINI_API_KEY)
                     }
@@ -507,8 +515,8 @@ fun AppNavigation(
                         }
                     )
 
-                    LaunchedEffect(allInventoryItems) {
-                        recipeViewModel.fetchAIRecipes(allInventoryItems)
+                    LaunchedEffect(allInventoryItems, dietType, allergies, householdType) {
+                        recipeViewModel.fetchAIRecipes(allInventoryItems, dietType, allergies, householdType)
                     }
 
                     RecipeScreen(viewModel = recipeViewModel)
@@ -615,6 +623,25 @@ fun AppNavigation(
                     navController = navController,
                     profileViewModel = profileViewModel
                 )
+            }
+
+            // Deactivate Account route
+            composable(AppRoutes.DEACTIVATE_ACCOUNT) { backStackEntry ->
+                val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(AppRoutes.PROFILE) }
+                val profileViewModel: ProfileViewModel = viewModel(
+                    viewModelStoreOwner = parentEntry,
+                    factory = profileViewModelFactory
+                )
+                DeactivateAccountScreen(
+                    navController = navController,
+                    profileViewModel = profileViewModel
+                )
+            }
+
+            // Edit Recipe Preferences route — standalone (its ViewModel reads/writes
+            // DataStore directly), no need to share ProfileViewModel's back stack entry.
+            composable(AppRoutes.EDIT_RECIPE_PREFERENCES) {
+                EditRecipePreferencesScreen(navController = navController)
             }
 
             // About Us route
