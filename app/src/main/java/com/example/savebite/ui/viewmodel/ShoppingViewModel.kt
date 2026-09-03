@@ -13,13 +13,16 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.Date
 
+
 class ShoppingViewModel(
     private val shoppingRepository: ShoppingRepository,
     private val inventoryRepository: InventoryRepository
 ) : ViewModel() {
 
+    // Current search query for filtering the shopping list
     val searchQuery = MutableStateFlow("")
 
+    // The observable list of shopping items, filtered by the current [searchQuery].
     val items: StateFlow<List<ShoppingItem>> = combine(
         shoppingRepository.allShoppingItems,
         searchQuery
@@ -35,22 +38,27 @@ class ShoppingViewModel(
         syncFromCloud()
     }
 
+    // Triggers a synchronization of shopping items from Supabase
     fun syncFromCloud() {
         viewModelScope.launch(Dispatchers.IO) {
             shoppingRepository.syncFromCloud()
         }
     }
 
+
+    // Updates the search query to filter the list
     fun onSearchQueryChange(newQuery: String) {
         searchQuery.value = newQuery
     }
 
+    // Toggles the purchased state of a shopping item
     fun togglePurchased(item: ShoppingItem) {
         viewModelScope.launch(Dispatchers.IO) {
-            shoppingRepository.updateItem(item.copy(isPurchased = !item.isPurchased))
+            shoppingRepository.toggleItemPurchased(item.id)
         }
     }
 
+    // Creates and persists a new shopping item
     fun addItem(name: String, quantity: Int, unit: String, category: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val newItem = ShoppingItem(
@@ -64,18 +72,22 @@ class ShoppingViewModel(
         }
     }
 
+    // Updates an existing shopping item
     fun updateItem(item: ShoppingItem) {
         viewModelScope.launch(Dispatchers.IO) {
             shoppingRepository.updateItem(item)
         }
     }
 
+    // Permanently removes a shopping item
     fun deleteItem(item: ShoppingItem) {
         viewModelScope.launch(Dispatchers.IO) {
             shoppingRepository.deleteItem(item)
         }
     }
 
+    // Moves all purchased items into the user's inventory and clears them from the shopping list
+    // Uses default storage and expiry values as placeholders
     fun transferSelectedToInventory(onComplete: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             val purchased = items.value.filter { it.isPurchased }

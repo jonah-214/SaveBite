@@ -201,4 +201,64 @@
     <string name="dashboard_see_all">See All</string>
     <string name="dashboard_default_user">User</string>
     <string name="dashboard_sync_failed_generic">Couldn\'t refresh from the cloud</string>
+
+    <!-- Shopping Module -->
+    <string name="shopping_list_title">Shopping List</string>
+    <string name="shopping_empty_list">No items in list</string>
+    <string name="shopping_no_purchased">No items purchased</string>
+    <string name="shopping_purchased_count_singular">1 / %1$d item purchased</string>
+    <string name="shopping_purchased_count_plural">%1$d / %2$d items purchased</string>
+    <string name="shopping_get_started_hint">Add some items to get started!</string>
+    <string name="shopping_start_checking_hint">Ready to go? Start checking off your list!</string>
+    <string name="shopping_all_set_hint">All set! Everything has been purchased! 🎉</string>
+    <string name="shopping_progress_hint">Keep going! You\'re making progress!</string>
+    <string name="shopping_search_placeholder">Search shopping list…</string>
+    <string name="shopping_no_data">No Data Recorded</string>
+    <string name="shopping_add_item">Add Item</string>
+    <string name="shopping_already_purchased">Already purchased?</string>
+    <string name="shopping_move_to_inventory">Move items to your inventory</string>
+    <string name="shopping_delete_title">Delete Item</string>
+    <string name="shopping_delete_confirm">Are you sure you want to delete \"%1$s\"?</string>
+    <string name="shopping_action_delete">Delete</string>
+
+    <!-- Add/Edit Shopping Item -->
+    <string name="shopping_add_title">Add Shopping Item</string>
+    <string name="shopping_edit_title">Edit Shopping Item</string>
+    <string name="shopping_name_label">Item Name</string>
+    <string name="shopping_name_placeholder">e.g. Fresh Milk</string>
+    <string name="shopping_quantity_label">Quantity</string>
+    <string name="shopping_unit_label">Unit</string>
+    <string name="shopping_category_label">Category</string>
+    <string name="shopping_action_save">Save to Shopping List</string>
+    <string name="shopping_action_update">Update Item</string>
+
+    <!-- Move to Inventory -->
+    <string name="shopping_move_title">Add to Inventory</string>
+    <string name="shopping_items_selected">%1$d items selected</string>
+    <string name="shopping_move_description">Move to inventory to keep track of your stock.</string>
+    <string name="shopping_move_info">You will fill in details step-by-step for each selected item next.</string>
+    <string name="shopping_action_start_moving">Start Moving (%1$d items)</string>
+
+    <!-- Accessibility Descriptions -->
+    <string name="content_desc_shopping_basket">Shopping basket icon</string>
+    <string name="content_desc_collapse">Collapse</string>
+    <string name="content_desc_expand">Expand</string>
+    <string name="content_desc_edit_item">Edit Item</string>
+    <string name="content_desc_delete_item">Delete Item</string>
+    <string name="content_desc_proceed">Proceed</string>
+
+    <!-- Categories -->
+    <string name="category_dairy">Dairy &amp; Eggs</string>
+    <string name="category_produce">Produce</string>
+    <string name="category_meat">Meat &amp; Seafood</string>
+    <string name="category_bakery">Bakery &amp; Bread</string>
+    <string name="category_beverages">Beverages</string>
+    <string name="category_pantry">Pantry &amp; Dry Goods</string>
+    <string name="category_frozen">Frozen Foods</string>
+    <string name="category_snacks">Snacks &amp; Sweets</string>
+    <string name="category_condiments">Condiments &amp; Sauces</string>
+    <string name="category_canned">Canned Goods</string>
+    <string name="category_prepared">Leftovers &amp; Prepared</string>
+    <string name="category_spices">Spices &amp; Baking</string>
+
 </resources>

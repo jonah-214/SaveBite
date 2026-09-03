@@ -7,10 +7,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.savebite.R
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ShoppingViewModel
 
@@ -42,38 +44,26 @@ fun AddShoppingItemScreen(
     var unitExpanded by remember { mutableStateOf(false) }
 
     val categoryOptions = listOf(
-        "Dairy & Eggs",
-        "Produce",
-        "Meat & Seafood",
-        "Bakery & Bread",
-        "Beverages",
-        "Pantry & Dry Goods",
-        "Frozen Foods",
-        "Snacks & Sweets",
-        "Condiments & Sauces",
-        "Canned Goods",
-        "Leftovers & Prepared",
-        "Spices & Baking"
+        stringResource(R.string.category_dairy),
+        stringResource(R.string.category_produce),
+        stringResource(R.string.category_meat),
+        stringResource(R.string.category_bakery),
+        stringResource(R.string.category_beverages),
+        stringResource(R.string.category_pantry),
+        stringResource(R.string.category_frozen),
+        stringResource(R.string.category_snacks),
+        stringResource(R.string.category_condiments),
+        stringResource(R.string.category_canned),
+        stringResource(R.string.category_prepared),
+        stringResource(R.string.category_spices)
     )
 
-    val unitOptions = listOf(
-        "pcs",
-        "pack",
-        "box",
-        "bottle",
-        "can",
-        "kg",
-        "g",
-        "L",
-        "ml",
-        "oz",
-        "lb"
-    )
+    val unitOptions = listOf("pcs", "pack", "box", "bottle", "can", "kg", "g", "L", "ml", "oz", "lb")
 
     Scaffold(
         topBar = {
             AppTopBar(
-                title = if (itemId != null) "Edit Shopping Item" else "Add Shopping Item",
+                title = if (itemId != null) stringResource(R.string.shopping_edit_title) else stringResource(R.string.shopping_add_title),
                 showBackButton = true,
                 onBackClick = onBackClick
             )
@@ -89,8 +79,8 @@ fun AddShoppingItemScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Item Name") },
-                placeholder = { Text("e.g. Fresh Milk") },
+                label = { Text(stringResource(R.string.shopping_name_label)) },
+                placeholder = { Text(stringResource(R.string.shopping_name_placeholder)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
@@ -100,7 +90,7 @@ fun AddShoppingItemScreen(
                 OutlinedTextField(
                     value = quantity,
                     onValueChange = { if (it.all { char -> char.isDigit() }) quantity = it },
-                    label = { Text("Quantity") },
+                    label = { Text(stringResource(R.string.shopping_quantity_label)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
@@ -116,7 +106,7 @@ fun AddShoppingItemScreen(
                         value = unit,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Unit")},
+                        label = { Text(stringResource(R.string.shopping_unit_label))},
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = unitExpanded) },
                         modifier = Modifier.menuAnchor(),
                         shape = RoundedCornerShape(8.dp),
@@ -155,7 +145,7 @@ fun AddShoppingItemScreen(
                     value = category,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Category") },
+                    label = { Text(stringResource(R.string.shopping_category_label)) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -214,7 +204,7 @@ fun AddShoppingItemScreen(
                 enabled = name.isNotBlank()
             ) {
                 Text(
-                    text = if (itemId != null) "Update Item" else "Save to Shopping List",
+                    text = if (itemId != null) stringResource(R.string.shopping_action_update) else stringResource(R.string.shopping_action_save),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )

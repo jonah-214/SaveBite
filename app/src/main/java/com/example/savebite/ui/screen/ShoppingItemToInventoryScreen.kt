@@ -1,8 +1,6 @@
 package com.example.savebite.ui.screen
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,7 +32,7 @@ fun ShoppingItemToInventoryScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "Add to Inventory",
+                title = stringResource(R.string.shopping_move_title),
                 showBackButton = true,
                 onBackClick = onBackClick
             )
@@ -58,13 +57,13 @@ fun ShoppingItemToInventoryScreen(
                     Text("🧺", fontSize = 48.sp)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "${purchasedItems.size} items selected",
+                        stringResource(R.string.shopping_items_selected, purchasedItems.size),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        "Move to inventory to keep track of your stock.",
+                        stringResource(R.string.shopping_move_description),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                     )
@@ -142,7 +141,7 @@ fun ShoppingItemToInventoryScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "You will fill in details step-by-step for each selected item next.",
+                        stringResource(R.string.shopping_move_info),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onTertiaryContainer
                     )
@@ -166,7 +165,7 @@ fun ShoppingItemToInventoryScreen(
                     .height(50.dp)
             ) {
                 Text(
-                    "Start Moving (${purchasedItems.size} items)",
+                    stringResource(R.string.shopping_action_start_moving, purchasedItems.size),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimary
@@ -178,7 +177,7 @@ fun ShoppingItemToInventoryScreen(
                 modifier = Modifier.padding(vertical = 4.dp)
             ) {
                 Text(
-                    "Cancel",
+                    stringResource(R.string.action_cancel),
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
                 )

@@ -16,7 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -53,8 +53,8 @@ fun ShoppingListScreen(
     itemToDelete?.let { item ->
         AlertDialog(
             onDismissRequest = { itemToDelete = null },
-            title = { Text("Delete Item", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to delete \"${item.name}\"?") },
+            title = { Text(stringResource(R.string.shopping_delete_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.shopping_delete_confirm, item.name)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -63,12 +63,12 @@ fun ShoppingListScreen(
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Delete", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.shopping_action_delete), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { itemToDelete = null }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
@@ -77,7 +77,7 @@ fun ShoppingListScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "Shopping List",
+                title = stringResource(R.string.shopping_list_title),
                 showBackButton = false
             )
         }
@@ -112,10 +112,10 @@ fun ShoppingListScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = when {
-                                totalCount == 0 -> "No items in list"
-                                purchasedCount == 0 -> "No items purchased"
-                                purchasedCount == 1 -> "1 / $totalCount item purchased"
-                                else -> "$purchasedCount / $totalCount items purchased"
+                                totalCount == 0 -> stringResource(R.string.shopping_empty_list)
+                                purchasedCount == 0 -> stringResource(R.string.shopping_no_purchased)
+                                purchasedCount == 1 -> stringResource(R.string.shopping_purchased_count_singular, totalCount)
+                                else -> stringResource(R.string.shopping_purchased_count_plural, purchasedCount, totalCount)
                             },
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
@@ -140,10 +140,10 @@ fun ShoppingListScreen(
                         // Contextual encouragement subtext
                         Text(
                             text = when {
-                                totalCount == 0 -> "Add some items to get started!"
-                                purchasedCount == 0 -> "Ready to go? Start checking off your list!"
-                                purchasedCount == totalCount -> "All set! Everything has been purchased! 🎉"
-                                else -> "Keep going! You're making progress!"
+                                totalCount == 0 -> stringResource(R.string.shopping_get_started_hint)
+                                purchasedCount == 0 -> stringResource(R.string.shopping_start_checking_hint)
+                                purchasedCount == totalCount -> stringResource(R.string.shopping_all_set_hint)
+                                else -> stringResource(R.string.shopping_progress_hint)
                             },
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -155,7 +155,7 @@ fun ShoppingListScreen(
             AppSearchBar<String>(
                 query = searchQuery,
                 onQueryChange = { viewModel.onSearchQueryChange(it) },
-                placeholderText = "Search shopping list..."
+                placeholderText = stringResource(R.string.shopping_search_placeholder)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -171,7 +171,7 @@ fun ShoppingListScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No Data Recorded",
+                        text = stringResource(R.string.shopping_no_data),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -226,9 +226,13 @@ fun ShoppingListScreen(
                         .weight(1f)
                         .height(48.dp)
                 ) {
-                    Icon(painter = painterResource(R.drawable.add), contentDescription = null, modifier = Modifier.size(20.dp))
+                    Icon(
+                        painter = painterResource(R.drawable.add),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Add Item", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.shopping_add_item), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -249,13 +253,13 @@ fun ShoppingListScreen(
                     ) {
                         Column (modifier = Modifier.weight(1f)) {
                             Text(
-                                "Already purchased?",
+                                stringResource(R.string.shopping_already_purchased),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                             Text(
-                                "Move items to your inventory",
+                                stringResource(R.string.shopping_move_to_inventory),
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
                             )
@@ -268,7 +272,7 @@ fun ShoppingListScreen(
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.chevron_right),
-                                contentDescription = "Proceed",
+                                contentDescription = stringResource(R.string.content_desc_proceed),
                                 tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -280,6 +284,8 @@ fun ShoppingListScreen(
     }
 }
 
+// Header for a category group in the shopping list
+// Supports expanding and collapsing the group
 @Composable
 fun CategoryHeader(
     category: String,
@@ -317,7 +323,7 @@ fun CategoryHeader(
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 painter = painterResource(id = if (isExpanded) R.drawable.arrow_up else R.drawable.arrow_down),
-                contentDescription = if (isExpanded) "Collapse" else "Expand",
+                contentDescription = if (isExpanded) stringResource(R.string.content_desc_collapse) else stringResource(R.string.content_desc_expand),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
@@ -325,6 +331,9 @@ fun CategoryHeader(
     }
 }
 
+
+// Represents a single row for a shopping item
+// Includes a checkbox for purchase status and actions for editing/deleting
 @Composable
 fun ShoppingItemRow(
     item: ShoppingItem,
@@ -359,7 +368,7 @@ fun ShoppingItemRow(
         IconButton(onClick = onEdit) {
             Icon(
                 painter = painterResource(R.drawable.edit),
-                contentDescription = "Edit Item",
+                contentDescription = stringResource(R.string.content_desc_edit_item),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
             )
@@ -367,7 +376,7 @@ fun ShoppingItemRow(
         IconButton(onClick = onDelete) {
             Icon(
                 painter = painterResource(R.drawable.delete),
-                contentDescription = "Delete Item",
+                contentDescription = stringResource(R.string.content_desc_delete_item),
                 tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(20.dp)
             )

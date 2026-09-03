@@ -14,17 +14,17 @@ data class SupabaseInventory(
     val id: String,
     @SerialName("user_id") val userId: String? = null,
     val name: String,
-    val description: String = "",
-    val category: String = "General",
+    val description: String,
+    val category: String,
     val storage: String,
     val quantity: Int,
     val unit: String,
-    val price: Double = 0.0,
+    val price: Double,
     @SerialName("days_left") val daysLeft: Int,
-    @SerialName("purchase_date") val purchaseDate: String = "",
+    @SerialName("purchase_date") val purchaseDate: String,
     val expiry: String,
-    val notes: String = "",
-    @SerialName("is_consumed") val isConsumed: Boolean = false
+    val notes: String,
+    @SerialName("is_consumed") val isConsumed: Boolean
 )
 
 // 2. ShoppingItem DTO
@@ -36,7 +36,7 @@ data class SupabaseShoppingItem(
     val quantity: Int,
     val unit: String,
     val category: String,
-    @SerialName("is_purchased") val isPurchased: Boolean = false
+    @SerialName("is_purchased") val isPurchased: Boolean
 )
 
 // 3. Storage DTO
@@ -53,15 +53,15 @@ data class SupabaseReportItem(
     @SerialName("user_id") val userId: String? = null,
     val name: String,
     val category: String,
-    val price: Double = 0.0,
-    val quantity: Int = 1,
-    val unit: String = "pcs",
+    val price: Double,
+    val quantity: Int,
+    val unit: String,
     val status: String,
-    val reason: String = "",
-    val timestamp: Long = System.currentTimeMillis()
+    val reason: String,
+    val timestamp: Long
 )
 
-// --- Mapper 转换函数（Room <-> Supabase） ---
+// --- Mapper（Room <-> Supabase） ---
 
 fun Inventory.toSupabase(userId: String? = null) = SupabaseInventory(
     id = id,
