@@ -3,11 +3,15 @@ package com.example.savebite.data.local
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 
 private val Context.dataStore by preferencesDataStore(name = "user_preferences")
 
@@ -15,41 +19,41 @@ class RecipeUserPreferences(private val context: Context) {
 
     companion object {
         val IS_FIRST_RUN = booleanPreferencesKey("is_first_run")
-        val DIET_TYPE = stringPreferencesKey("diet_type") // 例如：None, Vegetarian, Vegan
-        val ALLERGIES = stringSetPreferencesKey("allergies") // 例如：["Peanuts", "Seafood"]
-        val HOUSEHOLD_TYPE = stringPreferencesKey("household_type") // Student, Adult, Family
+        val DIET_TYPE = stringPreferencesKey("diet_type")
+        val ALLERGIES = stringSetPreferencesKey("allergies")
+        val HOUSEHOLD_TYPE = stringPreferencesKey("household_type")
     }
 
-    // 判断是否是第一次进入 APP
-    val isRecipeFirstRun: Flow<Boolean> = context.dataStore.data.map { preferences ->
+    private val safeData = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+
+    val isRecipeFirstRun: Flow<Boolean> = safeData.map { preferences ->
         preferences[IS_FIRST_RUN] ?: true
-    }
+    }.distinctUntilChanged()
 
-    // 获取用户偏好设置
-    val dietType: Flow<String> = context.dataStore.data.map { preferences ->
+    val dietType: Flow<String> = safeData.map { preferences ->
         preferences[DIET_TYPE] ?: "None"
-    }
+    }.distinctUntilChanged()
 
-    val allergies: Flow<Set<String>> = context.dataStore.data.map { preferences ->
+    val allergies: Flow<Set<String>> = safeData.map { preferences ->
         preferences[ALLERGIES] ?: emptySet()
-    }
+    }.distinctUntilChanged()
 
-    // Defaults to "Student" since that's SaveBite's primary audience
-    val householdType: Flow<String> = context.dataStore.data.map { preferences ->
+    val householdType: Flow<String> = safeData.map { preferences ->
         preferences[HOUSEHOLD_TYPE] ?: "Student"
-    }
+    }.distinctUntilChanged()
 
-    // 保存设置并标记完成引导
     suspend fun saveUserPreferences(diet: String, allergySet: Set<String>, household: String) {
         context.dataStore.edit { preferences ->
             preferences[DIET_TYPE] = diet
             preferences[ALLERGIES] = allergySet
             preferences[HOUSEHOLD_TYPE] = household
-            preferences[IS_FIRST_RUN] = false // 标记以后不再弹出引导页
+            preferences[IS_FIRST_RUN] = false
         }
     }
 
-    // 更新首次运行标记
     suspend fun setRecipeFirstRun(isFirstRun: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[IS_FIRST_RUN] = isFirstRun

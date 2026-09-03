@@ -9,22 +9,22 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.ui.res.painterResource
-import com.example.savebite.R
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.savebite.R
 import com.example.savebite.data.ai.Recipe
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.RecipeViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeScreen(
     viewModel: RecipeViewModel,
@@ -32,233 +32,175 @@ fun RecipeScreen(
     onRecipeClick: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var searchQuery by remember { mutableStateOf(initialSearchQuery) }
+
+    LaunchedEffect(initialSearchQuery) {
+        if (initialSearchQuery.isNotBlank()) {
+            viewModel.onSearchQueryChanged(initialSearchQuery)
+        }
+    }
+
+    // 过滤算法：按标题或食材匹配
+    val filteredRecipes = remember(uiState.recipes, uiState.searchQuery) {
+        if (uiState.searchQuery.isBlank()) {
+            uiState.recipes
+        } else {
+            uiState.recipes.filter { recipe ->
+                recipe.title.contains(uiState.searchQuery, ignoreCase = true) ||
+                        recipe.usedExpiringIngredients.any { it.contains(uiState.searchQuery, ignoreCase = true) } ||
+                        recipe.otherIngredients.any { it.contains(uiState.searchQuery, ignoreCase = true) }
+            }
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            AppTopBar(
-                title = "Recipe",
-                showBackButton = false
-            )
-        }
+        topBar = { AppTopBar(title = "Recipe", showBackButton = false) }
     ) { innerPadding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            // Search Bar
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = uiState.searchQuery,
+                        onValueChange = { viewModel.onSearchQueryChanged(it) },
+                        placeholder = {
+                            Text("Search recipes, ingredients...", style = MaterialTheme.typography.bodyMedium)
+                        },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(R.drawable.search),
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent
+                        ),
+                        shape = RoundedCornerShape(24.dp),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                contentPadding = PaddingValues(bottom = 24.dp)
-            ) {
-                // 2. Search & Filter Bar
-                item {
+            // Expiring Ingredients Banner
+            item {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            placeholder = { 
-                                Text(
-                                    "Search recipes, ingredients...", 
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                ) 
-                            },
-                            leadingIcon = { 
-                                Icon(
-                                    painter = painterResource(R.drawable.search), 
-                                    contentDescription = null, 
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp)
-                                ) 
-                            },
-                            singleLine = true,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                focusedBorderColor = Color.Transparent,
-                                unfocusedBorderColor = Color.Transparent
-                            ),
-                            shape = RoundedCornerShape(24.dp),
-                            modifier = Modifier.weight(1f)
-                        )
-                        Surface(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.size(50.dp),
-                            onClick = { }
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    painter = painterResource(R.drawable.filter_list),
-                                    contentDescription = "Filter", 
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant, 
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                item {
-                    Card(
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Use Expiring Ingredients",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Find recipes using ingredients that are about to expire (${uiState.expiringItems.size} items left).",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                                )
-                            }
-                            Button(
-                                onClick = { viewModel.retryFetch() },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary
-                                ),
-                                shape = RoundedCornerShape(20.dp),
-                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
-                            ) {
-                                Text("Find Recipes >", fontSize = 12.sp)
-                            }
-                        }
-                    }
-                }
-
-                if (uiState.isLoading) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                        }
-                    }
-                } else if (uiState.errorMessage != null) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = uiState.errorMessage ?: "Unknown error",
-                                color = MaterialTheme.colorScheme.error,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                text = "Use Expiring Ingredients",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Find recipes using ingredients that are about to expire (${uiState.expiringItems.size} items left).",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                             )
                         }
+                        Button(
+                            onClick = { viewModel.retryFetch() },
+                            shape = RoundedCornerShape(20.dp),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                        ) {
+                            Text("Find Recipes >", fontSize = 12.sp)
+                        }
                     }
-                } else {
-                    // 4. "Recommended for You" Horizontal Cards
-                    item {
-                        Column {
-                            val filteredRecommended = uiState.recipes.filter {
-                                searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true)
-                            }
+                }
+            }
 
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "Recommended for You", 
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                                Text(
-                                    "See All", 
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary, 
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(12.dp))
+            // Loading / Error / Content
+            if (uiState.isLoading) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+            } else if (uiState.errorMessage != null) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = uiState.errorMessage ?: "Unknown error",
+                            color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            } else {
+                // Section 1: Recommended
+                item {
+                    Column {
+                        Text(
+                            "Recommended for You",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                            if (filteredRecommended.isEmpty()) {
-                                Text(
-                                    if (searchQuery.isBlank()) "No recipes found. Try adding expiring ingredients!" else "No recipes match \"$searchQuery\"",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(vertical = 20.dp)
-                                )
-                            } else {
-                                LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                                    items(filteredRecommended) { recipe ->
-                                        RecommendedCard(
-                                            recipe = recipe,
-                                            onClick = { onRecipeClick(uiState.recipes.indexOf(recipe)) }
-                                        )
-                                    }
+                        if (filteredRecipes.isEmpty()) {
+                            Text(
+                                if (uiState.searchQuery.isBlank()) "No recipes found. Try adding expiring ingredients!"
+                                else "No recipes match \"${uiState.searchQuery}\"",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(vertical = 12.dp)
+                            )
+                        } else {
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                                items(filteredRecipes) { recipe ->
+                                    RecommendedCard(
+                                        recipe = recipe,
+                                        onClick = { onRecipeClick(uiState.recipes.indexOf(recipe)) }
+                                    )
                                 }
                             }
                         }
                     }
+                }
 
-                    // 5. "Popular Recipes" Vertical Items
-                    val filteredPopular = uiState.recipes.reversed().filter {
-                        searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true)
+                // Section 2: Popular
+                if (filteredRecipes.isNotEmpty()) {
+                    item {
+                        Text(
+                            "Popular Recipes",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
                     }
 
-                    if (filteredPopular.isNotEmpty()) {
-                        item {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "Popular Recipes", 
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                                Text(
-                                    "See All", 
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary, 
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
-                        }
-
-                        items(filteredPopular) { recipe ->
-                            PopularRecipeRowCard(
-                                recipe = recipe,
-                                onClick = { onRecipeClick(uiState.recipes.indexOf(recipe)) }
-                            )
-                        }
+                    items(filteredRecipes.reversed()) { recipe ->
+                        PopularRecipeRowCard(
+                            recipe = recipe,
+                            onClick = { onRecipeClick(uiState.recipes.indexOf(recipe)) }
+                        )
                     }
                 }
             }
@@ -277,38 +219,38 @@ fun RecommendedCard(recipe: Recipe, onClick: () -> Unit = {}) {
             .wrapContentHeight()
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
-            // Image Placeholder with Heart Button
+            // 图片/占位图区域
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(110.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(MaterialTheme.colorScheme.surface),
-                contentAlignment = Alignment.TopEnd
+                    .background(
+                        // 使用柔和的渐变色替代单调背景
+                        brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f)
+                            )
+                        )
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Text("🍲", fontSize = 48.sp, modifier = Modifier.align(Alignment.Center))
-                IconButton(
-                    onClick = { },
-                    modifier = Modifier
-                        .padding(6.dp)
-                        .size(28.dp)
-                        .background(Color.Black.copy(alpha = 0.4f), CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.FavoriteBorder,
-                        contentDescription = "Favorite",
-                        tint = Color.White,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
+                // 如果没有真实菜品图片，用精致的矢量图标替代单纯的 Emoji 字符
+                Icon(
+                    painter = painterResource(R.drawable.chef_hat), // 或使用你项目现有的 R.drawable 图标
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(36.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = recipe.title, 
+                text = recipe.title,
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold, 
-                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -325,14 +267,14 @@ fun RecommendedCard(recipe: Recipe, onClick: () -> Unit = {}) {
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        painter = painterResource(R.drawable.clock), 
-                        contentDescription = null, 
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), 
+                        painter = painterResource(R.drawable.clock),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         modifier = Modifier.size(12.dp)
                     )
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
-                        recipe.prepTime, 
+                        recipe.prepTime,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
@@ -342,10 +284,10 @@ fun RecommendedCard(recipe: Recipe, onClick: () -> Unit = {}) {
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        "Easy", 
+                        "Easy",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary, 
-                        fontWeight = FontWeight.Bold, 
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
@@ -380,9 +322,9 @@ fun PopularRecipeRowCard(recipe: Recipe, onClick: () -> Unit = {}) {
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    recipe.title, 
+                    recipe.title,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold, 
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -394,20 +336,20 @@ fun PopularRecipeRowCard(recipe: Recipe, onClick: () -> Unit = {}) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        painter = painterResource(R.drawable.clock), 
-                        contentDescription = null, 
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), 
+                        painter = painterResource(R.drawable.clock),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         modifier = Modifier.size(12.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        recipe.prepTime, 
+                        recipe.prepTime,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        "• Easy", 
+                        "• Easy",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
@@ -423,7 +365,7 @@ fun PopularRecipeRowCard(recipe: Recipe, onClick: () -> Unit = {}) {
                 Icon(
                     painter = painterResource(R.drawable.chevron_right),
                     contentDescription = "View",
-                    tint = MaterialTheme.colorScheme.primary, 
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(14.dp)
                 )
             }
