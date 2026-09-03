@@ -172,6 +172,9 @@
     <string name="content_desc_toggle_password">Toggle password visibility</string>
 
     <!-- Dashboard Module -->
+    <string name="dashboard_period_weekly">Weekly</string>
+    <string name="dashboard_period_monthly">Monthly</string>
+    <string name="dashboard_period_yearly">Yearly</string>
     <string name="dashboard_sync_error">Couldn\'t refresh — showing saved data</string>
     <string name="dashboard_sync_retry">Retry</string>
     <string name="dashboard_syncing">Syncing…</string>

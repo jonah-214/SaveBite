@@ -112,6 +112,7 @@ fun DashboardScreen(
     )
 }
 
+// Main layout for the Dashboard content, organized in a vertical scrollable column
 @Composable
 fun DashboardContent(
     syncStatus: SyncStatus,
@@ -190,6 +191,8 @@ fun DashboardContent(
     }
 }
 
+
+// Displays a banner when background synchronization fails or is in progress.
 @Composable
 fun SyncStatusBanner(
     status: SyncStatus,
@@ -240,6 +243,7 @@ fun SyncStatusBanner(
     }
 }
 
+// Header section containing the welcome message and profile navigation
 @Composable
 fun DashboardHeader(
     username: String,
@@ -302,7 +306,7 @@ fun DashboardHeader(
     }
 }
 
-
+// Card highlighting food items that are expiring soon
 @Composable
 fun ExpiryReminderCard(
     items: List<ExpiryItem>,
@@ -358,6 +362,7 @@ fun ExpiryReminderCard(
     }
 }
 
+// Individual row within the expiry reminder card
 @Composable
 fun ExpiryItemRow(
     item: ExpiryItem,
@@ -419,6 +424,7 @@ fun ExpiryItemRow(
     }
 }
 
+// Row layout containing summary cards for Inventory and Shopping list
 @Composable
 fun StatsRow(
     inventoryCount: Int,
@@ -450,6 +456,7 @@ fun StatsRow(
     }
 }
 
+// Small card component used for displaying a single metric and an icon.
 @Composable
 fun StatsCard(
     count: Int,
@@ -490,6 +497,7 @@ fun StatsCard(
     }
 }
 
+// Section presenting the waste report, including monthly savings and a trend chart
 @Composable
 fun WasteReportSection(
     savedAmount: Double,
@@ -526,7 +534,7 @@ fun WasteReportSection(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Waste chart
+        // Waste chart visualization
         val totalWaste = wasteData.sum()
         if (totalWaste == 0) {
             Box(
@@ -585,6 +593,8 @@ fun WasteReportSection(
     }
 }
 
+
+// Segmented control for toggling the waste report time window
 @Composable
 fun WastePeriodToggle(
     selectedPeriod: WastePeriod,
@@ -610,7 +620,7 @@ fun WastePeriodToggle(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = period.label,
+                    text = stringResource(period.labelRes),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Medium,
                     color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
@@ -620,6 +630,7 @@ fun WastePeriodToggle(
     }
 }
 
+// Horizontal row displaying filtered recipe suggestions based on expiring items
 @Composable
 fun RecipeSuggestionsRow(
     recipes: List<RecipeSuggestion>,
@@ -660,6 +671,7 @@ fun RecipeSuggestionsRow(
     }
 }
 
+// Individual card within the recipe suggestions row
 @Composable
 fun RecipeCard(
     recipe: RecipeSuggestion
@@ -700,6 +712,7 @@ fun RecipeCard(
     }
 }
 
+// Simple text button used for "See All" navigation in section headers
 @Composable
 fun SeeAllText(onClick: () -> Unit) {
     Text(
@@ -712,6 +725,7 @@ fun SeeAllText(onClick: () -> Unit) {
     )
 }
 
+// Generic header used for dashboard sections, including an optional icon and "See All" link
 @Composable
 fun SectionHeader(
     title: String,

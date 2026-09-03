@@ -45,23 +45,27 @@ class DashboardViewModel(
         private const val MONTH_COUNT = 6
         private const val YEAR_COUNT = 3
         private const val MILLIS_PER_WEEK = 1000L * 60 * 60 * 24 * 7
+        
+        private const val DEFAULT_USERNAME = "User"
     }
 
-    // Get current user info
+    // The current user's profile information
     @OptIn(ExperimentalCoroutinesApi::class)
     private val currentUser = sessionManager.userIdFlow.flatMapLatest { userId ->
         if (userId == -1) flowOf(null) else userRepository.getUserByIdFlow(userId)
     }
 
+    // Stream of the current user's display name
     val username = currentUser
-        .map { it?.username ?: "User" }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), "User")
+        .map { it?.username ?: DEFAULT_USERNAME }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), DEFAULT_USERNAME)
 
+    // Stream of the current user's avatar URL
     val avatarUrl = currentUser
         .map { it?.avatarUrl }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), null)
 
-    // Sync status from cloud
+    // Current state of background synchronization with the cloud.
     private val _syncStatus = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
     val syncStatus = _syncStatus.asStateFlow()
 
@@ -69,7 +73,7 @@ class DashboardViewModel(
         syncFromCloud()
     }
 
-    // Refresh data from cloud
+    //  Triggers a parallel synchronization of Inventory, Shopping, and Report data from Supabase
     fun syncFromCloud() {
         viewModelScope.launch(Dispatchers.IO) {
             _syncStatus.value = SyncStatus.Syncing
@@ -84,14 +88,15 @@ class DashboardViewModel(
             val firstFailure = results.firstOrNull { it.isFailure }
             
             _syncStatus.value = if (firstFailure != null) {
-                SyncStatus.Error(firstFailure.exceptionOrNull()?.message ?: "Couldn't refresh from the cloud")
+                // Return a generic error status; the specific message can be handled via string resources in UI
+                SyncStatus.Error(firstFailure.exceptionOrNull()?.message ?: "SYNC_FAILED")
             } else {
                 SyncStatus.Idle
             }
         }
     }
 
-    // Expiring items list
+    // Stream of items expiring within the [EXPIRY_WINDOW_DAYS].
     val expiringItems = inventoryRepository.allInventory
         .map { items ->
             items.filter { it.daysLeft <= EXPIRY_WINDOW_DAYS }
@@ -108,16 +113,17 @@ class DashboardViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
 
-    // Totals for inventory and shopping list
+    // Total count of items currently in the user's inventory.
     val inventoryCount = inventoryRepository.allInventory
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), 0)
 
+    // Total count of items on the user's shopping list.
     val shoppingListCount = shoppingRepository.allShoppingItems
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), 0)
 
-    // Money saved this month
+    // Total value of food consumed during the current calendar month
     val savedThisMonth = reportRepository.getReportItemsInRange(getCurrentMonthStart(), Long.MAX_VALUE)
         .map { items ->
             items.filter { it.status == ReportStatus.CONSUMED }
@@ -125,11 +131,13 @@ class DashboardViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, 0.0)
 
-    // Waste report time period
     private val _wastePeriod = MutableStateFlow(WastePeriod.WEEKLY)
+    // The currently selected time period for the waste report chart
     val wastePeriod = _wastePeriod.asStateFlow()
 
-    // Waste chart data
+
+    // Binned waste data based on the selected [wastePeriod].
+    // Provides a list of quantities representing waste per time bucket.
     @OptIn(ExperimentalCoroutinesApi::class)
     val wasteTrackerData = _wastePeriod
         .flatMapLatest { period ->
@@ -202,12 +210,12 @@ class DashboardViewModel(
         }
     }
 
+    // Updates the waste report period and recalculates the tracker data
     fun onWastePeriodSelected(period: WastePeriod) {
         _wastePeriod.value = period
     }
 
-    // Get recipe suggestions - scoped to whichever user is currently logged in
-    // (cachedRecipes is now keyed per-user, see RecipeDao / RecipeRepositoryImpl).
+    //Stream of recipe suggestions tailored to the current user's inventory
     @OptIn(ExperimentalCoroutinesApi::class)
     val recipeSuggestions = sessionManager.userIdFlow
         .flatMapLatest { userId ->
