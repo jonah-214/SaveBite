@@ -10,8 +10,10 @@ import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.model.ExpiryItem
 import com.example.savebite.model.RecipeSuggestion
 import com.example.savebite.model.ReportStatus
+import com.example.savebite.model.SyncStatus
 import com.example.savebite.model.WastePeriod
 import com.example.savebite.utils.SessionManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.util.Calendar
 
 class DashboardViewModel(
@@ -59,6 +62,36 @@ class DashboardViewModel(
     val avatarUrl = currentUser
         .map { it?.avatarUrl }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), null)
+
+    // Cloud sync status — Dashboard is usually the first screen after login, so it
+    // triggers the same Inventory/Shopping/Report syncFromCloud() each of those screens
+    // already runs on their own load. The Room-backed flows below never fail on their
+    // own (they only ever read the local cache); this just tracks whether the *sync*
+    // that fills that cache succeeded, so the UI can show a "showing saved data" hint
+    // on failure instead of a silently-empty section.
+    private val _syncStatus = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
+    val syncStatus = _syncStatus.asStateFlow()
+
+    init {
+        syncFromCloud()
+    }
+
+    fun syncFromCloud() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _syncStatus.value = SyncStatus.Syncing
+            val results = listOf(
+                inventoryRepository.syncFromCloud(),
+                shoppingRepository.syncFromCloud(),
+                reportRepository.syncFromCloud()
+            )
+            val firstFailure = results.firstOrNull { it.isFailure }
+            _syncStatus.value = if (firstFailure != null) {
+                SyncStatus.Error(firstFailure.exceptionOrNull()?.message ?: "Couldn't refresh from the cloud")
+            } else {
+                SyncStatus.Idle
+            }
+        }
+    }
 
     // Expiring Items - Look at the inventory and filter items that expire soon.
     val expiringItems = inventoryRepository.allInventory
@@ -148,11 +181,25 @@ class DashboardViewModel(
         return cal.timeInMillis
     }
 
+    // Aligns a Calendar to midnight on the first day of its calendar week, so two
+    // timestamps in the same Sun-Sat (or Mon-Sun, per locale) week always diff to
+    // an exact multiple of a week — unlike raw "now minus timestamp" millis math,
+    // which drifts depending on what time of day "now" happens to be.
+    private fun startOfWeek(source: Calendar): Calendar {
+        val cal = source.clone() as Calendar
+        cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal
+    }
+
     // Helper function to group items into "buckets" for the chart
     private fun getBucketIndexFor(period: WastePeriod, now: Calendar, itemCal: Calendar): Int {
         return when (period) {
             WastePeriod.WEEKLY -> {
-                val diffMillis = now.timeInMillis - itemCal.timeInMillis
+                val diffMillis = startOfWeek(now).timeInMillis - startOfWeek(itemCal).timeInMillis
                 (diffMillis / MILLIS_PER_WEEK).toInt()
             }
             WastePeriod.MONTHLY -> {

@@ -44,14 +44,12 @@ import coil.compose.AsyncImage
 import com.example.savebite.R
 import com.example.savebite.model.ExpiryItem
 import com.example.savebite.model.RecipeSuggestion
+import com.example.savebite.model.SyncStatus
 import com.example.savebite.model.WastePeriod
 import com.example.savebite.ui.navigation.AppRoutes
 import com.example.savebite.ui.theme.expirySectionColors
 import com.example.savebite.ui.viewmodel.DashboardViewModel
-
-// TODO: several other screens (Report, InventoryDetail, PdfReportGenerator) also
-// hardcode "RM" — worth pulling into one shared currency constant app-wide later.
-private const val CURRENCY_PREFIX = "RM"
+import com.example.savebite.utils.Currency
 
 @Composable
 fun DashboardScreen(
@@ -66,6 +64,12 @@ fun DashboardScreen(
             .padding(horizontal = 16.dp)
             .padding(bottom = 16.dp)
     ) {
+        // Cloud sync status — only visible while syncing or after a failed refresh
+        SyncStatusBanner(
+            status = dashboardViewModel.syncStatus.collectAsStateWithLifecycle().value,
+            onRetryClick = dashboardViewModel::syncFromCloud
+        )
+
         // Greeting user Header Area
         DashboardHeader(
             username = dashboardViewModel.username.collectAsStateWithLifecycle().value,
@@ -116,7 +120,7 @@ fun DashboardScreen(
         val wastePeriod by dashboardViewModel.wastePeriod.collectAsStateWithLifecycle()
 
         WasteReportSection(
-            savedAmount = savedAmount.toInt(),
+            savedAmount = savedAmount,
             wasteData = wasteTrackerData,
             selectedPeriod = wastePeriod,
             onPeriodSelected = dashboardViewModel::onWastePeriodSelected
@@ -132,6 +136,56 @@ fun DashboardScreen(
                 }
             }
         )
+    }
+}
+
+@Composable
+fun SyncStatusBanner(
+    status: SyncStatus,
+    onRetryClick: () -> Unit
+) {
+    when (status) {
+        is SyncStatus.Error -> {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Couldn't refresh — showing saved data",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "Retry",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier
+                        .clickable(onClick = onRetryClick)
+                        .padding(start = 12.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        SyncStatus.Syncing -> {
+            Text(
+                text = "Syncing…",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
+        SyncStatus.Idle -> Unit
     }
 }
 
@@ -377,7 +431,7 @@ fun StatsCard(
 
 @Composable
 fun WasteReportSection(
-    savedAmount: Int,
+    savedAmount: Double,
     wasteData: List<Int>,
     selectedPeriod: WastePeriod,
     onPeriodSelected: (WastePeriod) -> Unit
@@ -405,7 +459,7 @@ fun WasteReportSection(
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = "$CURRENCY_PREFIX $savedAmount",
+                text = Currency.format(savedAmount),
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.Bold
             )

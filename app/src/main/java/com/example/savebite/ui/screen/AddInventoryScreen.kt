@@ -26,6 +26,7 @@ import com.example.savebite.model.Inventory
 import com.example.savebite.model.ShoppingItem
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.InventoryViewModel
+import com.example.savebite.utils.Currency
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -89,7 +90,7 @@ fun AddInventoryScreen(
 
     val cleanPriceString = { input: String ->
         input.trim()
-            .replace("RM", "", ignoreCase = true)
+            .replace(Currency.PREFIX, "", ignoreCase = true)
             .replace(",", ".")
             .replace(Regex("[^0-9.]"), "")
     }
@@ -303,7 +304,7 @@ fun AddInventoryScreen(
                     onValueChange = { price = it },
                     label = { 
                         Row {
-                            Text("Total Cost (RM)")
+                            Text("Total Cost (${Currency.PREFIX})")
                             Text(" *", color = MaterialTheme.colorScheme.error)
                         }
                     },

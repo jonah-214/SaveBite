@@ -12,7 +12,6 @@ import com.example.savebite.ui.viewmodel.ReportUiState
 import com.example.savebite.ui.viewmodel.TimeFrame
 import java.io.File
 import java.io.FileOutputStream
-import java.text.DateFormatSymbols
 import java.util.Locale
 
 object PdfReportGenerator {
@@ -125,7 +124,7 @@ object PdfReportGenerator {
         paint.color = textDark
         paint.textSize = 15f
         paint.isFakeBoldText = true
-        val wastedCostText = String.format(Locale.getDefault(), "RM %.2f", state.totalWastedCost)
+        val wastedCostText = Currency.format(state.totalWastedCost)
         canvas.drawText(wastedCostText, startX + 14f, currentY + 40f, paint)
 
         // Card 2: Saved Value
@@ -138,7 +137,7 @@ object PdfReportGenerator {
         paint.color = primaryGreen
         paint.textSize = 15f
         paint.isFakeBoldText = true
-        val savedText = String.format(Locale.getDefault(), "RM %.2f", state.totalSavedCost)
+        val savedText = Currency.format(state.totalSavedCost)
         canvas.drawText(savedText, card2X + 14f, currentY + 40f, paint)
 
         currentY += metricCardHeight + 14f
@@ -249,7 +248,7 @@ object PdfReportGenerator {
                 paint.isFakeBoldText = false
 
                 val infoText = if (item.totalPrice > 0) {
-                    String.format(Locale.getDefault(), "RM %.2f (%d items)", item.totalPrice, item.count)
+                    Currency.formatWithCount(item.totalPrice, item.count)
                 } else {
                     "${item.count} items (${item.percentage.toInt()}%)"
                 }
@@ -349,7 +348,7 @@ object PdfReportGenerator {
                 paint.isFakeBoldText = false
 
                 val infoText = if (item.totalPrice > 0) {
-                    String.format(Locale.getDefault(), "RM %.2f (%d items)", item.totalPrice, item.count)
+                    Currency.formatWithCount(item.totalPrice, item.count)
                 } else {
                     "${item.count} items (${item.percentage.toInt()}%)"
                 }

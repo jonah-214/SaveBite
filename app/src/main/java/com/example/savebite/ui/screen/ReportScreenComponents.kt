@@ -13,8 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import com.example.savebite.R
+import com.example.savebite.utils.Currency
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -22,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import java.text.DateFormatSymbols
-import java.util.Locale
 
 @Composable
 fun MetricCard(
@@ -178,6 +179,10 @@ fun ItemStatRow(
     price: Double = 0.0,
     progressColor: Color
 ) {
+    // Read via LocalConfiguration (observable) instead of Locale.getDefault() (not observable) —
+    // so this recomposes if the user changes the system language while the app is running.
+    val locale = LocalConfiguration.current.locales[0]
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -185,12 +190,12 @@ fun ItemStatRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+                text = name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() },
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )
             val displayText = if (price > 0) {
-                String.format(Locale.getDefault(), "RM %.2f (%d items)", price, count)
+                Currency.formatWithCount(price, count)
             } else {
                 "$count items (${percentage.toInt()}%)"
             }

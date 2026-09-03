@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.example.savebite.R
 import com.example.savebite.model.Inventory
 import com.example.savebite.ui.navigation.AppTopBar
+import com.example.savebite.utils.Currency
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -499,7 +500,7 @@ fun InventoryDetailScreen(
                             modifier = Modifier.weight(1f)
                         )
                         Text(
-                            text = "RM ${String.format("%.2f", detail.price)}",
+                            text = Currency.format(detail.price),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
