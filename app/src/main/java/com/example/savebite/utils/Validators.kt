@@ -16,6 +16,7 @@ object Validators {
         if (username.length !in 3..20) return "Username must be 3-20 characters"
         if (!USERNAME_REGEX.matches(username)) return "Username can only contain letters, numbers, and underscores"
         if (username.contains("__")) return "Username cannot contain consecutive underscores"
+        if (username.startsWith("_") || username.endsWith("_")) return "Username cannot start or end with an underscore"
         return null
     }
 
@@ -51,6 +52,7 @@ object Validators {
     fun validatePassword(password: String): String? {
         if (password.isBlank()) return "Password is required"
         if (password.length < 6) return "Password must be at least 6 characters"
+        if (password.length > 64) return "Password must be at most 64 characters"
         if (!password.any { it.isUpperCase() }) return "Include at least one uppercase letter"
         if (!password.any { it.isLowerCase() }) return "Include at least one lowercase letter"
         if (!password.any { it.isDigit() }) return "Include at least one number"

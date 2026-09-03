@@ -1,14 +1,12 @@
 package com.example.savebite.data.repo
 
+import android.util.Log
 import com.example.savebite.data.remote.SupabaseClientProvider
 import com.example.savebite.model.User
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.storage.storage
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -38,12 +36,13 @@ data class AvailabilityResponse(
 )
 
 class SupabaseAuthRepository(
-    private val userRepository: UserRepository,
-    private val inventoryRepository: InventoryRepository? = null,
-    private val shoppingRepository: ShoppingRepository? = null,
-    private val reportRepository: ReportRepository? = null
+    private val userRepository: UserRepository
 ) {
     private val client = SupabaseClientProvider.client
+
+    companion object {
+        private const val TAG = "SupabaseAuthRepository"
+    }
 
     // Sign up: creates Supabase Auth user, inserts profile row, mirrors into Room
     suspend fun signUp(
@@ -101,6 +100,7 @@ class SupabaseAuthRepository(
             val localId = userRepository.insertUser(localUser)
             Result.success(localUser.copy(id = localId.toInt()))
         } catch (e: Exception) {
+            Log.e(TAG, "signUp failed for email=$email", e)
             Result.failure(mapSignUpException(e))
         }
     }
@@ -201,19 +201,13 @@ class SupabaseAuthRepository(
                 localUser = updated
             }
 
-            // 登录成功后，在后台异步拉取云端的业务数据同步到本地 Room
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    inventoryRepository?.syncFromCloud()
-                    shoppingRepository?.syncFromCloud()
-                    reportRepository?.syncFromCloud()
-                } catch (e: Exception) {
-                    // 同步日志或异常捕获，避免影响登录主流程
-                }
-            }
+            // Inventory/shopping/report data is synced independently by each
+            // feature's own ViewModel when its screen loads (see InventoryViewModel,
+            // ShoppingViewModel, ReportViewModel) — no post-login sync needed here.
 
             Result.success(localUser)
         } catch (e: Exception) {
+            Log.e(TAG, "login failed for email=$email", e)
             Result.failure(e)
         }
     }
@@ -228,6 +222,7 @@ class SupabaseAuthRepository(
                 }
             ).decodeAs<String?>()
         } catch (e: Exception) {
+            Log.e(TAG, "getEmailByPhone failed for phone=$phone", e)
             null
         }
     }
@@ -271,6 +266,7 @@ class SupabaseAuthRepository(
             }
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.e(TAG, "updateProfile failed for uid=$uid", e)
             Result.failure(mapSignUpException(e))
         }
     }
@@ -301,6 +297,7 @@ class SupabaseAuthRepository(
 
             Result.success(bustedUrl)
         } catch (e: Exception) {
+            Log.e(TAG, "uploadAvatar failed for uid=$uid", e)
             Result.failure(e)
         }
     }
@@ -318,6 +315,7 @@ class SupabaseAuthRepository(
 
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.e(TAG, "removeAvatar failed for uid=$uid", e)
             Result.failure(e)
         }
     }
@@ -339,6 +337,8 @@ class SupabaseAuthRepository(
             }
             Result.success(Unit)
         } catch (e: Exception) {
+            // Never log password values, only the outcome/context.
+            Log.e(TAG, "changePassword failed for email=$email", e)
             Result.failure(e)
         }
     }
@@ -349,6 +349,7 @@ class SupabaseAuthRepository(
             client.auth.resetPasswordForEmail(email)
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.e(TAG, "sendPasswordReset failed for email=$email", e)
             Result.failure(e)
         }
     }
