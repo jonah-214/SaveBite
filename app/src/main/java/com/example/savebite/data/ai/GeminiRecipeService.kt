@@ -8,8 +8,8 @@ import dev.shreyaspatil.ai.client.generativeai.type.generationConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import org.json.JSONArray
-import org.json.JSONObject
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 @Serializable
 data class Recipe(
@@ -25,7 +25,7 @@ class GeminiRecipeService(private val apiKey: String) {
     // 使用官方 SDK 实例，配合 JSON Schema 输出配置
     private val generativeModel by lazy {
         GenerativeModel(
-            modelName = "gemini-1.5-flash",
+            modelName = "gemini-3.6-flash",
             apiKey = apiKey.trim(),
             generationConfig = generationConfig {
                 responseMimeType = "application/json"
@@ -103,11 +103,21 @@ class GeminiRecipeService(private val apiKey: String) {
                 return@withContext emptyList()
             }
 
-            parseRecipesJson(cleanJsonString(responseText))
+            try {
+                Json.decodeFromString<List<Recipe>>(cleanJsonString(responseText))
+            } catch (e: Exception) {
+                Log.e("GeminiRecipeService", "Error parsing JSON: ${e.message}", e)
+                throw Exception("PARSING_ERROR")
+            }
         } catch (e: Exception) {
             Log.e("GeminiRecipeService", "Error calling Gemini SDK: ${e.message}", e)
             val msg = e.message ?: ""
             when {
+                // Covers SocketTimeoutException, UnknownHostException, etc. - i.e. the
+                // request never reached Google's servers at all, as opposed to a server
+                // responding with an error. Checked by type rather than message text
+                // since these don't carry a consistent "network"-like wording.
+                e is java.io.IOException -> throw Exception("NETWORK_ERROR: ${e.message}")
                 msg.contains("API_KEY_INVALID", ignoreCase = true) ||
                         msg.contains("invalid", ignoreCase = true) -> throw Exception("INVALID_API_KEY: ${e.message}")
                 msg.contains("Quota", ignoreCase = true) ||
@@ -128,48 +138,5 @@ class GeminiRecipeService(private val apiKey: String) {
             clean = clean.substringBeforeLast("```")
         }
         return clean.trim()
-    }
-
-    private fun parseRecipesJson(jsonStr: String): List<Recipe> {
-        val recipeList = mutableListOf<Recipe>()
-        try {
-            val jsonArray = JSONArray(jsonStr)
-
-            for (i in 0 until jsonArray.length()) {
-                val obj = jsonArray.getJSONObject(i)
-
-                val usedIngredients = mutableListOf<String>()
-                val usedArray = obj.optJSONArray("usedExpiringIngredients")
-                if (usedArray != null) {
-                    for (j in 0 until usedArray.length()) usedIngredients.add(usedArray.getString(j))
-                }
-
-                val otherIngredients = mutableListOf<String>()
-                val otherArray = obj.optJSONArray("otherIngredients")
-                if (otherArray != null) {
-                    for (j in 0 until otherArray.length()) otherIngredients.add(otherArray.getString(j))
-                }
-
-                val steps = mutableListOf<String>()
-                val stepsArray = obj.optJSONArray("steps")
-                if (stepsArray != null) {
-                    for (j in 0 until stepsArray.length()) steps.add(stepsArray.getString(j))
-                }
-
-                recipeList.add(
-                    Recipe(
-                        title = obj.optString("title", "Delicious Recipe"),
-                        prepTime = obj.optString("prepTime", "15 mins"),
-                        usedExpiringIngredients = usedIngredients,
-                        otherIngredients = otherIngredients,
-                        steps = steps
-                    )
-                )
-            }
-        } catch (e: Exception) {
-            Log.e("GeminiRecipeService", "Error parsing JSON: ${e.message}", e)
-            throw Exception("PARSING_ERROR")
-        }
-        return recipeList
     }
 }

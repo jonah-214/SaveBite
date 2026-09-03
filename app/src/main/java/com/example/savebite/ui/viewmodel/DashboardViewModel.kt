@@ -206,8 +206,13 @@ class DashboardViewModel(
         _wastePeriod.value = period
     }
 
-    // Get recipe suggestions
-    val recipeSuggestions = recipeRepository.cachedRecipes
+    // Get recipe suggestions - scoped to whichever user is currently logged in
+    // (cachedRecipes is now keyed per-user, see RecipeDao / RecipeRepositoryImpl).
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val recipeSuggestions = sessionManager.userIdFlow
+        .flatMapLatest { userId ->
+            if (userId == -1) flowOf(emptyList()) else recipeRepository.cachedRecipes(userId)
+        }
         .map { recipes ->
             recipes.take(RECIPE_SUGGESTION_LIMIT).map { recipe ->
                 RecipeSuggestion(

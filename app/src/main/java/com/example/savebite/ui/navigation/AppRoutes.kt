@@ -24,8 +24,13 @@ object AppRoutes {
     const val SHOPPING = "shopping"
     // Recipe Suggestions screen
     const val RECIPE = "recipe"
-    // Recipe Detail screen
+    // Recipe Suggestions screen, with an optional pre-filled search query
     const val RECIPE_PATTERN = "recipe?searchQuery={searchQuery}"
+    // Recipe Detail screen — recipeIndex is this recipe's position in the current
+    // RecipeViewModel.uiState.recipes list (recipes aren't individually persisted with
+    // their own id, so the index is what identifies "which one" across the navigation call)
+    const val RECIPE_DETAIL = "recipe_detail"
+    const val RECIPE_DETAIL_PATTERN = "recipe_detail/{recipeIndex}"
     // Waste Tracker Report screen
     const val REPORTS = "reports"
     // Profile & Settings screen

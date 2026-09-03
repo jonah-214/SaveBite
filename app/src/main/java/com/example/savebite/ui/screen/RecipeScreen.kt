@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.ui.res.painterResource
 import com.example.savebite.R
 import androidx.compose.material3.*
@@ -26,7 +28,8 @@ import com.example.savebite.ui.viewmodel.RecipeViewModel
 @Composable
 fun RecipeScreen(
     viewModel: RecipeViewModel,
-    initialSearchQuery: String = ""
+    initialSearchQuery: String = "",
+    onRecipeClick: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf(initialSearchQuery) }
@@ -213,7 +216,10 @@ fun RecipeScreen(
                             } else {
                                 LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                                     items(filteredRecommended) { recipe ->
-                                        RecommendedCard(recipe = recipe)
+                                        RecommendedCard(
+                                            recipe = recipe,
+                                            onClick = { onRecipeClick(uiState.recipes.indexOf(recipe)) }
+                                        )
                                     }
                                 }
                             }
@@ -248,7 +254,10 @@ fun RecipeScreen(
                         }
 
                         items(filteredPopular) { recipe ->
-                            PopularRecipeRowCard(recipe = recipe)
+                            PopularRecipeRowCard(
+                                recipe = recipe,
+                                onClick = { onRecipeClick(uiState.recipes.indexOf(recipe)) }
+                            )
                         }
                     }
                 }
@@ -258,8 +267,9 @@ fun RecipeScreen(
 }
 
 @Composable
-fun RecommendedCard(recipe: Recipe) {
+fun RecommendedCard(recipe: Recipe, onClick: () -> Unit = {}) {
     Card(
+        onClick = onClick,
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier
@@ -285,9 +295,9 @@ fun RecommendedCard(recipe: Recipe) {
                         .background(Color.Black.copy(alpha = 0.4f), CircleShape)
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.check), 
-                        contentDescription = "Favorite", 
-                        tint = Color.White, 
+                        imageVector = Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = Color.White,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -345,8 +355,9 @@ fun RecommendedCard(recipe: Recipe) {
 }
 
 @Composable
-fun PopularRecipeRowCard(recipe: Recipe) {
+fun PopularRecipeRowCard(recipe: Recipe, onClick: () -> Unit = {}) {
     Card(
+        onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth()
@@ -404,14 +415,14 @@ fun PopularRecipeRowCard(recipe: Recipe) {
             }
 
             IconButton(
-                onClick = { },
+                onClick = onClick,
                 modifier = Modifier
                     .size(36.dp)
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape)
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.chevron_right), 
-                    contentDescription = "View", 
+                    painter = painterResource(R.drawable.chevron_right),
+                    contentDescription = "View",
                     tint = MaterialTheme.colorScheme.primary, 
                     modifier = Modifier.size(14.dp)
                 )

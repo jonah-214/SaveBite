@@ -5,9 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.savebite.data.ai.Recipe
 import com.example.savebite.data.repo.RecipeRepository
 import com.example.savebite.model.Inventory
+import com.example.savebite.utils.SessionManager
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 data class RecipeUiState(
@@ -17,9 +22,17 @@ data class RecipeUiState(
     val errorMessage: String? = null
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class RecipeViewModel(
-    private val repository: RecipeRepository
+    private val repository: RecipeRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
+
+    companion object {
+        // Matches SessionManager's own "not logged in" sentinel (kept as a local
+        // literal since that constant isn't exposed - DashboardViewModel does the same).
+        private const val NO_USER = -1
+    }
 
     private val _uiState = MutableStateFlow(RecipeUiState())
     val uiState: StateFlow<RecipeUiState> = _uiState.asStateFlow()
@@ -32,12 +45,24 @@ class RecipeViewModel(
     private var cachedAllergies: Set<String> = emptySet()
     private var cachedHouseholdType: String = "Student"
 
+    // Tracks the in-flight AI request so a new one (e.g. from fetchAIRecipes firing
+    // again before the previous call returned) cancels it instead of letting both
+    // run concurrently and possibly having the older response overwrite the newer one.
+    private var fetchJob: Job? = null
+
     init {
-        // ViewModel 初始化时立即监听 Room 缓存数据
+        // ViewModel 初始化时立即监听 Room 缓存数据 - scoped to whichever user is
+        // currently logged in, so switching accounts doesn't show the previous
+        // user's cached recipes (see RecipeDao / RecipeRepositoryImpl).
         viewModelScope.launch {
-            repository.cachedRecipes.collect { localRecipes ->
+            sessionManager.userIdFlow.flatMapLatest { userId ->
+                if (userId == NO_USER) flowOf(emptyList()) else repository.cachedRecipes(userId)
+            }.collect { localRecipes ->
                 if (localRecipes.isNotEmpty() && _uiState.value.recipes.isEmpty()) {
-                    _uiState.value = _uiState.value.copy(recipes = localRecipes)
+                    // Clearing errorMessage too, since a stale "no items expiring" /
+                    // "no recipes found" message would otherwise keep hiding this list
+                    // once it arrives (RecipeScreen shows the error over the recipes).
+                    _uiState.value = _uiState.value.copy(recipes = localRecipes, errorMessage = null)
                 }
             }
         }
@@ -82,16 +107,41 @@ class RecipeViewModel(
     }
 
     private fun executeFetch(urgentItems: List<Inventory>) {
-        viewModelScope.launch {
+        // Cancel any request already in flight before starting a new one.
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
                 expiringItems = urgentItems,
                 isLoading = true,
                 errorMessage = null
             )
 
+            // Nothing to ask the AI about - bail out here instead of calling
+            // fetchAndSaveRecipes, which would return an empty list and wipe out
+            // whatever recipes are already on screen (e.g. from Room's cache).
+            if (urgentItems.isEmpty()) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = if (_uiState.value.recipes.isEmpty()) {
+                        "No items expiring soon. Add some to your inventory to get recipe ideas!"
+                    } else null
+                )
+                return@launch
+            }
+
+            val userId = sessionManager.userIdFlow.value
+            if (userId == NO_USER) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = "Please log in to get recipe suggestions."
+                )
+                return@launch
+            }
+
             try {
                 // 调用 repository，成功后会自动存入 Room
                 val fetchedRecipes = repository.fetchAndSaveRecipes(
+                    userId,
                     urgentItems,
                     cachedDietType,
                     cachedAllergies,

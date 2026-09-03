@@ -99,6 +99,7 @@ class InventoryRepository(
         val updated = item.copy(isConsumed = !item.isConsumed)
         inventoryDao.updateItem(updated)
         supabaseDataRepository.upsertInventoryItem(updated.toSupabase())
+            .onFailure { Log.e(TAG, "Supabase upsert failed for item ${item.id} (${item.name})", it) }
     }
 
     suspend fun moveConsumedToReport() {
@@ -216,8 +217,16 @@ class InventoryRepository(
         syncStorageFromCloud()
 
         return supabaseDataRepository.fetchInventoryItems().map { remoteItems ->
-            val localItems = remoteItems.map { it.toRoom() }
-            localItems.forEach { inventoryDao.insertItem(it) }
+            // Additive only: fills in items that exist remotely but not yet locally
+            // (e.g. restoring data after a reinstall or a first login on a new device).
+            // It deliberately never overwrites an item that already exists locally -
+            // Inventory has no last-modified timestamp to compare against, so a blind
+            // overwrite here can't tell a stale remote copy from a genuine update, and
+            // would silently revert a just-made local change (e.g. toggling "consumed")
+            // the next time this sync runs, such as on the next app launch.
+            val localIds = inventoryDao.getAllInventorySync().map { it.id }.toSet()
+            val newItems = remoteItems.map { it.toRoom() }.filter { it.id !in localIds }
+            newItems.forEach { inventoryDao.insertItem(it) }
         }
     }
 }

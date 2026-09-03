@@ -1,7 +1,6 @@
 package com.example.savebite.data
 
 import android.content.Context
-import com.example.savebite.BuildConfig
 import com.example.savebite.data.ai.GeminiRecipeService
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.*
@@ -87,8 +86,8 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     }
 
     override val recipeRepository: RecipeRepository by lazy {
-        RecipeRepository(
-            GeminiRecipeService(apiKey = BuildConfig.GEMINI_API_KEY),
+        RecipeRepositoryImpl(
+            GeminiRecipeService(apiKey = "AQ.Ab8RN6JQAkJ2paYga254AgbcKuU_Osr1sw9xjIHZ6GYzmlzWWw"),
             database.recipeDao()
         )
     }
@@ -123,7 +122,7 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     }
 
     override val recipeViewModelFactory: RecipeViewModelFactory by lazy {
-        RecipeViewModelFactory(recipeRepository)
+        RecipeViewModelFactory(recipeRepository, sessionManager)
     }
 
     override val reportViewModelFactory: ReportViewModelFactory by lazy {

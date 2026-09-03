@@ -41,6 +41,7 @@ import com.example.savebite.ui.screen.InventoryList
 import com.example.savebite.ui.screen.LoginScreen
 import com.example.savebite.ui.screen.ManageStorageScreen
 import com.example.savebite.ui.screen.ProfileScreen
+import com.example.savebite.ui.screen.RecipeDetailScreen
 import com.example.savebite.ui.screen.RecipeGetStartedScreen
 import com.example.savebite.ui.screen.RecipeScreen
 import com.example.savebite.ui.screen.ReminderScreen
@@ -89,11 +90,14 @@ fun AppNavigation(
     val currentRoute = backStackEntry?.destination?.route
 
     // Define which screens should show the Bottom Navigation Bar
+    // Note: RECIPE_PATTERN (not RECIPE) is used here because that's the actual route string
+    // the Recipe screen is registered under (it carries an optional ?searchQuery= argument),
+    // and currentRoute reports the registered pattern, not the plain "recipe" path.
     val routesWithBottomBar = listOf(
         AppRoutes.DASHBOARD,
         AppRoutes.INVENTORY,
         AppRoutes.SHOPPING,
-        AppRoutes.RECIPE,
+        AppRoutes.RECIPE_PATTERN,
         AppRoutes.REPORTS
     )
 
@@ -505,9 +509,27 @@ fun AppNavigation(
 
                     RecipeScreen(
                         viewModel = recipeViewModel,
-                        initialSearchQuery = initialSearchQuery ?: ""
+                        initialSearchQuery = initialSearchQuery ?: "",
+                        onRecipeClick = { index ->
+                            navController.navigate("${AppRoutes.RECIPE_DETAIL}/$index")
+                        }
                     )
                 }
+            }
+
+            // Recipe Detail route
+            composable(
+                route = AppRoutes.RECIPE_DETAIL_PATTERN,
+                arguments = listOf(navArgument("recipeIndex") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val recipeIndex = backStackEntry.arguments?.getInt("recipeIndex") ?: 0
+                val recipeViewModel: RecipeViewModel = viewModel(factory = recipeViewModelFactory)
+
+                RecipeDetailScreen(
+                    recipeIndex = recipeIndex,
+                    viewModel = recipeViewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
 
             composable(AppRoutes.REPORTS) { backStackEntry ->
