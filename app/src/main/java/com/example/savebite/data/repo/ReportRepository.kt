@@ -17,7 +17,7 @@ interface ReportRepository {
 
 class ReportRepositoryImpl(
     private val reportDao: ReportDao,
-    private val supabaseDataRepository: SupabaseDataRepository = SupabaseDataRepository()
+    private val supabaseDataRepository: SupabaseDataRepository
 ) : ReportRepository {
 
     override fun getReportItemsInRange(startTimestamp: Long, endTimestamp: Long): Flow<List<ReportItem>> {

@@ -1,17 +1,22 @@
 package com.example.savebite.data.repo
 
+import android.util.Log
 import com.example.savebite.data.local.dao.InventoryDao
 import com.example.savebite.data.local.dao.ReportDao
 import com.example.savebite.data.local.dao.StorageDao
 import com.example.savebite.data.remote.toRoom
 import com.example.savebite.data.remote.toSupabase
+import com.example.savebite.model.DefaultStorages
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.ReportItem
 import com.example.savebite.model.ReportStatus
 import com.example.savebite.model.ReportStatus.WASTED
 import com.example.savebite.model.Storage
+import com.example.savebite.model.unitPrice
 import com.example.savebite.utils.DateFormats
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
@@ -19,8 +24,12 @@ class InventoryRepository(
     private val inventoryDao: InventoryDao,
     private val storageDao: StorageDao,
     private val reportDao: ReportDao,
-    private val supabaseDataRepository: SupabaseDataRepository = SupabaseDataRepository()
+    private val supabaseDataRepository: SupabaseDataRepository
 ) {
+
+    companion object {
+        private const val TAG = "InventoryRepository"
+    }
 
     val allInventory: Flow<List<Inventory>> = inventoryDao.getAllInventory()
 
@@ -29,11 +38,13 @@ class InventoryRepository(
     suspend fun insertItem(item: Inventory) {
         inventoryDao.insertItem(item)
         supabaseDataRepository.upsertInventoryItem(item.toSupabase())
+            .onFailure { Log.e(TAG, "Supabase upsert failed for item ${item.id} (${item.name})", it) }
     }
 
     suspend fun updateItem(item: Inventory) {
         inventoryDao.updateItem(item)
         supabaseDataRepository.upsertInventoryItem(item.toSupabase())
+            .onFailure { Log.e(TAG, "Supabase upsert failed for item ${item.id} (${item.name})", it) }
     }
 
     suspend fun deleteItem(item: Inventory) {
@@ -55,23 +66,22 @@ class InventoryRepository(
         }
     }
 
-    suspend fun deleteStorageAndReassign(name: String, defaultStorage: String = "Refrigerator") {
+    suspend fun deleteStorageAndReassign(name: String, defaultStorage: String = DefaultStorages.FALLBACK) {
         inventoryDao.reassignStorage(name, defaultStorage)
         storageDao.deleteStorage(Storage(name))
         supabaseDataRepository.deleteStorage(name)
 
-        val updatedItems = inventoryDao.getAllInventorySync().filter { it.storage == defaultStorage }
+        val updatedItems = inventoryDao.getItemsByStorageSync(defaultStorage)
         updatedItems.forEach { item ->
             supabaseDataRepository.upsertInventoryItem(item.toSupabase())
         }
     }
 
     suspend fun markAsWaste(item: Inventory, reason: String) {
-        val unitPrice = if (item.quantity > 0) item.price / item.quantity else item.price
         val reportItem = ReportItem(
             name = item.name,
             category = item.category,
-            price = unitPrice,
+            price = item.unitPrice(),
             quantity = item.quantity,
             unit = item.unit,
             status = WASTED,
@@ -95,11 +105,10 @@ class InventoryRepository(
         val consumedList = inventoryDao.getConsumedItems()
         if (consumedList.isNotEmpty()) {
             val reportItems = consumedList.map { item ->
-                val unitPrice = if (item.quantity > 0) item.price / item.quantity else item.price
                 ReportItem(
                     name = item.name,
                     category = item.category,
-                    price = unitPrice,
+                    price = item.unitPrice(),
                     quantity = item.quantity,
                     unit = item.unit,
                     status = ReportStatus.CONSUMED,
@@ -119,19 +128,37 @@ class InventoryRepository(
         val allItems = inventoryDao.getAllInventorySync()
         val today = Date()
 
-        allItems.forEach { item ->
-            val expiryDate = DateFormats.parseExpiryOrNull(item.expiry) ?: return@forEach
-            val diffInMillis = expiryDate.time - today.time
-            val days = TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS).toInt()
+        // Each item's local update + Supabase sync runs concurrently instead of one
+        // item at a time, so this doesn't get linearly slower as the inventory grows -
+        // most of the time here is spent waiting on the network, not the CPU.
+        coroutineScope {
+            allItems.forEach { item ->
+                launch {
+                    val expiryDate = DateFormats.parseExpiryOrNull(item.expiry) ?: return@launch
+                    val diffInMillis = expiryDate.time - today.time
+                    val days = TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS).toInt()
 
-            if (days < 0) {
-                markAsWaste(item, "Expired")
-            } else {
-                val newDaysLeft = days + 1
-                if (item.daysLeft != newDaysLeft) {
-                    val updatedItem = item.copy(daysLeft = newDaysLeft)
-                    inventoryDao.updateItem(updatedItem)
-                    supabaseDataRepository.upsertInventoryItem(updatedItem.toSupabase())
+                    // Re-save dates in the current storage format so items created by an older
+                    // app version (or a different screen) end up sorting correctly, without
+                    // needing a manual data migration.
+                    val normalizedExpiry = DateFormats.toStorageString(expiryDate)
+                    val normalizedPurchaseDate = DateFormats.parseExpiryOrNull(item.purchaseDate)
+                        ?.let { DateFormats.toStorageString(it) } ?: item.purchaseDate
+
+                    if (days < 0) {
+                        markAsWaste(item, "Expired")
+                    } else {
+                        val newDaysLeft = days + 1
+                        if (item.daysLeft != newDaysLeft || item.expiry != normalizedExpiry || item.purchaseDate != normalizedPurchaseDate) {
+                            val updatedItem = item.copy(
+                                daysLeft = newDaysLeft,
+                                expiry = normalizedExpiry,
+                                purchaseDate = normalizedPurchaseDate
+                            )
+                            inventoryDao.updateItem(updatedItem)
+                            supabaseDataRepository.upsertInventoryItem(updatedItem.toSupabase())
+                        }
+                    }
                 }
             }
         }
@@ -148,11 +175,10 @@ class InventoryRepository(
     ) {
         itemsWithQty.forEach { (item, moveQty) ->
             if (moveQty > 0) {
-                val unitPrice = if (item.quantity > 0) item.price / item.quantity else item.price
                 val reportItem = ReportItem(
                     name = item.name,
                     category = item.category,
-                    price = unitPrice,
+                    price = item.unitPrice(),
                     quantity = moveQty,
                     unit = item.unit,
                     status = status,

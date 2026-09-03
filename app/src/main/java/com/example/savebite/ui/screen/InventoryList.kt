@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -35,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
+import com.example.savebite.model.DefaultStorages
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.InventorySortOption
 import com.example.savebite.ui.navigation.AppSearchBar
@@ -59,7 +62,8 @@ import com.example.savebite.ui.navigation.AppTopBar
 @Composable
 fun InventoryList(
     foods: List<Inventory> = emptyList(),
-    storageList: List<String> = listOf("Pantry", "Refrigerator", "Freezer"),
+    storageList: List<String> = DefaultStorages.ALL,
+    isOffline: Boolean = false,
     searchQuery: String = "",
     onQueryChange: (String) -> Unit = {},
     selectedStorage: String = "All",
@@ -154,6 +158,11 @@ fun InventoryList(
                 .fillMaxSize()
                 .padding(horizontal = 8.dp)
         ) {
+            if (isOffline) {
+                OfflineBanner()
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             StorageTab(
                 storages = storageList,
                 selectedStorage = selectedStorage,
@@ -205,6 +214,35 @@ fun InventoryList(
                     }
                 }
             }
+        }
+    }
+}
+
+// Shown when the last cloud sync attempt failed, so the user knows they're looking
+// at local data that may not reflect changes made on another device.
+@Composable
+fun OfflineBanner() {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.errorContainer,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.info),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Offline - showing local data. Changes will sync once you're back online.",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
         }
     }
 }

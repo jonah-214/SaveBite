@@ -15,6 +15,7 @@ import com.example.savebite.utils.ThemePreferenceManager
  * This class acts as a "Central Supply Room" for all the tools the app needs.
  */
 interface AppContainer {
+    val supabaseDataRepository: SupabaseDataRepository
     val userRepository: UserRepository
     val inventoryRepository: InventoryRepository
     val shoppingRepository: ShoppingRepository
@@ -57,20 +58,24 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
         NotificationPreferenceManager(context)
     }
 
+    override val supabaseDataRepository: SupabaseDataRepository by lazy {
+        SupabaseDataRepository()
+    }
+
     override val userRepository: UserRepository by lazy {
         UserRepository(database.userDao())
     }
 
     override val inventoryRepository: InventoryRepository by lazy {
-        InventoryRepository(database.inventoryDao(), database.storageDao(), database.reportDao())
+        InventoryRepository(database.inventoryDao(), database.storageDao(), database.reportDao(), supabaseDataRepository)
     }
 
     override val shoppingRepository: ShoppingRepository by lazy {
-        ShoppingRepository(database.shoppingDao())
+        ShoppingRepository(database.shoppingDao(), supabaseDataRepository)
     }
 
     override val reportRepository: ReportRepository by lazy {
-        ReportRepositoryImpl(database.reportDao())
+        ReportRepositoryImpl(database.reportDao(), supabaseDataRepository)
     }
 
     override val supabaseAuthRepository: SupabaseAuthRepository by lazy {

@@ -211,10 +211,12 @@ fun AppNavigation(
                 val searchQuery by inventoryViewModel.searchQuery.collectAsState()
                 val selectedStorage by inventoryViewModel.selectedStorage.collectAsState()
                 val selectedSortOption by inventoryViewModel.selectedSortOption.collectAsState()
+                val isOffline by inventoryViewModel.isOffline.collectAsState()
 
                 InventoryList(
                     foods = inventoryList,
                     storageList = storageList,
+                    isOffline = isOffline,
                     searchQuery = searchQuery,
                     onQueryChange = { inventoryViewModel.searchQuery.value = it },
                     selectedStorage = selectedStorage,

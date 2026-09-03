@@ -21,6 +21,9 @@ interface InventoryDao {
     @Query("SELECT * FROM inventory_table")
     suspend fun getAllInventorySync(): List<Inventory>
 
+    @Query("SELECT * FROM inventory_table WHERE storage = :storage")
+    suspend fun getItemsByStorageSync(storage: String): List<Inventory>
+
     @Query("SELECT * FROM inventory_table WHERE id = :id")
     fun getInventoryById(id: String): Flow<Inventory?>
 

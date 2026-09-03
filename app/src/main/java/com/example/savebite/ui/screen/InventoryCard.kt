@@ -1,6 +1,7 @@
 package com.example.savebite.ui.screen
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,8 +40,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import com.example.savebite.R
 import com.example.savebite.model.Inventory
+import com.example.savebite.ui.theme.expirySectionColors
+import com.example.savebite.utils.DateFormats
 
 @Composable
 fun InventoryCard(
@@ -133,19 +137,21 @@ fun InventoryCard(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Days Left Badge
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (food.daysLeft <= 3) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = if (food.daysLeft <= 3) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
-                ) {
-                    Text(
-                        text = "${food.daysLeft} days left",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                    )
-                }
+                // Days Left Badge - same Red/Yellow/Green urgency scheme and text as the Reminder screen
+                val (badgeBg, badgeFg) = expirySectionColors(food.daysLeft)
+                Text(
+                    text = if (food.daysLeft <= 0) {
+                        stringResource(R.string.reminder_expiry_today)
+                    } else {
+                        stringResource(R.string.reminder_expiry_days_left, food.daysLeft)
+                    },
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = badgeFg,
+                    modifier = Modifier
+                        .background(badgeBg, RoundedCornerShape(8.dp))
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -184,7 +190,7 @@ fun InventoryCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = food.expiry,
+                            text = DateFormats.toDisplayString(food.expiry),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.primary

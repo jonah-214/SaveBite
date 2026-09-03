@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.first
 
 class ShoppingRepository(
     private val shoppingDao: ShoppingDao,
-    private val supabaseDataRepository: SupabaseDataRepository = SupabaseDataRepository()
+    private val supabaseDataRepository: SupabaseDataRepository
 ) {
     val allShoppingItems: Flow<List<ShoppingItem>> = shoppingDao.getAllShoppingItems()
 

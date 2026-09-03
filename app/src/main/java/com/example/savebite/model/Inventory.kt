@@ -22,6 +22,14 @@ data class Inventory(
     val isConsumed: Boolean = false
 )
 
+/**
+ * Price is stored as the total cost for the whole [Inventory.quantity], since that's
+ * what's easiest for the user to enter (e.g. "I paid $12.50 for this pack"). This
+ * derives the per-unit price needed when only part of the quantity is moved to a
+ * report (consumed/wasted).
+ */
+fun Inventory.unitPrice(): Double = if (quantity > 0) price / quantity else price
+
 enum class InventorySortOption(val label: String) {
     PRIORITY("Priority (Expiring Soon)"),
     NAME_A_TO_Z("Name (A - Z)"),

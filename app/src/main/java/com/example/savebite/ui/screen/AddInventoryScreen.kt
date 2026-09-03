@@ -22,18 +22,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
+import com.example.savebite.model.DefaultStorages
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.ShoppingItem
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.InventoryViewModel
 import com.example.savebite.utils.Currency
+import com.example.savebite.utils.DateFormats
+import com.example.savebite.utils.InventoryFormLogic
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 // Custom SelectableDates implementation to disable past dates
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,7 +62,7 @@ fun AddInventoryScreen(
     itemId: String? = null,
     viewModel: InventoryViewModel? = null,
     batchItems: List<ShoppingItem>? = null,
-    storageLocations: List<String> = listOf("Refrigerator", "Pantry", "Freezer"),
+    storageLocations: List<String> = DefaultStorages.ALL,
     onBackClick: () -> Unit = {},
     onNavigateToShoppingList: () -> Unit = {},
     onSaveClick: (List<Inventory>) -> Unit = {} // 修正：支持回调 List 应对批量新增
@@ -79,7 +80,7 @@ fun AddInventoryScreen(
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Dairy & Eggs") }
     var storage by remember(storageLocations) {
-        mutableStateOf(storageLocations.firstOrNull() ?: "Refrigerator")
+        mutableStateOf(storageLocations.firstOrNull() ?: DefaultStorages.FALLBACK)
     }
     var quantity by remember { mutableIntStateOf(1) }
     var unit by remember { mutableStateOf("pcs") }
@@ -87,38 +88,27 @@ fun AddInventoryScreen(
     var purchaseDate by remember { mutableStateOf(getTodayFormatted()) }
     var expiryDate by remember { mutableStateOf(getFutureDateFormatted(7)) }
     var notes by remember { mutableStateOf("") }
+    // Preserves the item's existing "consumed" flag so editing/re-saving doesn't silently uncheck it
+    var isConsumed by remember { mutableStateOf(false) }
 
-    val cleanPriceString = { input: String ->
-        input.trim()
-            .replace(Currency.PREFIX, "", ignoreCase = true)
-            .replace(",", ".")
-            .replace(Regex("[^0-9.]"), "")
-    }
-
-    fun formatPriceString(priceValue: Double): String {
-        return if (priceValue > 0) String.format(Locale.US, "%.2f", priceValue) else ""
-    }
+    // Bundles the current form fields into the shape InventoryFormLogic expects.
+    fun currentFormDraft() = InventoryFormLogic.FormDraft(
+        name = name,
+        description = description,
+        category = category,
+        storage = storage,
+        quantity = quantity,
+        unit = unit,
+        priceInput = price,
+        purchaseDate = purchaseDate,
+        expiryDate = expiryDate,
+        notes = notes,
+        isConsumed = isConsumed
+    )
 
     val handlePreviousStep = {
         if (isBatchMode && currentIndex > 0) {
-            val cleanedPrice = cleanPriceString(price)
-            val parsedPrice = cleanedPrice.toDoubleOrNull() ?: 0.0
-            val calculatedDaysLeft = calculateDaysLeft(expiryDate)
-
-            val currentDraft = Inventory(
-                id = itemId ?: UUID.randomUUID().toString(),
-                name = name,
-                description = description,
-                category = category,
-                storage = storage,
-                quantity = quantity,
-                unit = unit,
-                price = parsedPrice,
-                daysLeft = calculatedDaysLeft,
-                purchaseDate = purchaseDate,
-                expiry = expiryDate,
-                notes = notes
-            )
+            val currentDraft = InventoryFormLogic.buildDraft(currentFormDraft(), itemId)
 
             if (currentIndex < accumulatedBatchList.size) {
                 accumulatedBatchList[currentIndex] = currentDraft
@@ -131,10 +121,7 @@ fun AddInventoryScreen(
             onBackClick()
         }
     }
-    val isPriceValid = remember(price) {
-        val cleaned = cleanPriceString(price)
-        cleaned.isNotBlank() && cleaned.toDoubleOrNull() != null && cleaned.toDouble() >= 0.0
-    }
+    val isPriceValid = remember(price) { InventoryFormLogic.isPriceValid(price) }
     var attemptedSave by remember { mutableStateOf(false) }
 
     // 1. 如果是 Batch 模式，根据 currentIndex 自动更新数据
@@ -149,10 +136,11 @@ fun AddInventoryScreen(
                 storage = savedItem.storage
                 quantity = savedItem.quantity
                 unit = savedItem.unit
-                price = formatPriceString(savedItem.price)
+                price = InventoryFormLogic.formatPriceString(savedItem.price)
                 purchaseDate = savedItem.purchaseDate
                 expiryDate = savedItem.expiry
                 notes = savedItem.notes
+                isConsumed = savedItem.isConsumed
             } else {
                 // 如果是全新未填过的物品，加载初始默认值
                 val item = batchItems[currentIndex]
@@ -163,6 +151,7 @@ fun AddInventoryScreen(
                 price = ""
                 description = ""
                 notes = ""
+                isConsumed = false
             }
             attemptedSave = false
         }
@@ -175,7 +164,7 @@ fun AddInventoryScreen(
             existingItem?.let { item ->
                 name = item.name
                 description = item.description
-                price = formatPriceString(item.price)
+                price = InventoryFormLogic.formatPriceString(item.price)
                 category = item.category
                 storage = item.storage
                 quantity = item.quantity
@@ -183,6 +172,7 @@ fun AddInventoryScreen(
                 purchaseDate = item.purchaseDate
                 expiryDate = item.expiry
                 notes = item.notes
+                isConsumed = item.isConsumed
             }
         }
     }
@@ -478,7 +468,7 @@ fun AddInventoryScreen(
                 ) {
                     Box(modifier = Modifier.weight(1f)) {
                         OutlinedTextField(
-                            value = purchaseDate,
+                            value = DateFormats.toDisplayString(purchaseDate),
                             onValueChange = {},
                             readOnly = true,
                             label = { Text("Purchase Date") },
@@ -503,7 +493,7 @@ fun AddInventoryScreen(
 
                     Box(modifier = Modifier.weight(1f)) {
                         OutlinedTextField(
-                            value = expiryDate,
+                            value = DateFormats.toDisplayString(expiryDate),
                             onValueChange = {},
                             readOnly = true,
                             label = { Text("Expiry Date") },
@@ -556,26 +546,8 @@ fun AddInventoryScreen(
                     Button(
                         onClick = {
                             attemptedSave = true
-                            if (name.isNotBlank() && isPriceValid) {
-                                val cleanedPrice = cleanPriceString(price)
-                                val parsedPrice = cleanedPrice.toDoubleOrNull() ?: 0.0
-                                val calculatedDaysLeft = calculateDaysLeft(expiryDate)
-
-                                val newFood = Inventory(
-                                    id = itemId ?: UUID.randomUUID().toString(),
-                                    name = name,
-                                    description = description,
-                                    category = category,
-                                    storage = storage,
-                                    quantity = quantity,
-                                    unit = unit,
-                                    price = parsedPrice,
-                                    daysLeft = calculatedDaysLeft,
-                                    purchaseDate = purchaseDate,
-                                    expiry = expiryDate,
-                                    notes = notes
-                                )
-
+                            val newFood = InventoryFormLogic.buildInventoryOrNull(currentFormDraft(), itemId)
+                            if (newFood != null) {
                                 if (isBatchMode && batchItems != null) {
                                     // 回退修改时覆盖，新增时添加
                                     if (currentIndex < accumulatedBatchList.size) {
@@ -740,33 +712,22 @@ fun StepProgressBar(
 }
 
 // Helper Functions
+// NOTE: purchaseDate/expiryDate STATE HOLDS THE STORAGE FORMAT (see DateFormats),
+// not the text shown to the user - the OutlinedTextFields convert it to a display
+// string with DateFormats.toDisplayString(...) when rendering.
 private fun formatDate(millis: Long): String {
-    val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    // The date picker returns UTC midnight for the selected day. Formatting with a
+    // UTC formatter (instead of the device's local timezone) avoids the classic
+    // Compose DatePicker bug where the day shifts back by one for timezones behind UTC.
+    val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     formatter.timeZone = TimeZone.getTimeZone("UTC")
     return formatter.format(Date(millis))
 }
 
-private fun getTodayFormatted(): String {
-    val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-    return formatter.format(Date())
-}
+private fun getTodayFormatted(): String = DateFormats.toStorageString(Date())
 
 private fun getFutureDateFormatted(daysToAdd: Int): String {
     val calendar = Calendar.getInstance()
     calendar.add(Calendar.DAY_OF_YEAR, daysToAdd)
-    val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-    return formatter.format(calendar.time)
-}
-
-private fun calculateDaysLeft(expiryDateStr: String): Int {
-    return try {
-        val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-        val expiryDate = formatter.parse(expiryDateStr) ?: return 0
-        val today = Date()
-        val diffInMillis = expiryDate.time - today.time
-        val days = TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS).toInt()
-        if (days < 0) 0 else days + 1
-    } catch (e: Exception) {
-        0
-    }
+    return DateFormats.toStorageString(calendar.time)
 }

@@ -5,6 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
+import com.example.savebite.data.repo.SupabaseDataRepository
 import com.example.savebite.utils.ExpiryGrouping
 import com.example.savebite.utils.NotificationPreferenceManager
 
@@ -19,7 +20,8 @@ class ExpiryReminderWorker(
         val inventoryRepository = InventoryRepository(
             database.inventoryDao(),
             database.storageDao(),
-            database.reportDao()
+            database.reportDao(),
+            SupabaseDataRepository()
         )
 
         return try {

@@ -4,14 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.data.repo.ShoppingRepository
+import com.example.savebite.model.DefaultStorages
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.ShoppingItem
+import com.example.savebite.utils.DateFormats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
 class ShoppingViewModel(
     private val shoppingRepository: ShoppingRepository,
@@ -79,8 +79,7 @@ class ShoppingViewModel(
     fun transferSelectedToInventory(onComplete: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             val purchased = items.value.filter { it.isPurchased }
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val currentDate = dateFormat.format(Date())
+            val currentDate = DateFormats.toStorageString(Date())
 
             purchased.forEach { item ->
                 val newInventoryItem = Inventory(
@@ -88,7 +87,7 @@ class ShoppingViewModel(
                     quantity = item.quantity,
                     unit = item.unit,
                     category = item.category,
-                    storage = "Refrigerator",
+                    storage = DefaultStorages.FALLBACK,
                     daysLeft = 7,
                     purchaseDate = currentDate,
                     expiry = currentDate

@@ -1,6 +1,7 @@
 package com.example.savebite.ui.screen
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,13 +14,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
 import com.example.savebite.model.Inventory
 import com.example.savebite.ui.navigation.AppTopBar
+import com.example.savebite.ui.theme.expirySectionColors
 import com.example.savebite.utils.Currency
+import com.example.savebite.utils.DateFormats
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -434,10 +438,12 @@ fun InventoryDetailScreen(
                         .weight(1f)
                         .padding(start = 16.dp)
                 ) {
+                    // Same Red/Yellow/Green urgency scheme used by the Reminder screen and the Inventory list badge
+                    val (statusBg, statusFg) = expirySectionColors(detail.daysLeft)
                     Icon(
                         painter = painterResource(R.drawable.clock),
                         contentDescription = "Status",
-                        tint = if (detail.daysLeft <= 3) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
+                        tint = statusFg,
                         modifier = Modifier.size(48.dp)
                     )
 
@@ -451,10 +457,17 @@ fun InventoryDetailScreen(
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
-                            text = "${detail.daysLeft} days left",
+                            text = if (detail.daysLeft <= 0) {
+                                stringResource(R.string.reminder_expiry_today)
+                            } else {
+                                stringResource(R.string.reminder_expiry_days_left, detail.daysLeft)
+                            },
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = if (detail.daysLeft <= 3) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
+                            fontWeight = FontWeight.Bold,
+                            color = statusFg,
+                            modifier = Modifier
+                                .background(statusBg, RoundedCornerShape(8.dp))
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
                         )
                     }
                 }
@@ -527,7 +540,7 @@ fun InventoryDetailScreen(
                             modifier = Modifier.weight(1f)
                         )
                         Text(
-                            text = detail.purchaseDate,
+                            text = DateFormats.toDisplayString(detail.purchaseDate),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
@@ -555,7 +568,7 @@ fun InventoryDetailScreen(
                         )
                         Row {
                             Text(
-                                text = detail.expiry,
+                                text = DateFormats.toDisplayString(detail.expiry),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -564,7 +577,7 @@ fun InventoryDetailScreen(
                             Text(
                                 text = "(${detail.daysLeft} days left)",
                                 fontSize = 14.sp,
-                                color = if (detail.daysLeft <= 3) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
+                                color = expirySectionColors(detail.daysLeft).second
                             )
                         }
                     }

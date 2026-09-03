@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.savebite.R
+import com.example.savebite.model.DefaultStorages
 import com.example.savebite.ui.navigation.AppTopBar
 import androidx.compose.material3.MaterialTheme
 
@@ -132,7 +133,7 @@ fun ManageStorageScreen(
                             }
 
                             // Delete Action Button
-                            if (place != "All" && place != "Refrigerator") {
+                            if (place != "All" && place != DefaultStorages.FALLBACK) {
                                 IconButton(
                                     onClick = { storageToDelete = place },
                                     modifier = Modifier.size(28.dp)
@@ -225,7 +226,7 @@ fun ManageStorageScreen(
             title = { Text(text = "Delete Storage Location", color = MaterialTheme.colorScheme.onSurface) },
             text = {
                 Text(
-                    text = "Are you sure you want to delete \"${storageToDelete}\"? All items in this storage will be moved to \"Refrigerator\".",
+                    text = "Are you sure you want to delete \"${storageToDelete}\"? All items in this storage will be moved to \"${DefaultStorages.FALLBACK}\".",
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },

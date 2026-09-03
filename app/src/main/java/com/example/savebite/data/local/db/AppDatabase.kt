@@ -12,6 +12,7 @@ import com.example.savebite.data.local.dao.ReportDao
 import com.example.savebite.data.local.dao.ShoppingDao
 import com.example.savebite.data.local.dao.StorageDao
 import com.example.savebite.data.local.dao.UserDao
+import com.example.savebite.model.DefaultStorages
 import com.example.savebite.model.Inventory
 import com.example.savebite.model.ReportItem
 import com.example.savebite.model.ShoppingItem
@@ -60,9 +61,7 @@ abstract class AppDatabase : RoomDatabase() {
                             INSTANCE?.let { database ->
                                 CoroutineScope(Dispatchers.IO).launch {
                                     database.storageDao().apply {
-                                        insertStorage(Storage("Pantry"))
-                                        insertStorage(Storage("Refrigerator"))
-                                        insertStorage(Storage("Freezer"))
+                                        DefaultStorages.ALL.forEach { insertStorage(Storage(it)) }
                                     }
                                 }
                             }
