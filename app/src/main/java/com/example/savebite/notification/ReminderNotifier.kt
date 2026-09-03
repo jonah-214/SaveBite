@@ -19,7 +19,7 @@ fun showExpiryNotification(context: Context, expiringCount: Int) {
     val intent = Intent(context, MainActivity::class.java).apply {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
     }
-    
+
     // A PendingIntent is like a "voucher" you give to the system to run your code later.
     val pendingIntent = PendingIntent.getActivity(
         context,

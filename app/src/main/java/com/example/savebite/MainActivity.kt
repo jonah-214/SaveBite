@@ -22,6 +22,7 @@ import com.example.savebite.ui.theme.SaveBiteTheme
 import com.example.savebite.data.ai.GeminiRecipeService
 import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
+import com.example.savebite.data.repo.ProfileRepository
 import com.example.savebite.data.repo.RecipeRepository
 import com.example.savebite.data.repo.ReportRepositoryImpl
 import com.example.savebite.data.repo.ShoppingRepository
@@ -34,6 +35,7 @@ import com.example.savebite.ui.viewmodel.ProfileViewModelFactory
 import com.example.savebite.ui.viewmodel.ReminderViewModelFactory
 import com.example.savebite.ui.viewmodel.ThemeViewModel
 import com.example.savebite.ui.viewmodel.ThemeViewModelFactory
+import com.example.savebite.utils.NotificationPreferenceManager
 import com.example.savebite.utils.SessionManager
 import com.example.savebite.utils.ThemeMode
 import com.example.savebite.utils.ThemePreferenceManager
@@ -52,6 +54,7 @@ class MainActivity : ComponentActivity() {
         val database = AppDatabase.getDatabase(this)
         val sessionManager = SessionManager(this)
         val themePreferenceManager = ThemePreferenceManager(this)
+        val notificationPreferenceManager = NotificationPreferenceManager(this)
 
         // Set up the "Repositories": These handle fetching data from the database or internet
         val userRepository = UserRepository(database.userDao())
@@ -59,6 +62,7 @@ class MainActivity : ComponentActivity() {
         val shoppingRepository = ShoppingRepository(database.shoppingDao())
         val reportRepository = ReportRepositoryImpl(database.reportDao())
         val supabaseAuthRepository = SupabaseAuthRepository(userRepository)
+        val profileRepository = ProfileRepository()
         val recipeRepository = RecipeRepository(
             GeminiRecipeService(apiKey = BuildConfig.GEMINI_API_KEY),
             database.recipeDao()
@@ -68,7 +72,7 @@ class MainActivity : ComponentActivity() {
         val authViewModelFactory = AuthViewModelFactory(userRepository, supabaseAuthRepository, sessionManager)
         val dashboardViewModelFactory = DashboardViewModelFactory(userRepository, inventoryRepository, shoppingRepository, reportRepository, recipeRepository, sessionManager)
         val reminderViewModelFactory = ReminderViewModelFactory(inventoryRepository)
-        val profileViewModelFactory = ProfileViewModelFactory(userRepository, supabaseAuthRepository, sessionManager)
+        val profileViewModelFactory = ProfileViewModelFactory(userRepository, supabaseAuthRepository, profileRepository, sessionManager, notificationPreferenceManager)
         val themeViewModelFactory = ThemeViewModelFactory(themePreferenceManager)
 
         // Step 1: Schedule a background task (Worker) to run every day.

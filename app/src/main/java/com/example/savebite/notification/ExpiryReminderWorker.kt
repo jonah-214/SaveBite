@@ -7,6 +7,7 @@ import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.data.repo.InventoryRepository
 import com.example.savebite.utils.ExpiryGrouping
 import com.example.savebite.utils.ExpirySection
+import com.example.savebite.utils.NotificationPreferenceManager
 
 class ExpiryReminderWorker(
     context: Context,
@@ -23,6 +24,13 @@ class ExpiryReminderWorker(
         )
 
         return try {
+            // 0. Respect the user's Notification preference from Profile & Settings.
+            //    If they've turned it off, skip straight to success without notifying.
+            val notificationPreferenceManager = NotificationPreferenceManager(applicationContext)
+            if (!notificationPreferenceManager.isNotificationEnabled()) {
+                return Result.success()
+            }
+
             // 1. Refresh daysLeft for every item first — without this, items whose
             //    expiry has crept closer since the Inventory screen was last opened
             //    would be checked against a stale, outdated daysLeft value.

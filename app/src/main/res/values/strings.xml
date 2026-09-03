@@ -1,3 +1,87 @@
 <resources>
     <string name="app_name">SaveBite</string>
+
+    <!-- Shared: Discard Changes dialog (Edit Profile, Change Password) -->
+    <string name="discard_changes_title">Discard Changes?</string>
+    <string name="discard_changes_message">You have unsaved changes. Are you sure you want to discard them and go back?</string>
+    <string name="action_discard">Discard</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- Profile & Settings screen -->
+    <string name="profile_settings_title">Profile &amp; Settings</string>
+    <string name="profile_loading_username">Loading…</string>
+    <string name="profile_section_account_settings">Account Settings</string>
+    <string name="profile_section_preferences">Preferences</string>
+    <string name="profile_section_support">Support</string>
+    <string name="profile_edit_profile_label">Edit Profile</string>
+    <string name="profile_edit_profile_subtitle">Change profile picture, number, E-mail</string>
+    <string name="profile_change_password_label">Change Password</string>
+    <string name="profile_change_password_subtitle">Update and strengthen account security</string>
+    <string name="profile_notification_label">Notification</string>
+    <string name="profile_notification_subtitle">Customize your notification preferences</string>
+    <string name="profile_appearance_label">Appearance</string>
+    <string name="profile_about_us_label">About Us</string>
+    <string name="profile_about_us_subtitle">Learn more about SaveBite</string>
+    <string name="profile_logout">Logout</string>
+    <string name="profile_logout_dialog_title">Log out?</string>
+    <string name="profile_logout_dialog_message">You\'ll need to sign in again to access your account.</string>
+    <string name="profile_logout_confirm">Log Out</string>
+    <string name="profile_update_success">Profile updated successfully!</string>
+    <string name="profile_update_success_email_pending">Profile updated! Check your new email to confirm the change.</string>
+    <string name="profile_password_change_success">Password changed successfully!</string>
+    <string name="content_desc_profile_picture">Profile picture</string>
+    <string name="content_desc_avatar">Avatar</string>
+    <string name="content_desc_selected">Selected</string>
+
+    <!-- Edit Profile screen -->
+    <string name="edit_profile_title">Edit Profile</string>
+    <string name="edit_profile_replace_picture">Replace Picture</string>
+    <string name="edit_profile_add_picture">Add Picture</string>
+    <string name="edit_profile_remove_picture">Remove Picture</string>
+    <string name="edit_profile_image_requirements">JPG/PNG/WEBP • Max 2MB • Min 200x200px</string>
+    <string name="edit_profile_username_label">Username</string>
+    <string name="edit_profile_username_placeholder">Enter your new username</string>
+    <string name="edit_profile_email_label">Email Address</string>
+    <string name="edit_profile_email_placeholder">Enter your new email address</string>
+    <string name="edit_profile_phone_label">Phone Number</string>
+    <string name="edit_profile_phone_placeholder">Enter your new phone number</string>
+    <string name="edit_profile_save_changes">Save Changes</string>
+    <string name="content_desc_edit_profile_picture">Edit profile picture</string>
+
+    <!-- Change Password screen -->
+    <string name="change_password_title">Change Password</string>
+    <string name="change_password_current_label">Current Password</string>
+    <string name="change_password_current_placeholder">Enter your current password</string>
+    <string name="change_password_new_label">New Password</string>
+    <string name="change_password_new_placeholder">Enter your new password</string>
+    <string name="change_password_confirm_label">Confirm New Password</string>
+    <string name="change_password_confirm_placeholder">Confirm your new password</string>
+    <string name="change_password_requirements_title">Password Requirements</string>
+    <string name="change_password_requirement_length">At least 6 characters</string>
+    <string name="change_password_requirement_uppercase">One uppercase letter (A-Z)</string>
+    <string name="change_password_requirement_lowercase">One lowercase letter (a-z)</string>
+    <string name="change_password_requirement_number">One number (0-9)</string>
+    <string name="change_password_update_button">Update Password</string>
+    <string name="content_desc_toggle_current_password">Toggle current password visibility</string>
+    <string name="content_desc_toggle_new_password">Toggle new password visibility</string>
+    <string name="content_desc_toggle_confirm_password">Toggle confirm password visibility</string>
+
+    <!-- About Us screen -->
+    <string name="about_us_title">About Us</string>
+    <string name="about_us_mission_heading">Our Mission</string>
+    <string name="about_us_mission_body">SaveBite helps you reduce food waste by tracking expiry dates and suggesting recipes, saving you money while protecting the planet.</string>
+    <string name="about_us_offers_heading">What SaveBite Offers</string>
+    <string name="about_us_feature_track_inventory">Track food inventory before it expires</string>
+    <string name="about_us_feature_expiry_reminders">Get timely expiry reminders</string>
+    <string name="about_us_feature_shopping">Plan smarter shopping lists</string>
+    <string name="about_us_feature_recipes">Discover recipes from what you have</string>
+    <string name="about_us_feature_waste_monitor">Monitor your waste reduction over time</string>
+    <string name="about_us_team_heading">The Team</string>
+    <string name="about_us_member_jonathan_name">Jonathan Nah</string>
+    <string name="about_us_member_jonathan_subtitle">Authentication, Dashboard, Expiry, Settings</string>
+    <string name="about_us_member_xinyi_name">Xin Yi</string>
+    <string name="about_us_member_xinyi_subtitle">Inventory, Shopping, Recipe, Reports</string>
+    <string name="about_us_tagline">Track it. Use it. Waste less.</string>
+    <string name="about_us_version">Version 1.3.3</string>
+    <string name="content_desc_savebite_logo">SaveBite logo</string>
 </resources>

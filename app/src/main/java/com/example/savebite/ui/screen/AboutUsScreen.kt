@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -40,7 +41,7 @@ fun AboutUsScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "About Us",
+                title = stringResource(R.string.about_us_title),
                 showBackButton = true,
                 onBackClick = { navController.popBackStack()}
             )
@@ -60,7 +61,7 @@ fun AboutUsScreen(
             Spacer(Modifier.height(20.dp))
 
             // Mission Statement
-            SectionLabel("Our Mission")
+            SectionLabel(stringResource(R.string.about_us_mission_heading))
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -74,8 +75,7 @@ fun AboutUsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "SaveBite helps you reduce food waste by tracking expiry dates and " +
-                            "suggesting recipes, saving you money while protecting the planet.",
+                    text = stringResource(R.string.about_us_mission_body),
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -84,7 +84,7 @@ fun AboutUsScreen(
             Spacer(Modifier.height(20.dp))
 
             // Key features
-            SectionLabel("What SaveBite Offers")
+            SectionLabel(stringResource(R.string.about_us_offers_heading))
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -98,18 +98,18 @@ fun AboutUsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    FeatureRow("Track food inventory before it expires")
-                    FeatureRow("Get timely expiry reminders")
-                    FeatureRow("Plan smarter shopping lists")
-                    FeatureRow("Discover recipes from what you have")
-                    FeatureRow("Monitor your waste reduction over time")
+                    FeatureRow(stringResource(R.string.about_us_feature_track_inventory))
+                    FeatureRow(stringResource(R.string.about_us_feature_expiry_reminders))
+                    FeatureRow(stringResource(R.string.about_us_feature_shopping))
+                    FeatureRow(stringResource(R.string.about_us_feature_recipes))
+                    FeatureRow(stringResource(R.string.about_us_feature_waste_monitor))
                 }
             }
 
             Spacer(Modifier.height(20.dp))
 
             // Team
-            SectionLabel("The Team")
+            SectionLabel(stringResource(R.string.about_us_team_heading))
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -125,15 +125,15 @@ fun AboutUsScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     SettingsRow(
                         icon = R.drawable.group,
-                        label = "Jonathan Nah",
-                        subtitle = "Authentication, Dashboard, Expiry, Settings",
+                        label = stringResource(R.string.about_us_member_jonathan_name),
+                        subtitle = stringResource(R.string.about_us_member_jonathan_subtitle),
                         trailing = { }
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     SettingsRow(
                         icon = R.drawable.group,
-                        label = "Xin Yi",
-                        subtitle = "Inventory, Shopping, Recipe, Reports",
+                        label = stringResource(R.string.about_us_member_xinyi_name),
+                        subtitle = stringResource(R.string.about_us_member_xinyi_subtitle),
                         trailing = { }
                     )
                 }
@@ -160,24 +160,24 @@ private fun AppIdentityCard() {
         ) {
             Image(
                 painter = painterResource(id = R.drawable.savebite_logo),
-                contentDescription = "SaveBite logo",
+                contentDescription = stringResource(R.string.content_desc_savebite_logo),
                 modifier = Modifier.size(96.dp)
             )
         }
         Spacer(Modifier.height(12.dp))
         Text(
-            text = "SaveBite",
+            text = stringResource(R.string.app_name),
             fontWeight = FontWeight.Bold,
             fontSize = 22.sp
         )
         Text(
-            text = "Track it. Use it. Waste less.",
+            text = stringResource(R.string.about_us_tagline),
             fontSize = 13.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Version 1.3.3",
+            text = stringResource(R.string.about_us_version),
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

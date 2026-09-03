@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -95,8 +96,8 @@ fun ChangePasswordScreen(
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
-            title = { Text(text = "Discard Changes?") },
-            text = { Text(text = "You have unsaved changes. Are you sure you want to discard them and go back?") },
+            title = { Text(text = stringResource(R.string.discard_changes_title)) },
+            text = { Text(text = stringResource(R.string.discard_changes_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -104,12 +105,12 @@ fun ChangePasswordScreen(
                         navController.popBackStack()
                     }
                 ) {
-                    Text("Discard", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.action_discard), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDiscardDialog = false }) {
-                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
+                    Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.outline)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -120,7 +121,7 @@ fun ChangePasswordScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "Change Password",
+                title = stringResource(R.string.change_password_title),
                 showBackButton = true,
                 onBackClick = {
                     if (isChanged) {
@@ -144,7 +145,7 @@ fun ChangePasswordScreen(
 
             // Change Password Field - Current Password
             Text(
-                text = "Current Password",
+                text = stringResource(R.string.change_password_current_label),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
@@ -155,7 +156,7 @@ fun ChangePasswordScreen(
                     currentPassword = it
                     profileViewModel.clearCurrentPasswordError()
                 },
-                placeholder = { Text("Enter your current password") },
+                placeholder = { Text(stringResource(R.string.change_password_current_placeholder)) },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 isError = profileViewModel.currentPasswordError.value != null,
@@ -182,7 +183,7 @@ fun ChangePasswordScreen(
                     ) {
                         Icon(
                             painter = painterResource(id = iconRes),
-                            contentDescription = "Toggle current password visibility",
+                            contentDescription = stringResource(R.string.content_desc_toggle_current_password),
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -194,7 +195,7 @@ fun ChangePasswordScreen(
 
             // Change Password Field - New Password
             Text(
-                text = "New Password",
+                text = stringResource(R.string.change_password_new_label),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
@@ -205,7 +206,7 @@ fun ChangePasswordScreen(
                     newPassword = it
                     profileViewModel.clearNewPasswordError()
                 },
-                placeholder = { Text("Enter your new password") },
+                placeholder = { Text(stringResource(R.string.change_password_new_placeholder)) },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 isError = profileViewModel.newPasswordError.value != null,
@@ -232,7 +233,7 @@ fun ChangePasswordScreen(
                     ) {
                         Icon(
                             painter = painterResource(id = iconRes),
-                            contentDescription = "Toggle new password visibility",
+                            contentDescription = stringResource(R.string.content_desc_toggle_new_password),
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -244,7 +245,7 @@ fun ChangePasswordScreen(
 
             // Change Password Field - Confirm New Password
             Text(
-                text = "Confirm New Password",
+                text = stringResource(R.string.change_password_confirm_label),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
@@ -255,7 +256,7 @@ fun ChangePasswordScreen(
                     confirmNewPassword = it
                     profileViewModel.clearConfirmNewPasswordError()
                 },
-                placeholder = { Text("Confirm your new password") },
+                placeholder = { Text(stringResource(R.string.change_password_confirm_placeholder)) },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 isError = profileViewModel.confirmNewPasswordError.value != null,
@@ -291,7 +292,7 @@ fun ChangePasswordScreen(
                     ) {
                         Icon(
                             painter = painterResource(id = iconRes),
-                            contentDescription = "Toggle confirm password visibility",
+                            contentDescription = stringResource(R.string.content_desc_toggle_confirm_password),
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -315,21 +316,29 @@ fun ChangePasswordScreen(
                     modifier = Modifier.padding(12.dp)
                 ) {
                     Text(
-                        text = "Password Requirements",
+                        text = stringResource(R.string.change_password_requirements_title),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
 
+                    // Each requirement pairs its label with its own check, instead of matching
+                    // the displayed text against a hardcoded string (which breaks the moment
+                    // either copy changes).
                     val requirements = listOf(
-                        "At least 6 characters",
-                        "One uppercase letter (A-Z)",
-                        "One lowercase letter (a-z)",
-                        "One number (0-9)"
+                        stringResource(R.string.change_password_requirement_length) to
+                            { pwd: String -> pwd.length >= 6 },
+                        stringResource(R.string.change_password_requirement_uppercase) to
+                            { pwd: String -> pwd.any { it.isUpperCase() } },
+                        stringResource(R.string.change_password_requirement_lowercase) to
+                            { pwd: String -> pwd.any { it.isLowerCase() } },
+                        stringResource(R.string.change_password_requirement_number) to
+                            { pwd: String -> pwd.any { it.isDigit() } }
                     )
 
-                    requirements.forEach { requirement ->
+                    requirements.forEach { (label, isMet) ->
+                        val met = isMet(newPassword)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(vertical = 2.dp)
@@ -338,16 +347,16 @@ fun ChangePasswordScreen(
                                 painter = painterResource(id = R.drawable.check),
                                 contentDescription = null,
                                 modifier = Modifier.size(14.dp),
-                                tint = if (isRequirementMet(requirement, newPassword))
+                                tint = if (met)
                                     Color(0xFF4CAF50)
                                 else
                                     MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = requirement,
+                                text = label,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (isRequirementMet(requirement, newPassword))
+                                color = if (met)
                                     MaterialTheme.colorScheme.onSurface
                                 else
                                     MaterialTheme.colorScheme.onSurfaceVariant
@@ -382,24 +391,11 @@ fun ChangePasswordScreen(
                     )
                 } else {
                     Text(
-                        text = "Update Password",
+                        text = stringResource(R.string.change_password_update_button),
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
         }
-    }
-}
-
-private fun isRequirementMet(
-    requirement: String,
-    password: String
-): Boolean {
-    return when (requirement) {
-        "At least 6 characters" -> password.length >= 6
-        "One uppercase letter (A-Z)" -> password.any { it.isUpperCase() }
-        "One lowercase letter (a-z)" -> password.any { it.isLowerCase() }
-        "One number (0-9)" -> password.any { it.isDigit() }
-        else -> false
     }
 }

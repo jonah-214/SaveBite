@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -64,16 +65,26 @@ fun ProfileScreen(
     profileViewModel: ProfileViewModel,
     themeViewModel: ThemeViewModel
 ) {
-    var notificationEnabled by remember { mutableStateOf(true) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     val themeMode by themeViewModel.themeMode.collectAsState()
     val user = profileViewModel.user.value
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Snackbar text resolved here (composable scope) so it can be reused inside the
+    // non-composable LaunchedEffect lambdas below.
+    val profileUpdatedMessage = stringResource(R.string.profile_update_success)
+    val profileUpdatedEmailPendingMessage = stringResource(R.string.profile_update_success_email_pending)
+    val passwordChangedMessage = stringResource(R.string.profile_password_change_success)
+
     // Show success message when profile is updated
     LaunchedEffect(profileViewModel.updateSuccess.value) {
         if (profileViewModel.updateSuccess.value) {
-            snackbarHostState.showSnackbar("Profile updated successfully!")
+            val message = if (profileViewModel.emailConfirmationPending.value) {
+                profileUpdatedEmailPendingMessage
+            } else {
+                profileUpdatedMessage
+            }
+            snackbarHostState.showSnackbar(message)
             profileViewModel.resetUpdateSuccess()
         }
     }
@@ -81,7 +92,7 @@ fun ProfileScreen(
     // Show success message when password is changed
     LaunchedEffect(profileViewModel.changePasswordSuccess.value) {
         if (profileViewModel.changePasswordSuccess.value) {
-            snackbarHostState.showSnackbar("Password changed successfully!")
+            snackbarHostState.showSnackbar(passwordChangedMessage)
             profileViewModel.resetPasswordChangeSuccess()
         }
     }
@@ -89,7 +100,7 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "Profile & Settings",
+                title = stringResource(R.string.profile_settings_title),
                 showBackButton = true,
                 onBackClick = { navController.popBackStack() }
             )
@@ -106,7 +117,7 @@ fun ProfileScreen(
         ) {
             // Profile Header - Avatar, Name, email, phone
             ProfileHeaderCard(
-                username = user?.username ?: "Loading...",
+                username = user?.username ?: stringResource(R.string.profile_loading_username),
                 email = user?.email ?: "",
                 phone = user?.phone ?: "",
                 avatarUrl = user?.avatarUrl
@@ -115,7 +126,7 @@ fun ProfileScreen(
             Spacer(Modifier.height(20.dp))
 
             // Account Settings tab
-            SectionLabel("Account Settings")
+            SectionLabel(stringResource(R.string.profile_section_account_settings))
             AccountSettingsCard(
                 onEditProfileClick = {
                     navController.navigate(AppRoutes.EDIT_PROFILE) {
@@ -132,17 +143,17 @@ fun ProfileScreen(
             Spacer(Modifier.height(12.dp))
 
             // Preferences tab
-            SectionLabel("Preferences")
+            SectionLabel(stringResource(R.string.profile_section_preferences))
             PreferencesCard(
-                notificationEnabled = notificationEnabled,
-                onNotificationToggle = { notificationEnabled = it },
+                notificationEnabled = profileViewModel.notificationEnabled.value,
+                onNotificationToggle = { profileViewModel.setNotificationEnabled(it) },
                 themeMode = themeMode,
                 onThemeModeChange = { themeViewModel.setThemeMode(it) }
             )
 
             // Support tab
             Spacer(Modifier.height(12.dp))
-            SectionLabel("Support")
+            SectionLabel(stringResource(R.string.profile_section_support))
             SupportCard(
                 onAboutUsClick = {
                     navController.navigate(AppRoutes.ABOUT_US) {
@@ -163,8 +174,8 @@ fun ProfileScreen(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Log out?") },
-            text = { Text("You'll need to sign in again to access your account.") },
+            title = { Text(stringResource(R.string.profile_logout_dialog_title)) },
+            text = { Text(stringResource(R.string.profile_logout_dialog_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -177,14 +188,14 @@ fun ProfileScreen(
                     }
                 ) {
                     Text(
-                        text = "Log Out",
+                        text = stringResource(R.string.profile_logout_confirm),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
@@ -227,7 +238,7 @@ fun ProfileHeaderCard(
                 if (avatarUrl != null) {
                     AsyncImage(
                         model = avatarUrl,
-                        contentDescription = "Profile picture",
+                        contentDescription = stringResource(R.string.content_desc_profile_picture),
                         modifier = Modifier
                             .size(64.dp)
                             .clip(CircleShape)
@@ -235,7 +246,7 @@ fun ProfileHeaderCard(
                 } else {
                     Icon(
                         painter = painterResource(id = R.drawable.account_circle),
-                        contentDescription = "Avatar",
+                        contentDescription = stringResource(R.string.content_desc_avatar),
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(40.dp)
                     )
@@ -294,8 +305,8 @@ fun AccountSettingsCard(
         Column(modifier = Modifier.padding(16.dp)) {
             SettingsRow(
                 icon = R.drawable.person,
-                label = "Edit Profile",
-                subtitle = "Change profile picture, number, E-mail",
+                label = stringResource(R.string.profile_edit_profile_label),
+                subtitle = stringResource(R.string.profile_edit_profile_subtitle),
                 onClick = onEditProfileClick
             )
 
@@ -303,8 +314,8 @@ fun AccountSettingsCard(
 
             SettingsRow(
                 icon = R.drawable.lock,
-                label = "Change Password",
-                subtitle = "Update and strengthen account security",
+                label = stringResource(R.string.profile_change_password_label),
+                subtitle = stringResource(R.string.profile_change_password_subtitle),
                 onClick = onChangePasswordClick
             )
         }
@@ -328,8 +339,8 @@ fun PreferencesCard(
         Column(modifier = Modifier.padding(16.dp)) {
             SettingsRow(
                 icon = R.drawable.notification_settings,
-                label = "Notification",
-                subtitle = "Customize your notification preferences",
+                label = stringResource(R.string.profile_notification_label),
+                subtitle = stringResource(R.string.profile_notification_subtitle),
                 onClick = { onNotificationToggle(!notificationEnabled) },
                 trailing = {
                     Switch(
@@ -376,7 +387,7 @@ fun AppearanceExpandableRow(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
-                        text = "Appearance",
+                        text = stringResource(R.string.profile_appearance_label),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium
                     )
@@ -439,7 +450,7 @@ fun ThemeOptionRow(
         if (selected) {
             Icon(
                 painter = painterResource(id = R.drawable.check),
-                contentDescription = "Selected",
+                contentDescription = stringResource(R.string.content_desc_selected),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(18.dp)
             )
@@ -467,8 +478,8 @@ fun SupportCard(
         Column(modifier = Modifier.padding(16.dp)) {
             SettingsRow(
                 icon = R.drawable.info,
-                label = "About Us",
-                subtitle = "Learn more about SaveBite",
+                label = stringResource(R.string.profile_about_us_label),
+                subtitle = stringResource(R.string.profile_about_us_subtitle),
                 onClick = onAboutUsClick
             )
         }
@@ -567,7 +578,7 @@ fun LogoutButton(
             )
             Spacer(Modifier.width(8.dp))
             Text(
-                text = "Logout",
+                text = stringResource(R.string.profile_logout),
                 fontWeight = FontWeight.Bold
             )
         }

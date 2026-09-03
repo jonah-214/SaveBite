@@ -52,6 +52,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.savebite.R
@@ -112,8 +113,8 @@ fun EditProfileScreen(
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
-            title = { Text(text = "Discard Changes?") },
-            text = { Text(text = "You have unsaved changes. Are you sure you want to discard them and go back?") },
+            title = { Text(text = stringResource(R.string.discard_changes_title)) },
+            text = { Text(text = stringResource(R.string.discard_changes_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -121,12 +122,12 @@ fun EditProfileScreen(
                         navController.popBackStack()
                     }
                 ) {
-                    Text("Discard", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.action_discard), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDiscardDialog = false }) {
-                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
+                    Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.outline)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -138,7 +139,7 @@ fun EditProfileScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "Edit Profile",
+                title = stringResource(R.string.edit_profile_title),
                 showBackButton = true,
                 onBackClick = {
                     if (isChanged) {
@@ -193,7 +194,7 @@ fun EditProfileScreen(
                         if (displayImage != null) {
                             AsyncImage(
                                 model = displayImage,
-                                contentDescription = "Profile picture",
+                                contentDescription = stringResource(R.string.content_desc_profile_picture),
                                 modifier = Modifier
                                     .size(120.dp)
                                     .clip(CircleShape)
@@ -201,7 +202,7 @@ fun EditProfileScreen(
                         } else {
                             Icon(
                                 painter = painterResource(id = R.drawable.account_circle),
-                                contentDescription = "Avatar",
+                                contentDescription = stringResource(R.string.content_desc_avatar),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(70.dp)
                             )
@@ -219,7 +220,7 @@ fun EditProfileScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Edit,
-                            contentDescription = "Edit profile picture",
+                            contentDescription = stringResource(R.string.content_desc_edit_profile_picture),
                             tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(18.dp)
                         )
@@ -229,8 +230,14 @@ fun EditProfileScreen(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false }
                     ) {
+                        val hasPicture = user?.avatarUrl != null || profileViewModel.pendingAvatarUri.value != null
                         DropdownMenuItem(
-                            text = { Text(if (user?.avatarUrl != null || profileViewModel.pendingAvatarUri.value != null) "Replace Picture" else "Add Picture") },
+                            text = {
+                                Text(
+                                    if (hasPicture) stringResource(R.string.edit_profile_replace_picture)
+                                    else stringResource(R.string.edit_profile_add_picture)
+                                )
+                            },
                             onClick = {
                                 menuExpanded = false
                                 photoPickerLauncher.launch(
@@ -242,7 +249,7 @@ fun EditProfileScreen(
                         )
                         if (user?.avatarUrl != null || profileViewModel.pendingAvatarUri.value != null) {
                             DropdownMenuItem(
-                                text = { Text("Remove Picture") },
+                                text = { Text(stringResource(R.string.edit_profile_remove_picture)) },
                                 onClick = {
                                     menuExpanded = false
                                     if (profileViewModel.pendingAvatarUri.value != null) {
@@ -275,7 +282,7 @@ fun EditProfileScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "JPG/PNG/WEBP • Max 2MB • Min 200x200px",
+                            text = stringResource(R.string.edit_profile_image_requirements),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -296,7 +303,7 @@ fun EditProfileScreen(
 
             // Edit Profile Field - Username
             Text(
-                text = "Username",
+                text = stringResource(R.string.edit_profile_username_label),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
@@ -307,7 +314,7 @@ fun EditProfileScreen(
                     username = it
                     profileViewModel.clearUsernameError()
                 },
-                placeholder = { Text("Enter your new username") },
+                placeholder = { Text(stringResource(R.string.edit_profile_username_placeholder)) },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -327,7 +334,7 @@ fun EditProfileScreen(
 
             // Edit Profile Field - Email
             Text(
-                text = "Email Address",
+                text = stringResource(R.string.edit_profile_email_label),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
@@ -338,7 +345,7 @@ fun EditProfileScreen(
                     email = it
                     profileViewModel.clearEmailError()
                 },
-                placeholder = { Text("Enter your new email address") },
+                placeholder = { Text(stringResource(R.string.edit_profile_email_placeholder)) },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -358,7 +365,7 @@ fun EditProfileScreen(
 
             // Edit Profile Field - Phone
             Text(
-                text = "Phone Number",
+                text = stringResource(R.string.edit_profile_phone_label),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
@@ -369,7 +376,7 @@ fun EditProfileScreen(
                     phone = it
                     profileViewModel.clearPhoneError()
                 },
-                placeholder = { Text("Enter your new phone number") },
+                placeholder = { Text(stringResource(R.string.edit_profile_phone_placeholder)) },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -419,7 +426,7 @@ fun EditProfileScreen(
                     )
                 } else {
                     Text(
-                        text = "Save Changes",
+                        text = stringResource(R.string.edit_profile_save_changes),
                         fontWeight = FontWeight.Bold
                     )
                 }

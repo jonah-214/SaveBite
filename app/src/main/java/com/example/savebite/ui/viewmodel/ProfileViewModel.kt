@@ -4,9 +4,11 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.savebite.data.repo.ProfileRepository
 import com.example.savebite.data.repo.SupabaseAuthRepository
 import com.example.savebite.data.repo.UserRepository
 import com.example.savebite.model.User
+import com.example.savebite.utils.NotificationPreferenceManager
 import com.example.savebite.utils.SessionManager
 import com.example.savebite.utils.Validators
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,7 +19,9 @@ import kotlinx.coroutines.launch
 class ProfileViewModel(
     private val userRepository: UserRepository,
     private val supabaseAuthRepository: SupabaseAuthRepository,
-    private val sessionManager: SessionManager
+    private val profileRepository: ProfileRepository,
+    private val sessionManager: SessionManager,
+    private val notificationPreferenceManager: NotificationPreferenceManager
 ) : ViewModel() {
 
     // User information
@@ -52,6 +56,12 @@ class ProfileViewModel(
     private val _updateSuccess = mutableStateOf(value = false)
     val updateSuccess: State<Boolean> = _updateSuccess
 
+    // Set alongside updateSuccess when the just-saved change included a new email —
+    // Supabase Auth requires clicking a confirmation link before it takes effect as the
+    // login credential, so the UI should say so instead of implying it's already active.
+    private val _emailConfirmationPending = mutableStateOf(value = false)
+    val emailConfirmationPending: State<Boolean> = _emailConfirmationPending
+
     // Change Password Errors - Current Password
     private val _currentPasswordError = mutableStateOf<String?>(null)
     val currentPasswordError: State<String?> = _currentPasswordError
@@ -72,8 +82,18 @@ class ProfileViewModel(
     private val _isLoading = mutableStateOf(value = false)
     val isLoading: State<Boolean> = _isLoading
 
+    // Notification Preference - loaded from SharedPreferences so it survives leaving the screen
+    private val _notificationEnabled = mutableStateOf(notificationPreferenceManager.isNotificationEnabled())
+    val notificationEnabled: State<Boolean> = _notificationEnabled
+
     init {
         loadUser()
+    }
+
+    // Toggle whether expiry reminder notifications are shown
+    fun setNotificationEnabled(enabled: Boolean) {
+        _notificationEnabled.value = enabled
+        notificationPreferenceManager.setNotificationEnabled(enabled)
     }
 
     // Load user information from the database
@@ -104,6 +124,7 @@ class ProfileViewModel(
         _newPasswordError.value = null
         _confirmNewPasswordError.value = null
         _updateSuccess.value = false
+        _emailConfirmationPending.value = false
         _passwordChangeSuccess.value = false
         _pendingAvatarBytes.value = null
         _pendingAvatarUri.value = null
@@ -182,22 +203,28 @@ class ProfileViewModel(
             // 1. Handle Avatar Upload if there's a pending one
             var finalAvatarUrl = currentUser.avatarUrl
             _pendingAvatarBytes.value?.let { bytes ->
-                val uploadResult = supabaseAuthRepository.uploadAvatar(uid, bytes)
+                val uploadResult = profileRepository.uploadAvatar(uid, bytes)
                 uploadResult.onSuccess { newUrl ->
                     finalAvatarUrl = newUrl
                 }.onFailure {
                     _avatarError.value = "Failed to upload picture. Please try again."
+                    // Clear the broken pending avatar so a retry starts clean instead of
+                    // re-attempting the same failed upload alongside unrelated field edits.
+                    _pendingAvatarBytes.value = null
+                    _pendingAvatarUri.value = null
                     _isLoading.value = false
                     return@launch
                 }
             }
 
             // 2. Update Profile Metadata
-            val result = supabaseAuthRepository.updateProfile(
+            val emailChanged = trimmedEmail != currentUser.email
+            val result = profileRepository.updateProfile(
                 uid,
                 trimmedUsername,
                 trimmedEmail,
-                trimmedPhone
+                trimmedPhone,
+                currentEmail = currentUser.email
             )
 
             result.onSuccess {
@@ -212,6 +239,10 @@ class ProfileViewModel(
                 _user.value = updatedUser
                 _pendingAvatarBytes.value = null
                 _pendingAvatarUri.value = null
+                // If the email changed, Supabase Auth needs the user to confirm it via a link
+                // sent to their inbox before it becomes the login credential — surface that
+                // instead of implying the change is already fully in effect.
+                _emailConfirmationPending.value = emailChanged
                 _updateSuccess.value = true
             }.onFailure { error ->
                 val message = error.message.orEmpty()
@@ -219,6 +250,8 @@ class ProfileViewModel(
                     "CONFLICT_USERNAME" -> _usernameError.value = "Username is already taken"
                     "CONFLICT_EMAIL" -> _emailError.value = "Email is already taken"
                     "CONFLICT_PHONE" -> _phoneError.value = "Phone number is already taken"
+                    "AUTH_EMAIL_UPDATE_FAILED" -> _emailError.value =
+                        "Couldn't update login email. Please try again."
                     else -> _emailError.value = "Failed to update profile. Please try again."
                 }
             }
@@ -240,7 +273,7 @@ class ProfileViewModel(
             _isLoading.value = true
             _avatarError.value = null
 
-            val result = supabaseAuthRepository.uploadAvatar(uid, imageBytes)
+            val result = profileRepository.uploadAvatar(uid, imageBytes)
             result.onSuccess { url ->
                 val updatedUser = currentUser.copy(avatarUrl = url)
                 userRepository.updateUser(updatedUser)
@@ -266,7 +299,7 @@ class ProfileViewModel(
             _pendingAvatarBytes.value = null
             _pendingAvatarUri.value = null
             
-            val result = supabaseAuthRepository.removeAvatar(uid)
+            val result = profileRepository.removeAvatar(uid)
             result.onSuccess {
                 val updatedUser = currentUser.copy(avatarUrl = null)
                 userRepository.updateUser(updatedUser)
