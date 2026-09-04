@@ -16,6 +16,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import com.example.savebite.R
 import com.example.savebite.utils.Currency
 import androidx.compose.ui.text.drawText
@@ -25,7 +27,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import java.text.DateFormatSymbols
+import kotlin.math.cos
+import kotlin.math.sin
 
+// A small summary card used to display key report metrics like total cost or item counts
 @Composable
 fun MetricCard(
     icon: Int,
@@ -39,7 +44,7 @@ fun MetricCard(
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = modifier
     ) {
         Row(
@@ -64,6 +69,7 @@ fun MetricCard(
     }
 }
 
+// Custom-drawn circular pie chart for visualizing category percentages
 @Composable
 fun SolidPieChart(
     percentages: List<Float>,
@@ -87,12 +93,12 @@ fun SolidPieChart(
             if (pct >= 8f) {
                 val midAngleRad = Math.toRadians((startAngle + sweepAngle / 2f).toDouble())
                 val textRadius = radius * 0.62f
-                val textX = center.x + textRadius * kotlin.math.cos(midAngleRad).toFloat()
-                val textY = center.y + textRadius * kotlin.math.sin(midAngleRad).toFloat()
+                val textX = center.x + textRadius * cos(midAngleRad).toFloat()
+                val textY = center.y + textRadius * sin(midAngleRad).toFloat()
 
                 val textLayoutResult = textMeasurer.measure(
                     text = "${pct.toInt()}%",
-                    style = androidx.compose.ui.text.TextStyle(
+                    style = TextStyle(
                         color = Color.White,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
@@ -109,6 +115,7 @@ fun SolidPieChart(
     }
 }
 
+// Dialog for selecting a specific month and year, used for time-based report filtering
 @Composable
 fun MonthYearPicker(
     initialMonth: Int,
@@ -130,12 +137,12 @@ fun MonthYearPicker(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Select Month & Year", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.report_picker_title), style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(24.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { year-- }) { Icon(painter = painterResource(R.drawable.chevron_left), null, modifier = Modifier.size(24.dp)) }
+                    IconButton(onClick = { year-- }) { Icon(painter = painterResource(R.drawable.arrow_left), null, modifier = Modifier.size(24.dp)) }
                     Text("$year", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp))
-                    IconButton(onClick = { year++ }) { Icon(painter = painterResource(R.drawable.chevron_right), null, modifier = Modifier.size(24.dp)) }
+                    IconButton(onClick = { year++ }) { Icon(painter = painterResource(R.drawable.arrow_right), null, modifier = Modifier.size(24.dp)) }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -164,14 +171,15 @@ fun MonthYearPicker(
                 }
                 Spacer(modifier = Modifier.height(24.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
-                    TextButton(onClick = { onConfirm(month, year) }) { Text("Confirm") }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+                    TextButton(onClick = { onConfirm(month, year) }) { Text(stringResource(R.string.action_confirm)) }
                 }
             }
         }
     }
 }
 
+// A row representing data for a single item, including a name, count, and progress bar
 @Composable
 fun ItemStatRow(
     name: String,
@@ -180,8 +188,6 @@ fun ItemStatRow(
     price: Double = 0.0,
     progressColor: Color
 ) {
-    // Read via LocalConfiguration (observable) instead of Locale.getDefault() (not observable) —
-    // so this recomposes if the user changes the system language while the app is running.
     val locale = LocalConfiguration.current.locales[0]
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -198,7 +204,7 @@ fun ItemStatRow(
             val displayText = if (price > 0) {
                 Currency.formatWithCount(price, count)
             } else {
-                "$count items (${percentage.toInt()}%)"
+                stringResource(R.string.report_data_summary, count, percentage.toInt())
             }
             Text(text = displayText, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = progressColor)
         }
@@ -212,6 +218,7 @@ fun ItemStatRow(
     }
 }
 
+// A simple row used in lists to display a reason and its corresponding frequency/percentage
 @Composable
 fun ReasonRow(reason: String, count: Int, percentage: Float) {
     Row(
@@ -228,10 +235,11 @@ fun ReasonRow(reason: String, count: Int, percentage: Float) {
                 trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
         }
-        Text("$count items (${percentage.toInt()}%)", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.report_data_summary, count, percentage.toInt()), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
+// A legend item for the pie chart, identifying a category by its color and providing summary text.
 @Composable
 fun LegendRow(color: Color, label: String, count: Int, percentage: Int) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -239,11 +247,12 @@ fun LegendRow(color: Color, label: String, count: Int, percentage: Int) {
         Spacer(modifier = Modifier.width(8.dp))
         Column {
             Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            Text("$count items ($percentage%)", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.report_data_summary, count, percentage), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
+// A card container for report sections, featuring a consistent header with icon and optional "View More" link
 @Composable
 fun ReportSectionCard(
     title: String,
@@ -271,8 +280,8 @@ fun ReportSectionCard(
                 }
                 if (onViewMore != null) {
                     TextButton(onClick = onViewMore) {
-                        Text("View More", fontSize = 12.sp)
-                        Icon(painter = painterResource(R.drawable.chevron_right), contentDescription = null, modifier = Modifier.size(16.dp))
+                        Text(stringResource(R.string.report_action_view_more), fontSize = 12.sp)
+                        Icon(painter = painterResource(R.drawable.arrow_right), contentDescription = null, modifier = Modifier.size(16.dp))
                     }
                 }
             }
@@ -282,6 +291,7 @@ fun ReportSectionCard(
     }
 }
 
+// Centered placeholder text shown when no data is available for a report section.
 @Composable
 fun EmptyStatePlaceholder(message: String) {
     Box(

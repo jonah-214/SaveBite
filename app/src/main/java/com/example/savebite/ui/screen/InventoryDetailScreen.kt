@@ -171,7 +171,6 @@ fun InventoryDetailScreen(
         )
     }
 
-    // 3. Mark as Waste Dialog
     // Dialog with quantity selection and reason categorization for food waste reporting.
     if (showWasteDialog) {
         AlertDialog(
@@ -258,9 +257,8 @@ fun InventoryDetailScreen(
                         }
                     }
 
-                    if (selectedReason == otherReasonLabel) {
                     // Free-form input field when "Other" option is selected
-                    if (selectedReason == "Other") {
+                    if (selectedReason == otherReasonLabel) {
                         OutlinedTextField(
                             value = customReason,
                             onValueChange = { customReason = it },

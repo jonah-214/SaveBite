@@ -9,10 +9,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.*
 
+// Supported time frames for filtering reports
 enum class TimeFrame { WEEKLY, MONTHLY, YEARLY }
 
+// Data model representing a category-based breakdown of report data
 data class CategoryBreakdown(
     val category: String,
     val count: Int,
@@ -20,6 +23,7 @@ data class CategoryBreakdown(
     val totalPrice: Double = 0.0
 )
 
+// Data model representing an individual food item's performance in the report
 data class TopWastedItem(
     val name: String,
     val count: Int,
@@ -27,12 +31,15 @@ data class TopWastedItem(
     val totalPrice: Double = 0.0
 )
 
+// Data model representing a specific reason for food waste
 data class ReasonBreakdown(
     val reason: String,
     val count: Int,
     val percentage: Float
 )
 
+// UI State for the Report screen
+// Contains aggregated data, breakdowns, and time filter information
 data class ReportUiState(
     val selectedTimeFrame: TimeFrame = TimeFrame.MONTHLY,
     val dateDisplay: String = "",
@@ -66,10 +73,12 @@ class ReportViewModel(private val repository: ReportRepository) : ViewModel() {
                 repository.syncFromCloud()
             } catch (e: Exception) {
                 // Ignore network exceptions and rely on local offline storage
+                // Ignore network exceptions, fallback to local offline data
             }
         }
     }
 
+    // Observable stream of the current report state
     val uiState: StateFlow<ReportUiState> = _timeFilter
         .flatMapLatest { (timeFrame, calendar) ->
             val range = getTimeRange(timeFrame, calendar)
@@ -82,11 +91,12 @@ class ReportViewModel(private val repository: ReportRepository) : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ReportUiState())
 
 
+    // Updates the time window (Weekly/Monthly/Yearly) for the report
     fun setTimeFrame(timeFrame: TimeFrame) {
-        val currentCal = _timeFilter.value.second
         _timeFilter.value = Pair(timeFrame, Calendar.getInstance())
     }
 
+    // Navigates the report filter to the previous time period
     fun navigatePrevious() {
         val (timeFrame, cal) = _timeFilter.value
         val newCal = cal.clone() as Calendar
@@ -98,6 +108,7 @@ class ReportViewModel(private val repository: ReportRepository) : ViewModel() {
         _timeFilter.value = Pair(timeFrame, newCal)
     }
 
+    // Navigates the report filter to the next time period
     fun navigateNext() {
         val (timeFrame, cal) = _timeFilter.value
         val newCal = cal.clone() as Calendar
@@ -149,9 +160,9 @@ class ReportViewModel(private val repository: ReportRepository) : ViewModel() {
     }
 
     private fun formatDateDisplay(timeFrame: TimeFrame, startMs: Long, endMs: Long): String {
-        val sdfWeekly = java.text.SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-        val sdfMonthly = java.text.SimpleDateFormat("MM.yyyy", Locale.getDefault())
-        val sdfYearly = java.text.SimpleDateFormat("yyyy", Locale.getDefault())
+        val sdfWeekly = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        val sdfMonthly = SimpleDateFormat("MM.yyyy", Locale.getDefault())
+        val sdfYearly = SimpleDateFormat("yyyy", Locale.getDefault())
 
         return when (timeFrame) {
             TimeFrame.WEEKLY -> "${sdfWeekly.format(startMs)} ~ ${sdfWeekly.format(endMs)}"

@@ -9,210 +9,6 @@
     <string name="action_ok">OK</string>
     <string name="action_confirm">Confirm</string>
 
-    <!-- Profile & Settings screen -->
-    <string name="profile_settings_title">Profile &amp; Settings</string>
-    <string name="profile_loading_username">Loading…</string>
-    <string name="profile_section_account_settings">Account Settings</string>
-    <string name="profile_section_preferences">Preferences</string>
-    <string name="profile_section_support">Support</string>
-    <string name="profile_edit_profile_label">Edit Profile</string>
-    <string name="profile_edit_profile_subtitle">Change profile picture, number, E-mail</string>
-    <string name="profile_change_password_label">Change Password</string>
-    <string name="profile_change_password_subtitle">Update and strengthen account security</string>
-    <string name="profile_notification_label">Notification</string>
-    <string name="profile_notification_subtitle">Customize your notification preferences</string>
-    <string name="profile_appearance_label">Appearance</string>
-    <string name="profile_about_us_label">About Us</string>
-    <string name="profile_about_us_subtitle">Learn more about SaveBite</string>
-    <string name="profile_recipe_preferences_label">Dietary Preferences</string>
-    <string name="profile_recipe_preferences_subtitle">Diet, allergies and household type for recipe suggestions</string>
-    <string name="profile_deactivate_account_label">Deactivate Account</string>
-    <string name="profile_deactivate_account_subtitle">Temporarily disable your account</string>
-    <string name="profile_logout">Logout</string>
-    <string name="profile_logout_dialog_title">Log out?</string>
-    <string name="profile_logout_dialog_message">You\'ll need to sign in again to access your account.</string>
-    <string name="profile_logout_confirm">Log Out</string>
-    <string name="profile_update_success">Profile updated successfully!</string>
-    <string name="profile_update_success_email_pending">Profile updated! Check your new email to confirm the change.</string>
-    <string name="profile_password_change_success">Password changed successfully!</string>
-    <string name="content_desc_profile_picture">Profile picture</string>
-    <string name="content_desc_avatar">Avatar</string>
-    <string name="content_desc_selected">Selected</string>
-
-    <!-- Edit Profile screen -->
-    <string name="edit_profile_title">Edit Profile</string>
-    <string name="edit_profile_replace_picture">Replace Picture</string>
-    <string name="edit_profile_add_picture">Add Picture</string>
-    <string name="edit_profile_remove_picture">Remove Picture</string>
-    <string name="edit_profile_image_requirements">JPG/PNG/WEBP • Max 2MB • Min 200x200px</string>
-    <string name="edit_profile_username_label">Username</string>
-    <string name="edit_profile_username_placeholder">Enter your new username</string>
-    <string name="edit_profile_email_label">Email Address</string>
-    <string name="edit_profile_email_placeholder">Enter your new email address</string>
-    <string name="edit_profile_phone_label">Phone Number</string>
-    <string name="edit_profile_phone_placeholder">Enter your new phone number</string>
-    <string name="edit_profile_save_changes">Save Changes</string>
-    <string name="content_desc_edit_profile_picture">Edit profile picture</string>
-
-    <!-- Change Password screen -->
-    <string name="change_password_title">Change Password</string>
-    <string name="change_password_current_label">Current Password</string>
-    <string name="change_password_current_placeholder">Enter your current password</string>
-    <string name="change_password_new_label">New Password</string>
-    <string name="change_password_new_placeholder">Enter your new password</string>
-    <string name="change_password_confirm_label">Confirm New Password</string>
-    <string name="change_password_confirm_placeholder">Confirm your new password</string>
-    <string name="change_password_requirements_title">Password Requirements</string>
-    <string name="change_password_requirement_length">At least 6 characters</string>
-    <string name="change_password_requirement_uppercase">One uppercase letter (A-Z)</string>
-    <string name="change_password_requirement_lowercase">One lowercase letter (a-z)</string>
-    <string name="change_password_requirement_number">One number (0-9)</string>
-    <string name="change_password_update_button">Update Password</string>
-    <string name="content_desc_toggle_current_password">Toggle current password visibility</string>
-    <string name="content_desc_toggle_new_password">Toggle new password visibility</string>
-    <string name="content_desc_toggle_confirm_password">Toggle confirm password visibility</string>
-
-    <!-- Deactivate Account screen -->
-    <string name="deactivate_account_title">Deactivate Account</string>
-    <string name="deactivate_account_warning_heading">Before you deactivate</string>
-    <string name="deactivate_account_warning_body">You\'ll be signed out immediately and won\'t receive expiry reminders. Your data (inventory, shopping lists, reports) is kept safe — log back in anytime with your email and password to reactivate your account.</string>
-    <string name="deactivate_account_password_label">Confirm Your Password</string>
-    <string name="deactivate_account_password_placeholder">Enter your password to confirm</string>
-    <string name="deactivate_account_button">Deactivate Account</string>
-    <string name="content_desc_toggle_deactivate_password">Toggle password visibility</string>
-
-    <!-- Edit Recipe Preferences screen -->
-    <string name="edit_recipe_preferences_title">Dietary Preferences</string>
-    <string name="edit_recipe_preferences_save">Save Preferences</string>
-    <string name="edit_recipe_preferences_header_title">Update Your Preferences</string>
-    <string name="edit_recipe_preferences_header_subtitle">Changes apply the next time recipe suggestions are generated.</string>
-
-    <!-- About Us screen -->
-    <string name="about_us_title">About Us</string>
-    <string name="about_us_mission_heading">Our Mission</string>
-    <string name="about_us_mission_body">SaveBite helps you reduce food waste by tracking expiry dates and suggesting recipes, saving you money while protecting the planet.</string>
-    <string name="about_us_offers_heading">What SaveBite Offers</string>
-    <string name="about_us_feature_track_inventory">Track food inventory before it expires</string>
-    <string name="about_us_feature_expiry_reminders">Get timely expiry reminders</string>
-    <string name="about_us_feature_shopping">Plan smarter shopping lists</string>
-    <string name="about_us_feature_recipes">Discover recipes from what you have</string>
-    <string name="about_us_feature_waste_monitor">Monitor your waste reduction over time</string>
-    <string name="about_us_team_heading">The Team</string>
-    <string name="about_us_member_jonathan_name">Jonathan Nah</string>
-    <string name="about_us_member_jonathan_subtitle">Authentication, Dashboard, Expiry, Settings</string>
-    <string name="about_us_member_xinyi_name">Xin Yi</string>
-    <string name="about_us_member_xinyi_subtitle">Inventory, Shopping, Recipe, Reports</string>
-    <string name="about_us_tagline">Track it. Use it. Waste less.</string>
-    <string name="about_us_version">Version 1.3.3</string>
-    <string name="content_desc_savebite_logo">SaveBite logo</string>
-
-    <!-- Reminder screen -->
-    <string name="reminder_title">Expiry Reminder</string>
-    <string name="reminder_search_placeholder">Search items…</string>
-    <string name="reminder_expiry_today">Today</string>
-    <string name="reminder_expiry_days_left">%1$dd left</string>
-    <string name="reminder_content_desc_recipe">See recipes using %1$s</string>
-    <string name="reminder_empty_search_title">No items match your filter</string>
-    <string name="reminder_empty_no_items_title">Nothing expiring soon</string>
-    <string name="reminder_empty_search_body">Try clearing the search or storage filter.</string>
-    <string name="reminder_empty_no_items_body">Items you add to Inventory will show up here as they approach their expiry date.</string>
-    <string name="reminder_action_clear_filters">Clear All Filters</string>
-
-    <!-- Reminder sorting -->
-    <string name="sort_expiry_asc">Soonest First</string>
-    <string name="sort_expiry_desc">Latest First</string>
-    <string name="sort_name_asc">Name (A-Z)</string>
-    <string name="sort_name_desc">Name (Z-A)</string>
-
-    <!-- Notifications -->
-    <string name="notification_expiry_title">Food waste alert</string>
-    <string name="notification_expiry_single">%1$s is expiring soon</string>
-    <string name="notification_expiry_double">%1$s and 1 other item are expiring soon</string>
-    <string name="notification_expiry_multiple">%1$s and %2$d other items are expiring soon</string>
-
-    <!-- Inventory Module -->
-    <string name="inventory_list_title">Food Inventory</string>
-    <string name="inventory_search_placeholder">Search food…</string>
-    <string name="inventory_selected_items">Selected Items (%1$d)</string>
-    <string name="inventory_report_status_hint">Choose status to report</string>
-    <string name="inventory_status_consumed">Consumed</string>
-    <string name="inventory_status_wasted">Wasted</string>
-    <string name="inventory_no_data">No Data Recorded</string>
-    <string name="inventory_offline_banner">Offline — showing local data. Changes will sync once you\'re back online.</string>
-
-    <!-- Add/Edit Inventory -->
-    <string name="inventory_add_title">Add Inventory</string>
-    <string name="inventory_edit_title">Edit Inventory</string>
-    <string name="inventory_batch_add_title">Add to Inventory (%1$d/%2$d)</string>
-    <string name="inventory_name_label">Item Name (e.g. Milk)</string>
-    <string name="inventory_name_required">Item name is required</string>
-    <string name="inventory_description_label">Subtitle / Description (e.g. Fresh Milk)</string>
-    <string name="inventory_price_label">Total Cost (%1$s)</string>
-    <string name="inventory_price_placeholder">e.g. 12.50</string>
-    <string name="inventory_price_required">Price is required</string>
-    <string name="inventory_price_invalid">Invalid price format</string>
-    <string name="inventory_category_label">Category</string>
-    <string name="inventory_storage_label">Storage</string>
-    <string name="inventory_quantity_label">Quantity</string>
-    <string name="inventory_purchase_date_label">Purchase Date</string>
-    <string name="inventory_expiry_date_label">Expiry Date</string>
-    <string name="inventory_notes_label">Notes</string>
-    <string name="inventory_notes_placeholder">e.g. Keep chilled and shake well before use.</string>
-    <string name="inventory_action_next_item">Next Item (%1$d/%2$d)</string>
-    <string name="inventory_action_finish_save">Finish &amp; Save All</string>
-    <string name="inventory_action_save_item">Save Item</string>
-    <string name="inventory_action_back_previous">Back to Previous Item</string>
-    <string name="inventory_action_cancel_back">Cancel / Back</string>
-    <string name="inventory_step_item_title">Item %1$d</string>
-
-    <!-- Inventory Details -->
-    <string name="inventory_detail_title">Inventory Details</string>
-    <string name="inventory_detail_section_header">Details</string>
-    <string name="inventory_detail_price">Price</string>
-    <string name="inventory_detail_purchase_date">Purchase Date</string>
-    <string name="inventory_detail_expiry_date">Expiry Date</string>
-    <string name="inventory_detail_days_left">(%1$d days left)</string>
-    <string name="inventory_detail_notes">Notes</string>
-    <string name="inventory_card_qty">Qty: %1$s %2$s</string>
-    <string name="inventory_card_storage">Storage: </string>
-    <string name="inventory_card_expires">Expires: </string>
-    <string name="inventory_action_edit">Edit</string>
-    <string name="inventory_action_delete">Delete</string>
-    <string name="inventory_action_mark_consumed">Mark Consumed</string>
-    <string name="inventory_action_mark_waste">Mark Waste</string>
-
-    <!-- Dialogs -->
-    <string name="inventory_delete_dialog_title">Delete Item</string>
-    <string name="inventory_delete_dialog_message">Are you sure you want to delete %1$s?</string>
-    <string name="inventory_consume_dialog_title">Mark as Consumed</string>
-    <string name="inventory_consume_dialog_message">How many %1$s of %2$s did you consume?</string>
-    <string name="inventory_waste_dialog_title">Mark as Waste</string>
-    <string name="inventory_waste_dialog_message">How many %1$s of %2$s were wasted?</string>
-    <string name="inventory_waste_reason_label">Reason for waste:</string>
-    <string name="inventory_waste_reason_placeholder">Enter custom reason…</string>
-    <string name="inventory_action_confirm_waste">Confirm Waste</string>
-
-    <!-- Waste Reasons -->
-    <string name="waste_reason_expired">Expired</string>
-    <string name="waste_reason_spoiled">Spoiled</string>
-    <string name="waste_reason_leftover">Leftover</string>
-    <string name="waste_reason_damaged">Damaged</string>
-    <string name="waste_reason_other">Other</string>
-
-    <!-- Content Descriptions -->
-    <string name="content_desc_add_button">Add button</string>
-    <string name="content_desc_decrease">Decrease</string>
-    <string name="content_desc_increase">Increase</string>
-    <string name="content_desc_storage_icon">Storage icon</string>
-    <string name="content_desc_quantity_icon">Quantity icon</string>
-    <string name="content_desc_status_icon">Status icon</string>
-
-    <!-- Expiry Sections -->
-
-    <string name="expiry_soon">Expiring Soon</string>
-    <string name="expiry_this_week">This Week</string>
-    <string name="expiry_later">Later</string>
-
     <!-- Authentication Module -->
     <string name="auth_welcome_back">Welcome Back!</string>
     <string name="auth_login_subtitle">Sign in to access smart, personalized food inventory management for you.</string>
@@ -341,4 +137,243 @@
     <string name="category_prepared">Leftovers &amp; Prepared</string>
     <string name="category_spices">Spices &amp; Baking</string>
 
+    <!-- Inventory Module -->
+    <string name="inventory_list_title">Food Inventory</string>
+    <string name="inventory_search_placeholder">Search food…</string>
+    <string name="inventory_selected_items">Selected Items (%1$d)</string>
+    <string name="inventory_report_status_hint">Choose status to report</string>
+    <string name="inventory_status_consumed">Consumed</string>
+    <string name="inventory_status_wasted">Wasted</string>
+    <string name="inventory_no_data">No Data Recorded</string>
+    <string name="inventory_offline_banner">Offline — showing local data. Changes will sync once you\'re back online.</string>
+
+    <!-- Add/Edit Inventory -->
+    <string name="inventory_add_title">Add Inventory</string>
+    <string name="inventory_edit_title">Edit Inventory</string>
+    <string name="inventory_batch_add_title">Add to Inventory (%1$d/%2$d)</string>
+    <string name="inventory_name_label">Item Name (e.g. Milk)</string>
+    <string name="inventory_name_required">Item name is required</string>
+    <string name="inventory_description_label">Subtitle / Description (e.g. Fresh Milk)</string>
+    <string name="inventory_price_label">Total Cost (%1$s)</string>
+    <string name="inventory_price_placeholder">e.g. 12.50</string>
+    <string name="inventory_price_required">Price is required</string>
+    <string name="inventory_price_invalid">Invalid price format</string>
+    <string name="inventory_category_label">Category</string>
+    <string name="inventory_storage_label">Storage</string>
+    <string name="inventory_quantity_label">Quantity</string>
+    <string name="inventory_purchase_date_label">Purchase Date</string>
+    <string name="inventory_expiry_date_label">Expiry Date</string>
+    <string name="inventory_notes_label">Notes</string>
+    <string name="inventory_notes_placeholder">e.g. Keep chilled and shake well before use.</string>
+    <string name="inventory_action_next_item">Next Item (%1$d/%2$d)</string>
+    <string name="inventory_action_finish_save">Finish &amp; Save All</string>
+    <string name="inventory_action_save_item">Save Item</string>
+    <string name="inventory_action_back_previous">Back to Previous Item</string>
+    <string name="inventory_action_cancel_back">Cancel / Back</string>
+    <string name="inventory_step_item_title">Item %1$d</string>
+
+    <!-- Inventory Details -->
+    <string name="inventory_detail_title">Inventory Details</string>
+    <string name="inventory_detail_section_header">Details</string>
+    <string name="inventory_detail_price">Price</string>
+    <string name="inventory_detail_purchase_date">Purchase Date</string>
+    <string name="inventory_detail_expiry_date">Expiry Date</string>
+    <string name="inventory_detail_days_left">(%1$d days left)</string>
+    <string name="inventory_detail_notes">Notes</string>
+    <string name="inventory_card_qty">Qty: %1$s %2$s</string>
+    <string name="inventory_card_storage">Storage: </string>
+    <string name="inventory_card_expires">Expires: </string>
+    <string name="inventory_action_edit">Edit</string>
+    <string name="inventory_action_delete">Delete</string>
+    <string name="inventory_action_mark_consumed">Mark Consumed</string>
+    <string name="inventory_action_mark_waste">Mark Waste</string>
+
+    <!-- Dialogs -->
+    <string name="inventory_delete_dialog_title">Delete Item</string>
+    <string name="inventory_delete_dialog_message">Are you sure you want to delete %1$s?</string>
+    <string name="inventory_consume_dialog_title">Mark as Consumed</string>
+    <string name="inventory_consume_dialog_message">How many %1$s of %2$s did you consume?</string>
+    <string name="inventory_waste_dialog_title">Mark as Waste</string>
+    <string name="inventory_waste_dialog_message">How many %1$s of %2$s were wasted?</string>
+    <string name="inventory_waste_reason_label">Reason for waste:</string>
+    <string name="inventory_waste_reason_placeholder">Enter custom reason…</string>
+    <string name="inventory_action_confirm_waste">Confirm Waste</string>
+
+    <!-- Waste Reasons -->
+    <string name="waste_reason_expired">Expired</string>
+    <string name="waste_reason_spoiled">Spoiled</string>
+    <string name="waste_reason_leftover">Leftover</string>
+    <string name="waste_reason_damaged">Damaged</string>
+    <string name="waste_reason_other">Other</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_desc_add_button">Add button</string>
+    <string name="content_desc_decrease">Decrease</string>
+    <string name="content_desc_increase">Increase</string>
+    <string name="content_desc_storage_icon">Storage icon</string>
+    <string name="content_desc_quantity_icon">Quantity icon</string>
+    <string name="content_desc_status_icon">Status icon</string>
+
+    <!-- Reminder screen -->
+    <string name="reminder_title">Expiry Reminder</string>
+    <string name="reminder_search_placeholder">Search items…</string>
+    <string name="reminder_expiry_today">Today</string>
+    <string name="reminder_expiry_days_left">%1$dd left</string>
+    <string name="reminder_content_desc_recipe">See recipes using %1$s</string>
+    <string name="reminder_empty_search_title">No items match your filter</string>
+    <string name="reminder_empty_no_items_title">Nothing expiring soon</string>
+    <string name="reminder_empty_search_body">Try clearing the search or storage filter.</string>
+    <string name="reminder_empty_no_items_body">Items you add to Inventory will show up here as they approach their expiry date.</string>
+    <string name="reminder_action_clear_filters">Clear All Filters</string>
+
+    <!-- Reminder sorting -->
+    <string name="sort_expiry_asc">Soonest First</string>
+    <string name="sort_expiry_desc">Latest First</string>
+    <string name="sort_name_asc">Name (A-Z)</string>
+    <string name="sort_name_desc">Name (Z-A)</string>
+
+    <!-- Notifications -->
+    <string name="notification_expiry_title">Food waste alert</string>
+    <string name="notification_expiry_single">%1$s is expiring soon</string>
+    <string name="notification_expiry_double">%1$s and 1 other item are expiring soon</string>
+    <string name="notification_expiry_multiple">%1$s and %2$d other items are expiring soon</string>
+
+    <!-- Expiry Sections -->
+    <string name="expiry_soon">Expiring Soon</string>
+    <string name="expiry_this_week">This Week</string>
+    <string name="expiry_later">Later</string>
+
+    <!-- Reports Module -->
+    <string name="report_title">Food Waste Report</string>
+    <string name="report_action_export">Export PDF</string>
+    <string name="report_nav_previous">Previous</string>
+    <string name="report_nav_next">Next</string>
+    <string name="report_metric_waste_cost">Waste Cost</string>
+    <string name="report_metric_saved_value">Saved Value</string>
+    <string name="report_item_count_summary">%1$d items</string>
+    <string name="report_section_breakdown">Waste Breakdown</string>
+    <string name="report_section_most_wasted">Most Wasted Items</string>
+    <string name="report_section_consumed">Consumed Items</string>
+    <string name="report_section_reasons">Waste Reasons</string>
+    <string name="report_action_view_more">View More</string>
+    <string name="report_empty_waste">No waste data recorded</string>
+    <string name="report_empty_items">No items found</string>
+    <string name="report_empty_consumed">No consumed items recorded</string>
+    <string name="report_empty_reasons">No waste reasons recorded for this period</string>
+    <string name="report_timeframe_weekly">Weekly</string>
+    <string name="report_timeframe_monthly">Monthly</string>
+    <string name="report_timeframe_yearly">Yearly</string>
+    <string name="report_picker_title">Select Month &amp; Year</string>
+    <string name="report_data_summary">%1$d items (%2$d%%)</string>
+    <string name="report_consumed_title">Report Consumed</string>
+    <string name="report_wasted_title">Report Wasted</string>
+    <string name="report_confirm_consumed">Confirm Consumption</string>
+    <string name="report_confirm_wasted">Confirm Waste</string>
+    <string name="report_adjust_qty_hint">Adjust quantity for selected items below</string>
+    <string name="report_in_stock_hint">In stock: %1$s %2$s</string>
+    <string name="report_deduction_hint">Moved items will be deducted from active inventory.</string>
+    <string name="report_action_confirm_save">Confirm &amp; Save (%1$d items)</string>
+    <string name="report_wasted_history_title">Wasted Items History</string>
+    <string name="report_consumed_history_title">Consumed Items History</string>
+    <string name="report_wasted_cost_label">Food Waste Cost</string>
+    <string name="report_consumed_value_label">Consumed Food Value</string>
+    <string name="report_item_count_label">%1$d Items</string>
+    <string name="report_empty_period">No items found for this month</string>
+
+    <!-- Profile & Settings screen -->
+    <string name="profile_settings_title">Profile &amp; Settings</string>
+    <string name="profile_loading_username">Loading…</string>
+    <string name="profile_section_account_settings">Account Settings</string>
+    <string name="profile_section_preferences">Preferences</string>
+    <string name="profile_section_support">Support</string>
+    <string name="profile_edit_profile_label">Edit Profile</string>
+    <string name="profile_edit_profile_subtitle">Change profile picture, number, E-mail</string>
+    <string name="profile_change_password_label">Change Password</string>
+    <string name="profile_change_password_subtitle">Update and strengthen account security</string>
+    <string name="profile_notification_label">Notification</string>
+    <string name="profile_notification_subtitle">Customize your notification preferences</string>
+    <string name="profile_appearance_label">Appearance</string>
+    <string name="profile_about_us_label">About Us</string>
+    <string name="profile_about_us_subtitle">Learn more about SaveBite</string>
+    <string name="profile_recipe_preferences_label">Dietary Preferences</string>
+    <string name="profile_recipe_preferences_subtitle">Diet, allergies and household type for recipe suggestions</string>
+    <string name="profile_deactivate_account_label">Deactivate Account</string>
+    <string name="profile_deactivate_account_subtitle">Temporarily disable your account</string>
+    <string name="profile_logout">Logout</string>
+    <string name="profile_logout_dialog_title">Log out?</string>
+    <string name="profile_logout_dialog_message">You\'ll need to sign in again to access your account.</string>
+    <string name="profile_logout_confirm">Log Out</string>
+    <string name="profile_update_success">Profile updated successfully!</string>
+    <string name="profile_update_success_email_pending">Profile updated! Check your new email to confirm the change.</string>
+    <string name="profile_password_change_success">Password changed successfully!</string>
+    <string name="content_desc_profile_picture">Profile picture</string>
+    <string name="content_desc_avatar">Avatar</string>
+    <string name="content_desc_selected">Selected</string>
+
+    <!-- Edit Profile screen -->
+    <string name="edit_profile_title">Edit Profile</string>
+    <string name="edit_profile_replace_picture">Replace Picture</string>
+    <string name="edit_profile_add_picture">Add Picture</string>
+    <string name="edit_profile_remove_picture">Remove Picture</string>
+    <string name="edit_profile_image_requirements">JPG/PNG/WEBP • Max 2MB • Min 200x200px</string>
+    <string name="edit_profile_username_label">Username</string>
+    <string name="edit_profile_username_placeholder">Enter your new username</string>
+    <string name="edit_profile_email_label">Email Address</string>
+    <string name="edit_profile_email_placeholder">Enter your new email address</string>
+    <string name="edit_profile_phone_label">Phone Number</string>
+    <string name="edit_profile_phone_placeholder">Enter your new phone number</string>
+    <string name="edit_profile_save_changes">Save Changes</string>
+    <string name="content_desc_edit_profile_picture">Edit profile picture</string>
+
+    <!-- Change Password screen -->
+    <string name="change_password_title">Change Password</string>
+    <string name="change_password_current_label">Current Password</string>
+    <string name="change_password_current_placeholder">Enter your current password</string>
+    <string name="change_password_new_label">New Password</string>
+    <string name="change_password_new_placeholder">Enter your new password</string>
+    <string name="change_password_confirm_label">Confirm New Password</string>
+    <string name="change_password_confirm_placeholder">Confirm your new password</string>
+    <string name="change_password_requirements_title">Password Requirements</string>
+    <string name="change_password_requirement_length">At least 6 characters</string>
+    <string name="change_password_requirement_uppercase">One uppercase letter (A-Z)</string>
+    <string name="change_password_requirement_lowercase">One lowercase letter (a-z)</string>
+    <string name="change_password_requirement_number">One number (0-9)</string>
+    <string name="change_password_update_button">Update Password</string>
+    <string name="content_desc_toggle_current_password">Toggle current password visibility</string>
+    <string name="content_desc_toggle_new_password">Toggle new password visibility</string>
+    <string name="content_desc_toggle_confirm_password">Toggle confirm password visibility</string>
+
+    <!-- Deactivate Account screen -->
+    <string name="deactivate_account_title">Deactivate Account</string>
+    <string name="deactivate_account_warning_heading">Before you deactivate</string>
+    <string name="deactivate_account_warning_body">You\'ll be signed out immediately and won\'t receive expiry reminders. Your data (inventory, shopping lists, reports) is kept safe — log back in anytime with your email and password to reactivate your account.</string>
+    <string name="deactivate_account_password_label">Confirm Your Password</string>
+    <string name="deactivate_account_password_placeholder">Enter your password to confirm</string>
+    <string name="deactivate_account_button">Deactivate Account</string>
+    <string name="content_desc_toggle_deactivate_password">Toggle password visibility</string>
+
+    <!-- Edit Recipe Preferences screen -->
+    <string name="edit_recipe_preferences_title">Dietary Preferences</string>
+    <string name="edit_recipe_preferences_save">Save Preferences</string>
+    <string name="edit_recipe_preferences_header_title">Update Your Preferences</string>
+    <string name="edit_recipe_preferences_header_subtitle">Changes apply the next time recipe suggestions are generated.</string>
+
+    <!-- About Us screen -->
+    <string name="about_us_title">About Us</string>
+    <string name="about_us_mission_heading">Our Mission</string>
+    <string name="about_us_mission_body">SaveBite helps you reduce food waste by tracking expiry dates and suggesting recipes, saving you money while protecting the planet.</string>
+    <string name="about_us_offers_heading">What SaveBite Offers</string>
+    <string name="about_us_feature_track_inventory">Track food inventory before it expires</string>
+    <string name="about_us_feature_expiry_reminders">Get timely expiry reminders</string>
+    <string name="about_us_feature_shopping">Plan smarter shopping lists</string>
+    <string name="about_us_feature_recipes">Discover recipes from what you have</string>
+    <string name="about_us_feature_waste_monitor">Monitor your waste reduction over time</string>
+    <string name="about_us_team_heading">The Team</string>
+    <string name="about_us_member_jonathan_name">Jonathan Nah</string>
+    <string name="about_us_member_jonathan_subtitle">Authentication, Dashboard, Expiry, Settings</string>
+    <string name="about_us_member_xinyi_name">Xin Yi</string>
+    <string name="about_us_member_xinyi_subtitle">Inventory, Shopping, Recipe, Reports</string>
+    <string name="about_us_tagline">Track it. Use it. Waste less.</string>
+    <string name="about_us_version">Version 1.3.3</string>
+    <string name="content_desc_savebite_logo">SaveBite logo</string>
 </resources>

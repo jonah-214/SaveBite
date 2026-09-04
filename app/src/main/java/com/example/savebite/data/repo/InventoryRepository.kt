@@ -103,7 +103,9 @@ class InventoryRepository(
         inventoryDao.deleteItem(item)
 
         supabaseDataRepository.insertReportItem(reportItem.toSupabase())
+            .onFailure { Log.e(TAG, "Supabase insert failed for wasted item ${reportItem.name}", it) }
         supabaseDataRepository.deleteInventoryItem(item.id)
+            .onFailure { Log.e(TAG, "Supabase delete failed for item ${item.id} (${item.name})", it) }
     }
 
     // Toggles the "isConsumed" flag on an item (used for batch selection)
@@ -133,8 +135,14 @@ class InventoryRepository(
             reportDao.insertReportItems(reportItems)
             inventoryDao.deleteConsumedItems()
 
-            reportItems.forEach { supabaseDataRepository.insertReportItem(it.toSupabase()) }
-            consumedList.forEach { supabaseDataRepository.deleteInventoryItem(it.id) }
+            reportItems.forEach {
+                supabaseDataRepository.insertReportItem(it.toSupabase())
+                    .onFailure { error -> Log.e(TAG, "Supabase insert failed for consumed item ${it.name}", error) }
+            }
+            consumedList.forEach {
+                supabaseDataRepository.deleteInventoryItem(it.id)
+                    .onFailure { error -> Log.e(TAG, "Supabase delete failed for consumed item ${it.id} (${it.name})", error) }
+            }
         }
     }
 
@@ -199,11 +207,13 @@ class InventoryRepository(
                 )
                 reportDao.insertReportItem(reportItem)
                 supabaseDataRepository.insertReportItem(reportItem.toSupabase())
+                    .onFailure { Log.e(TAG, "Supabase insert failed for report item ${reportItem.name}", it) }
 
                 val remainingQty = item.quantity - moveQty
                 if (remainingQty <= 0) {
                     inventoryDao.deleteItem(item)
                     supabaseDataRepository.deleteInventoryItem(item.id)
+                        .onFailure { Log.e(TAG, "Supabase delete failed for item ${item.id} (${item.name})", it) }
                 } else {
                     val newTotalPrice = (remainingQty.toDouble() / item.quantity.toDouble()) * item.price
                     val updatedItem = item.copy(
@@ -213,6 +223,7 @@ class InventoryRepository(
                     )
                     inventoryDao.updateItem(updatedItem)
                     supabaseDataRepository.upsertInventoryItem(updatedItem.toSupabase())
+                        .onFailure { Log.e(TAG, "Supabase upsert failed for item ${updatedItem.id} (${updatedItem.name})", it) }
                 }
             }
         }

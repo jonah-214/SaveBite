@@ -8,13 +8,23 @@ import com.example.savebite.model.ReportStatus
 import kotlinx.coroutines.flow.Flow
 
 interface ReportRepository {
+    // Returns a stream of report items within a specific timestamp range
     fun getReportItemsInRange(startTimestamp: Long, endTimestamp: Long): Flow<List<ReportItem>>
+    
+    // Returns a stream of report items filtered by status and range
     fun getReportItemsByStatusInRange(status: ReportStatus, startTimestamp: Long, endTimestamp: Long): Flow<List<ReportItem>>
+    
+    // Returns a stream of report items logged since a specific timestamp
     fun getReportItemsSince(startTimestamp: Long): Flow<List<ReportItem>>
+    
+    // Persists a new report item and syncs it to the cloud
     suspend fun insertReportItem(item: ReportItem)
+    
+    // Fetches latest logs from Supabase and merges them into the local cache
     suspend fun syncFromCloud(): Result<Unit>
 }
 
+// Implementation of [ReportRepository] using Room for local storage and Supabase for remote sync
 class ReportRepositoryImpl(
     private val reportDao: ReportDao,
     private val supabaseDataRepository: SupabaseDataRepository

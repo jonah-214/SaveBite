@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,15 +67,18 @@ fun ReportScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AppTopBar(
-                title = "Food Waste Report",
+                title = stringResource(R.string.report_title),
                 showBackButton = false,
                 actions = {
-                    IconButton(onClick = { PdfReportGenerator.generateAndSharePdf(context, state) }) {
+                    IconButton(
+                        onClick = { PdfReportGenerator.generateAndSharePdf(context, state) },
+                        modifier = Modifier.size(48.dp)
+                    ) {
                         Icon(
                             painter = painterResource(R.drawable.picture_as_pdf), 
-                            contentDescription = "Export PDF", 
+                            contentDescription = stringResource(R.string.report_action_export), 
                             tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(28.dp)
                         )
                     }
                 }
@@ -90,6 +94,7 @@ fun ReportScreen(
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Time filter navigation row
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -106,8 +111,8 @@ fun ReportScreen(
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.chevron_left),
-                            contentDescription = "Previous",
+                            painter = painterResource(R.drawable.arrow_left),
+                            contentDescription = stringResource(R.string.report_nav_previous),
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -124,8 +129,8 @@ fun ReportScreen(
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.chevron_right),
-                            contentDescription = "Next",
+                            painter = painterResource(R.drawable.arrow_right),
+                            contentDescription = stringResource(R.string.report_nav_next),
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -144,9 +149,9 @@ fun ReportScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             val label = when (state.selectedTimeFrame) {
-                                TimeFrame.WEEKLY -> "Weekly"
-                                TimeFrame.MONTHLY -> "Monthly"
-                                TimeFrame.YEARLY -> "Yearly"
+                                TimeFrame.WEEKLY -> stringResource(R.string.report_timeframe_weekly)
+                                TimeFrame.MONTHLY -> stringResource(R.string.report_timeframe_monthly)
+                                TimeFrame.YEARLY -> stringResource(R.string.report_timeframe_yearly)
                             }
                             Text(
                                 text = label,
@@ -168,21 +173,21 @@ fun ReportScreen(
                         onDismissRequest = { dropdownExpanded = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Weekly") },
+                            text = { Text(stringResource(R.string.report_timeframe_weekly)) },
                             onClick = {
                                 viewModel.setTimeFrame(TimeFrame.WEEKLY)
                                 dropdownExpanded = false
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Monthly") },
+                            text = { Text(stringResource(R.string.report_timeframe_monthly)) },
                             onClick = {
                                 viewModel.setTimeFrame(TimeFrame.MONTHLY)
                                 dropdownExpanded = false
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Yearly") },
+                            text = { Text(stringResource(R.string.report_timeframe_yearly)) },
                             onClick = {
                                 viewModel.setTimeFrame(TimeFrame.YEARLY)
                                 dropdownExpanded = false
@@ -194,31 +199,31 @@ fun ReportScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Metrics
+            // Summary Metrics
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 MetricCard(
                     icon = R.drawable.delete,
                     iconBg = MaterialTheme.colorScheme.errorContainer,
                     iconTint = MaterialTheme.colorScheme.error,
-                    title = "Waste Cost",
+                    title = stringResource(R.string.report_metric_waste_cost),
                     value = Currency.format(state.totalWastedCost),
-                    subtitle = "${state.totalWastedItems} items",
+                    subtitle = stringResource(R.string.report_item_count_summary, state.totalWastedItems),
                     modifier = Modifier.weight(1f)
                 )
                 MetricCard(
                     icon = R.drawable.savings,
                     iconBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                     iconTint = MaterialTheme.colorScheme.primary,
-                    title = "Saved Value",
+                    title = stringResource(R.string.report_metric_saved_value),
                     value = Currency.format(state.totalSavedCost),
-                    subtitle = "${state.totalConsumedItems} items",
+                    subtitle = stringResource(R.string.report_item_count_summary, state.totalConsumedItems),
                     modifier = Modifier.weight(1f)
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Waste Breakdown Card
+            // Category-based Waste Breakdown
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -227,10 +232,10 @@ fun ReportScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Waste Breakdown", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(stringResource(R.string.report_section_breakdown), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         TextButton(onClick = onNavigateToCategoryBreakdown) {
-                            Text("View More", fontSize = 12.sp)
-                            Icon(painter = painterResource(R.drawable.chevron_right), contentDescription = null, modifier = Modifier.size(16.dp))
+                            Text(stringResource(R.string.report_action_view_more), fontSize = 12.sp)
+                            Icon(painter = painterResource(R.drawable.arrow_right), contentDescription = null, modifier = Modifier.size(16.dp))
                         }
                     }
                     if (state.totalWastedItems > 0) {
@@ -249,7 +254,7 @@ fun ReportScreen(
                         }
                     } else {
                         Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
-                            Text("No waste data recorded", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.report_empty_waste), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -257,7 +262,7 @@ fun ReportScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Top Wasted Card
+            // Item-based Waste Statistics
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -266,10 +271,10 @@ fun ReportScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Most Wasted Items", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(stringResource(R.string.report_section_most_wasted), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         TextButton(onClick = onNavigateToWastedItems) {
-                            Text("View More", fontSize = 12.sp)
-                            Icon(painter = painterResource(R.drawable.chevron_right), contentDescription = null, modifier = Modifier.size(16.dp))
+                            Text(stringResource(R.string.report_action_view_more), fontSize = 12.sp)
+                            Icon(painter = painterResource(R.drawable.arrow_right), contentDescription = null, modifier = Modifier.size(16.dp))
                         }
                     }
                     if (state.topWastedItems.isNotEmpty()) {
@@ -277,14 +282,14 @@ fun ReportScreen(
                             ItemStatRow(name = it.name, count = it.count, percentage = it.percentage, price = it.totalPrice, progressColor = MaterialTheme.colorScheme.primary)
                         }
                     } else {
-                        Text("No items found", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
+                        Text(stringResource(R.string.report_empty_items), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Consumed Card
+            // Successful Consumption Statistics
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -296,11 +301,11 @@ fun ReportScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(painter = painterResource(R.drawable.check), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Consumed Items", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text(stringResource(R.string.report_section_consumed), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
                         TextButton(onClick = onNavigateToConsumedItems) {
-                            Text("View More", fontSize = 12.sp)
-                            Icon(painter = painterResource(R.drawable.chevron_right), contentDescription = null, modifier = Modifier.size(16.dp))
+                            Text(stringResource(R.string.report_action_view_more), fontSize = 12.sp)
+                            Icon(painter = painterResource(R.drawable.arrow_right), contentDescription = null, modifier = Modifier.size(16.dp))
                         }
                     }
                     if (state.topConsumedItems.isNotEmpty()) {
@@ -308,15 +313,16 @@ fun ReportScreen(
                             ItemStatRow(name = it.name, count = it.count, percentage = it.percentage, price = it.totalPrice, progressColor = MaterialTheme.colorScheme.primary)
                         }
                     } else {
-                        Text("No consumed items recorded", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
+                        Text(stringResource(R.string.report_empty_consumed), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Qualitative Waste Reasons
             ReportSectionCard(
-                title = "Waste Reasons",
+                title = stringResource(R.string.report_section_reasons),
                 icon = R.drawable.list,
                 iconTint = MaterialTheme.colorScheme.primary,
                 onViewMore = null
@@ -333,7 +339,7 @@ fun ReportScreen(
                         }
                     }
                 } else {
-                    EmptyStatePlaceholder(message = "No waste reasons recorded for this period")
+                    EmptyStatePlaceholder(message = stringResource(R.string.report_empty_reasons))
                 }
             }
         }

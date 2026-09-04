@@ -333,7 +333,7 @@ fun AccountSettingsCard(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
             SettingsRow(
-                icon = R.drawable.removecircle,
+                icon = R.drawable.remove_circle,
                 label = stringResource(R.string.profile_deactivate_account_label),
                 subtitle = stringResource(R.string.profile_deactivate_account_subtitle),
                 onClick = onDeactivateAccountClick

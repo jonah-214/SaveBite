@@ -70,10 +70,9 @@ class ShoppingRepository(
         purchased.forEach { deleteItem(it) }
     }
 
-    suspend fun syncFromCloud(): Result<Unit> = syncMutex.withLock {
     // Two-way synchronization
-    suspend fun syncFromCloud(): Result<Unit> {
-        return runCatching {
+    suspend fun syncFromCloud(): Result<Unit> = syncMutex.withLock {
+        runCatching {
             val rawLocalItems = shoppingDao.getAllShoppingItemsRaw()
             val justSyncedIds = mutableSetOf<String>()
 

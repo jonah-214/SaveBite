@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -51,7 +50,6 @@ fun ShoppingListScreen(
     )
 
     var itemToDelete by remember { mutableStateOf<ShoppingItem?>(null) }
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     itemToDelete?.let { item ->
         AlertDialog(
@@ -78,12 +76,10 @@ fun ShoppingListScreen(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             AppTopBar(
                 title = stringResource(R.string.shopping_list_title),
-                showBackButton = false,
-                scrollBehavior = scrollBehavior
+                showBackButton = false
             )
         }
     ) { innerPadding ->
@@ -269,7 +265,7 @@ fun ShoppingListScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.chevron_right),
+                                    painter = painterResource(R.drawable.arrow_right),
                                     contentDescription = stringResource(R.string.content_desc_proceed),
                                     tint = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.size(20.dp)

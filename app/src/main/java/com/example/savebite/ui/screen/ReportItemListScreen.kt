@@ -1,5 +1,6 @@
 package com.example.savebite.ui.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,9 +29,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.savebite.R
 import com.example.savebite.model.ReportStatus
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ReportViewModel
@@ -45,7 +48,7 @@ fun ReportItemListScreen(
     val state by viewModel.uiState.collectAsState()
 
     val isWasted = type == ReportStatus.WASTED
-    val title = if (isWasted) "Wasted Items History" else "Consumed Items History"
+    val title = if (isWasted) stringResource(R.string.report_wasted_history_title) else stringResource(R.string.report_consumed_history_title)
     val items = if (isWasted) state.topWastedItems else state.topConsumedItems
 
     val totalCount = items.sumOf { it.count }
@@ -87,7 +90,7 @@ fun ReportItemListScreen(
                 ) {
                     Column {
                         Text(
-                            text = if (isWasted) "Food Waste Cost" else "Consumed Food Value",
+                            text = if (isWasted) stringResource(R.string.report_wasted_cost_label) else stringResource(R.string.report_consumed_value_label),
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium
@@ -106,7 +109,7 @@ fun ReportItemListScreen(
                         color = themeColor.copy(alpha = 0.2f)
                     ) {
                         Text(
-                            text = "$totalCount Items",
+                            text = stringResource(R.string.report_item_count_label, totalCount),
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
@@ -126,7 +129,7 @@ fun ReportItemListScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No items found for this month",
+                        text = stringResource(R.string.report_empty_period),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -150,6 +153,7 @@ fun ReportItemListScreen(
     }
 }
 
+// Individual card representing statistics for a specific food item in the historical list
 @Composable
 fun ReportItemRowCard(
     name: String,
@@ -165,7 +169,7 @@ fun ReportItemRowCard(
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -183,7 +187,7 @@ fun ReportItemRowCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "$count items (${percentage.toInt()}%)",
+                        text = stringResource(R.string.report_data_summary, count, percentage.toInt()),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

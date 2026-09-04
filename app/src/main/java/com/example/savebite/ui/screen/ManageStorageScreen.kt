@@ -139,7 +139,7 @@ fun ManageStorageScreen(
                                     modifier = Modifier.size(28.dp)
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.removecircle),
+                                        painter = painterResource(R.drawable.remove_circle),
                                         contentDescription = "Delete",
                                         tint = MaterialTheme.colorScheme.error,
                                         modifier = Modifier.size(24.dp)

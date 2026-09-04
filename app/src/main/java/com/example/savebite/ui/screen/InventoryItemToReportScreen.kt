@@ -2,17 +2,46 @@ package com.example.savebite.ui.screen
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,9 +63,16 @@ fun InventoryItemToReportScreen(
 
     val isConsumed = targetStatus == ReportStatus.CONSUMED
 
-    // Quick waste reasons
-    val quickReasons = listOf("Expired", "Spoiled", "Leftover", "Damaged", "Other")
-    var selectedReason by remember { mutableStateOf("Expired") }
+    val expiredLabel = stringResource(R.string.waste_reason_expired)
+    val otherReasonLabel = stringResource(R.string.waste_reason_other)
+    val quickReasons = listOf(
+        expiredLabel,
+        stringResource(R.string.waste_reason_spoiled),
+        stringResource(R.string.waste_reason_leftover),
+        stringResource(R.string.waste_reason_damaged),
+        otherReasonLabel
+    )
+    var selectedReason by remember(expiredLabel) { mutableStateOf(expiredLabel) }
     var customReason by remember { mutableStateOf("") }
 
     // Quantity map
@@ -52,7 +88,7 @@ fun InventoryItemToReportScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = if (isConsumed) "Report Consumed" else "Report Wasted",
+                title = if (isConsumed) stringResource(R.string.report_consumed_title) else stringResource(R.string.report_wasted_title),
                 showBackButton = true,
                 onBackClick = onBackClick
             )
@@ -85,13 +121,13 @@ fun InventoryItemToReportScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            text = if (isConsumed) "Confirm Consumption" else "Confirm Waste",
+                            text = if (isConsumed) stringResource(R.string.report_confirm_consumed) else stringResource(R.string.report_confirm_wasted),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = primaryThemeColor
                         )
                         Text(
-                            text = "Adjust quantity for selected items below",
+                            text = stringResource(R.string.report_adjust_qty_hint),
                             fontSize = 12.sp,
                             color = primaryThemeColor.copy(alpha = 0.8f)
                         )
@@ -137,7 +173,7 @@ fun InventoryItemToReportScreen(
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "In stock: ${item.quantity} ${item.unit}",
+                                    text = stringResource(R.string.report_in_stock_hint, item.quantity, item.unit),
                                     fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -162,8 +198,8 @@ fun InventoryItemToReportScreen(
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(
                                             painter = painterResource(R.drawable.remove),
-                                            contentDescription = "Decrease",
-                                            modifier = Modifier.size(18.dp),
+                                            contentDescription = stringResource(R.string.content_desc_decrease),
+                                            modifier = Modifier.size(20.dp),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
@@ -190,8 +226,8 @@ fun InventoryItemToReportScreen(
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(
                                             painter = painterResource(R.drawable.add),
-                                            contentDescription = "Increase",
-                                            modifier = Modifier.size(18.dp),
+                                            contentDescription = stringResource(R.string.content_desc_increase),
+                                            modifier = Modifier.size(20.dp),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
@@ -207,7 +243,7 @@ fun InventoryItemToReportScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "Reason for waste:",
+                        text = stringResource(R.string.inventory_waste_reason_label),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -232,12 +268,12 @@ fun InventoryItemToReportScreen(
                         }
                     }
 
-                    if (selectedReason == "Other") {
+                    if (selectedReason == otherReasonLabel) {
                         Spacer(modifier = Modifier.height(4.dp))
                         OutlinedTextField(
                             value = customReason,
                             onValueChange = { customReason = it },
-                            placeholder = { Text("Enter custom reason...", fontSize = 13.sp) },
+                            placeholder = { Text(stringResource(R.string.inventory_waste_reason_placeholder), fontSize = 13.sp) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(10.dp),
                             singleLine = true
@@ -262,7 +298,7 @@ fun InventoryItemToReportScreen(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Moved items will be deducted from active inventory.",
+                    text = stringResource(R.string.report_deduction_hint),
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                 )
@@ -272,7 +308,7 @@ fun InventoryItemToReportScreen(
 
             Button(
                 onClick = {
-                    val finalReason = if (selectedReason == "Other") {
+                    val finalReason = if (selectedReason == otherReasonLabel) {
                         customReason.ifBlank { "Wasted" }
                     } else {
                         selectedReason
@@ -296,7 +332,7 @@ fun InventoryItemToReportScreen(
                     .height(48.dp)
             ) {
                 Text(
-                    text = "Confirm & Save (${selectedItems.size} items)",
+                    text = stringResource(R.string.report_action_confirm_save, selectedItems.size),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -308,7 +344,7 @@ fun InventoryItemToReportScreen(
                 modifier = Modifier.padding(top = 2.dp)
             ) {
                 Text(
-                    text = "Cancel",
+                    text = stringResource(R.string.action_cancel),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 13.sp
                 )
