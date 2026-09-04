@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +48,7 @@ import com.example.savebite.model.ExpiryItem
 import com.example.savebite.model.RecipeSuggestion
 import com.example.savebite.model.SyncStatus
 import com.example.savebite.model.WastePeriod
+import com.example.savebite.model.WasteSummary
 import com.example.savebite.ui.navigation.AppRoutes
 import com.example.savebite.ui.theme.expirySectionColors
 import com.example.savebite.ui.viewmodel.DashboardViewModel
@@ -63,8 +65,8 @@ fun DashboardScreen(
     val expiringItems by dashboardViewModel.expiringItems.collectAsStateWithLifecycle()
     val inventoryCount by dashboardViewModel.inventoryCount.collectAsStateWithLifecycle()
     val shoppingCount by dashboardViewModel.shoppingListCount.collectAsStateWithLifecycle()
-    val savedAmount by dashboardViewModel.savedThisMonth.collectAsStateWithLifecycle()
-    val wasteTrackerData by dashboardViewModel.wasteTrackerData.collectAsStateWithLifecycle()
+    val savedAmount by dashboardViewModel.savedAmount.collectAsStateWithLifecycle()
+    val wasteSummary by dashboardViewModel.wasteSummary.collectAsStateWithLifecycle()
     val wastePeriod by dashboardViewModel.wastePeriod.collectAsStateWithLifecycle()
     val recipeSuggestions by dashboardViewModel.recipeSuggestions.collectAsStateWithLifecycle()
 
@@ -76,7 +78,7 @@ fun DashboardScreen(
         inventoryCount = inventoryCount,
         shoppingCount = shoppingCount,
         savedAmount = savedAmount,
-        wasteTrackerData = wasteTrackerData,
+        wasteSummary = wasteSummary,
         wastePeriod = wastePeriod,
         recipeSuggestions = recipeSuggestions,
         onRetrySync = dashboardViewModel::syncFromCloud,
@@ -122,7 +124,7 @@ fun DashboardContent(
     inventoryCount: Int,
     shoppingCount: Int,
     savedAmount: Double,
-    wasteTrackerData: List<Int>,
+    wasteSummary: WasteSummary,
     wastePeriod: WastePeriod,
     recipeSuggestions: List<RecipeSuggestion>,
     onRetrySync: () -> Unit,
@@ -177,7 +179,7 @@ fun DashboardContent(
         // Waste report
         WasteReportSection(
             savedAmount = savedAmount,
-            wasteData = wasteTrackerData,
+            wasteSummary = wasteSummary,
             selectedPeriod = wastePeriod,
             onPeriodSelected = onWastePeriodSelected
         )
@@ -290,6 +292,7 @@ fun DashboardHeader(
                 AsyncImage(
                     model = avatarUrl,
                     contentDescription = stringResource(R.string.content_desc_profile_picture),
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
@@ -497,11 +500,12 @@ fun StatsCard(
     }
 }
 
-// Section presenting the waste report, including monthly savings and a trend chart
+// Section presenting the waste report: savings for the selected period plus a simple
+// summary of what was wasted (instead of a bar chart).
 @Composable
 fun WasteReportSection(
     savedAmount: Double,
-    wasteData: List<Int>,
+    wasteSummary: WasteSummary,
     selectedPeriod: WastePeriod,
     onPeriodSelected: (WastePeriod) -> Unit
 ) {
@@ -513,6 +517,12 @@ fun WasteReportSection(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        val savedLabel = when (selectedPeriod) {
+            WastePeriod.WEEKLY -> stringResource(R.string.dashboard_saved_weekly)
+            WastePeriod.MONTHLY -> stringResource(R.string.dashboard_saved_monthly)
+            WastePeriod.YEARLY -> stringResource(R.string.dashboard_saved_yearly)
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -521,7 +531,7 @@ fun WasteReportSection(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = stringResource(R.string.dashboard_saved_month),
+                text = savedLabel,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.Medium
             )
@@ -534,13 +544,12 @@ fun WasteReportSection(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Waste chart visualization
-        val totalWaste = wasteData.sum()
-        if (totalWaste == 0) {
+        // Waste summary
+        if (wasteSummary.totalItemsWasted == 0) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp),
+                    .padding(vertical = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -550,24 +559,36 @@ fun WasteReportSection(
                 )
             }
         } else {
-            val maxValue = (wasteData.maxOrNull() ?: 1).coerceAtLeast(1)
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                wasteData.forEach { value ->
-                    val barHeight = (value.toFloat() / maxValue) * 60.dp.value
-                    val barColor = if (value == maxValue) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primary
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(barHeight.dp)
-                            .align(Alignment.Bottom)
-                            .background(barColor, RoundedCornerShape(6.dp))
-                    )
-                }
+                WasteStatTile(
+                    label = stringResource(R.string.dashboard_waste_items_label),
+                    value = "${wasteSummary.totalItemsWasted}",
+                    modifier = Modifier.weight(1f)
+                )
+                WasteStatTile(
+                    label = stringResource(R.string.dashboard_waste_value_label),
+                    value = Currency.format(wasteSummary.totalValueWasted),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            if (wasteSummary.topCategory != null) {
+                Text(
+                    text = stringResource(
+                        R.string.dashboard_waste_top_category,
+                        wasteSummary.topCategory,
+                        wasteSummary.topCategoryCount
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    textAlign = TextAlign.Center
+                )
             }
         }
 
@@ -589,6 +610,32 @@ fun WasteReportSection(
         WastePeriodToggle(
             selectedPeriod = selectedPeriod,
             onPeriodSelected = onPeriodSelected
+        )
+    }
+}
+
+// Small tile used inside the waste summary to show one metric (e.g. items wasted, value lost)
+@Composable
+fun WasteStatTile(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(12.dp))
+            .padding(12.dp)
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

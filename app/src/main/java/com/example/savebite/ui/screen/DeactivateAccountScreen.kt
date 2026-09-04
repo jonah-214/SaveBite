@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,6 +27,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,13 +57,18 @@ fun DeactivateAccountScreen(
 ) {
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var deleteConfirmText by remember { mutableStateOf("") }
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
+    val deleteKeyword = stringResource(R.string.deactivate_account_type_delete_keyword)
+    val isDeleteConfirmed = deleteConfirmText == deleteKeyword
 
     // Reset errors when screen is entered
     LaunchedEffect(Unit) {
         profileViewModel.clearErrors()
     }
 
-    // On success, drop the whole back stack down to Login — there's no "Profile" to go back to
+    // On success, drop the whole back stack down to Log in — there's no "Profile" to go back to
     // once the account is deactivated and the session cleared.
     val deactivateAndNavigateToLogin: () -> Unit = {
         profileViewModel.deactivateAccount(password) {
@@ -148,10 +155,7 @@ fun DeactivateAccountScreen(
                 },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = { deactivateAndNavigateToLogin() }
+                    imeAction = ImeAction.Next
                 ),
                 visualTransformation =
                     if (passwordVisible) VisualTransformation.None
@@ -173,10 +177,48 @@ fun DeactivateAccountScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Deactivate Account button
+            // Type-to-confirm — an extra deliberate step before a destructive-ish action,
+            // same idea as GitHub's "type the repo name to delete it".
+            Text(
+                text = stringResource(R.string.deactivate_account_type_delete_label),
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            OutlinedTextField(
+                value = deleteConfirmText,
+                onValueChange = { deleteConfirmText = it },
+                placeholder = { Text(stringResource(R.string.deactivate_account_type_delete_placeholder)) },
+                shape = RoundedCornerShape(16.dp),
+                singleLine = true,
+                isError = deleteConfirmText.isNotEmpty() && !isDeleteConfirmed,
+                supportingText = {
+                    if (deleteConfirmText.isNotEmpty() && !isDeleteConfirmed) {
+                        Text(
+                            text = stringResource(R.string.deactivate_account_type_delete_mismatch),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        if (password.isNotBlank() && isDeleteConfirmed) showConfirmDialog = true
+                    }
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Deactivate Account button — opens the final confirmation dialog rather than
+            // deactivating right away.
             Button(
-                onClick = deactivateAndNavigateToLogin,
-                enabled = password.isNotBlank() && !profileViewModel.isLoading.value,
+                onClick = { showConfirmDialog = true },
+                enabled = password.isNotBlank() && isDeleteConfirmed && !profileViewModel.isLoading.value,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
@@ -200,5 +242,35 @@ fun DeactivateAccountScreen(
                 }
             }
         }
+    }
+
+    // Final confirmation dialog — the last chance to back out before the account is
+    // actually deactivated and the session cleared.
+    if (showConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmDialog = false },
+            title = { Text(text = stringResource(R.string.deactivate_account_confirm_dialog_title)) },
+            text = { Text(text = stringResource(R.string.deactivate_account_confirm_dialog_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showConfirmDialog = false
+                        deactivateAndNavigateToLogin()
+                    }
+                ) {
+                    Text(
+                        stringResource(R.string.deactivate_account_confirm_dialog_confirm),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmDialog = false }) {
+                    Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.outline)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 }

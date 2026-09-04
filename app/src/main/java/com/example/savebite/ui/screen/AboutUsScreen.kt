@@ -1,5 +1,7 @@
 package com.example.savebite.ui.screen
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +41,8 @@ import com.example.savebite.ui.navigation.AppTopBar
 fun AboutUsScreen(
     navController: NavHostController
 ) {
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             AppTopBar(
@@ -134,6 +139,57 @@ fun AboutUsScreen(
                         icon = R.drawable.group,
                         label = stringResource(R.string.about_us_member_xinyi_name),
                         subtitle = stringResource(R.string.about_us_member_xinyi_subtitle),
+                        trailing = { }
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(20.dp))
+
+            // Contact Us
+            SectionLabel(stringResource(R.string.about_us_contact_heading))
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                ),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(0.dp),
+                border = BorderStroke(
+                    0.5.dp,
+                    MaterialTheme.colorScheme.outlineVariant
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    val emailValue = stringResource(R.string.about_us_contact_email_value)
+                    SettingsRow(
+                        icon = R.drawable.mail,
+                        label = stringResource(R.string.about_us_contact_email_label),
+                        subtitle = emailValue,
+                        onClick = {
+                            // ACTION_SEND TO with a mailto: URI opens the user's email app with the
+                            // recipient pre-filled — it does not send anything on its own.
+                            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                data = Uri.parse("mailto:$emailValue")
+                            }
+                            context.startActivity(intent)
+                        },
+                        trailing = { }
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    val phoneValue = stringResource(R.string.about_us_contact_phone_value)
+                    SettingsRow(
+                        icon = R.drawable.call,
+                        label = stringResource(R.string.about_us_contact_phone_label),
+                        subtitle = phoneValue,
+                        onClick = {
+                            // ACTION_DIAL opens the phone app with the number pre-filled — the
+                            // user still has to press call themselves.
+                            val intent = Intent(Intent.ACTION_DIAL).apply {
+                                data = Uri.parse("tel:$phoneValue")
+                            }
+                            context.startActivity(intent)
+                        },
                         trailing = { }
                     )
                 }

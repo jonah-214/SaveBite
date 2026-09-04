@@ -1,9 +1,11 @@
 package com.example.savebite.ui.viewmodel
 
+import android.content.Context
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.savebite.R
 import com.example.savebite.data.repo.ProfileRepository
 import com.example.savebite.data.repo.SupabaseAuthRepository
 import com.example.savebite.data.repo.UserRepository
@@ -17,6 +19,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
+    // Application context only, passed in by ProfileViewModelFactory — used solely to resolve
+    // string resources for error messages, never held onto in a way that could leak an Activity.
+    private val context: Context,
     private val userRepository: UserRepository,
     private val supabaseAuthRepository: SupabaseAuthRepository,
     private val profileRepository: ProfileRepository,
@@ -24,35 +29,32 @@ class ProfileViewModel(
     private val notificationPreferenceManager: NotificationPreferenceManager
 ) : ViewModel() {
 
-    // User information
+    // The signed-in user, streamed in from Room by loadUser() below.
     private val _user = mutableStateOf<User?>(null)
     val user: State<User?> = _user
 
-    // Edit Profile Errors - Avatar Picture
+    // --- Edit Profile: one error slot per field, so each OutlinedTextField can show its own
+    // message instead of a single shared error for the whole form.
     private val _avatarError = mutableStateOf<String?>(null)
     val avatarError: State<String?> = _avatarError
 
-    // Edit Profile Errors - Username
     private val _usernameError = mutableStateOf<String?>(null)
     val usernameError: State<String?> = _usernameError
 
-    // Edit Profile Errors - Email
     private val _emailError = mutableStateOf<String?>(null)
     val emailError: State<String?> = _emailError
 
-    // Edit Profile Errors - Phone
     private val _phoneError = mutableStateOf<String?>(null)
     val phoneError: State<String?> = _phoneError
 
-    // Edit Profile Pending Avatar (for preview before upload)
+    // Picked-but-not-yet-uploaded avatar, kept as both raw bytes (for the actual upload) and
+    // its content URI (so AsyncImage can preview it immediately without waiting on the network).
     private val _pendingAvatarBytes = mutableStateOf<ByteArray?>(null)
     val pendingAvatarBytes: State<ByteArray?> = _pendingAvatarBytes
 
-    // Edit Profile Pending Avatar URI (for preview before upload)
     private val _pendingAvatarUri = mutableStateOf<android.net.Uri?>(null)
     val pendingAvatarUri: State<android.net.Uri?> = _pendingAvatarUri
 
-    // Edit Profile Success
     private val _updateSuccess = mutableStateOf(value = false)
     val updateSuccess: State<Boolean> = _updateSuccess
 
@@ -62,27 +64,24 @@ class ProfileViewModel(
     private val _emailConfirmationPending = mutableStateOf(value = false)
     val emailConfirmationPending: State<Boolean> = _emailConfirmationPending
 
-    // Change Password Errors - Current Password
+    // --- Change Password: one error slot per field, same reasoning as the Edit Profile ones above.
     private val _currentPasswordError = mutableStateOf<String?>(null)
     val currentPasswordError: State<String?> = _currentPasswordError
 
-    // Change Password Errors - New Password
     private val _newPasswordError = mutableStateOf<String?>(null)
     val newPasswordError: State<String?> = _newPasswordError
 
-    // Change Password Errors - Confirm New Password
     private val _confirmNewPasswordError = mutableStateOf<String?>(null)
     val confirmNewPasswordError: State<String?> = _confirmNewPasswordError
 
-    // Change Password Success
     private val _passwordChangeSuccess = mutableStateOf(value = false)
     val changePasswordSuccess: State<Boolean> = _passwordChangeSuccess
 
-    // Deactivate Account Error - Password
+    // --- Deactivate Account: the re-entered password field's error.
     private val _deactivatePasswordError = mutableStateOf<String?>(null)
     val deactivatePasswordError: State<String?> = _deactivatePasswordError
 
-    // Loading State
+    // Shared across all the actions above — only one runs at a time per screen, so one flag is enough.
     private val _isLoading = mutableStateOf(value = false)
     val isLoading: State<Boolean> = _isLoading
 
@@ -203,7 +202,7 @@ class ProfileViewModel(
             val currentUser = _user.value
             val uid = currentUser?.supabaseUid
             if (currentUser == null || uid == null) {
-                _emailError.value = "User not loaded. Please try again."
+                _emailError.value = context.getString(R.string.profile_error_user_not_loaded)
                 _isLoading.value = false
                 return@launch
             }
@@ -215,7 +214,7 @@ class ProfileViewModel(
                 uploadResult.onSuccess { newUrl ->
                     finalAvatarUrl = newUrl
                 }.onFailure {
-                    _avatarError.value = "Failed to upload picture. Please try again."
+                    _avatarError.value = context.getString(R.string.profile_error_avatar_upload_failed)
                     // Clear the broken pending avatar so a retry starts clean instead of
                     // re-attempting the same failed upload alongside unrelated field edits.
                     _pendingAvatarBytes.value = null
@@ -255,12 +254,15 @@ class ProfileViewModel(
             }.onFailure { error ->
                 val message = error.message.orEmpty()
                 when (message) {
-                    "CONFLICT_USERNAME" -> _usernameError.value = "Username is already taken"
-                    "CONFLICT_EMAIL" -> _emailError.value = "Email is already taken"
-                    "CONFLICT_PHONE" -> _phoneError.value = "Phone number is already taken"
+                    "CONFLICT_USERNAME" -> _usernameError.value =
+                        context.getString(R.string.profile_error_username_taken)
+                    "CONFLICT_EMAIL" -> _emailError.value =
+                        context.getString(R.string.profile_error_email_taken)
+                    "CONFLICT_PHONE" -> _phoneError.value =
+                        context.getString(R.string.profile_error_phone_taken)
                     "AUTH_EMAIL_UPDATE_FAILED" -> _emailError.value =
-                        "Couldn't update login email. Please try again."
-                    else -> _emailError.value = "Failed to update profile. Please try again."
+                        context.getString(R.string.profile_error_auth_email_update_failed)
+                    else -> _emailError.value = context.getString(R.string.profile_error_update_failed)
                 }
             }
 
@@ -274,7 +276,7 @@ class ProfileViewModel(
             val currentUser = _user.value
             val uid = currentUser?.supabaseUid
             if (currentUser == null || uid == null) {
-                _avatarError.value = "User not loaded. Please try again."
+                _avatarError.value = context.getString(R.string.profile_error_user_not_loaded)
                 return@launch
             }
 
@@ -287,7 +289,7 @@ class ProfileViewModel(
                 userRepository.updateUser(updatedUser)
                 _user.value = updatedUser
             }.onFailure {
-                _avatarError.value = "Failed to upload picture. Please try again."
+                _avatarError.value = context.getString(R.string.profile_error_avatar_upload_failed)
             }
 
             _isLoading.value = false
@@ -313,7 +315,7 @@ class ProfileViewModel(
                 userRepository.updateUser(updatedUser)
                 _user.value = updatedUser
             }.onFailure {
-                _avatarError.value = "Failed to remove picture. Please try again."
+                _avatarError.value = context.getString(R.string.profile_error_avatar_remove_failed)
             }
             _isLoading.value = false
         }
@@ -338,7 +340,7 @@ class ProfileViewModel(
 
             val currentUser = _user.value
             if (currentUser == null) {
-                _currentPasswordError.value = "User not loaded"
+                _currentPasswordError.value = context.getString(R.string.profile_error_user_not_loaded)
                 _isLoading.value = false
                 return@launch
             }
@@ -353,14 +355,14 @@ class ProfileViewModel(
 
             // New password must be different from current password
             if (newPassword == currentPassword) {
-                _newPasswordError.value = "New password must be different from current password"
+                _newPasswordError.value = context.getString(R.string.change_password_error_same_as_current)
                 _isLoading.value = false
                 return@launch
             }
 
             // Confirm password must match new password
             if (newPassword != confirmPassword) {
-                _confirmNewPasswordError.value = "Passwords do not match"
+                _confirmNewPasswordError.value = context.getString(R.string.change_password_error_mismatch)
                 _isLoading.value = false
                 return@launch
             }
@@ -375,7 +377,7 @@ class ProfileViewModel(
             result.onSuccess {
                 _passwordChangeSuccess.value = true
             }.onFailure {
-                _currentPasswordError.value = "Current password is incorrect"
+                _currentPasswordError.value = context.getString(R.string.change_password_error_incorrect_current)
             }
             _isLoading.value = false
         }
@@ -411,14 +413,15 @@ class ProfileViewModel(
             val currentUser = _user.value
             val uid = currentUser?.supabaseUid
             if (currentUser == null || uid == null) {
-                _deactivatePasswordError.value = "User not loaded. Please try again."
+                _deactivatePasswordError.value = context.getString(R.string.profile_error_user_not_loaded)
                 _isLoading.value = false
                 return@launch
             }
 
             val reauth = supabaseAuthRepository.reauthenticate(currentUser.email, password)
             if (reauth.isFailure) {
-                _deactivatePasswordError.value = "Incorrect password"
+                _deactivatePasswordError.value =
+                    context.getString(R.string.deactivate_account_error_incorrect_password)
                 _isLoading.value = false
                 return@launch
             }
@@ -430,7 +433,7 @@ class ProfileViewModel(
                 _isLoading.value = false
                 onDeactivated()
             }.onFailure {
-                _deactivatePasswordError.value = "Failed to deactivate account. Please try again."
+                _deactivatePasswordError.value = context.getString(R.string.deactivate_account_error_failed)
                 _isLoading.value = false
             }
         }

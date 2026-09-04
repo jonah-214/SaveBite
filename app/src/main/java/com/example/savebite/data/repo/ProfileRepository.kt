@@ -18,9 +18,6 @@ data class ProfileUpdate(
     val is_active: Boolean? = null
 )
 
-// Handles editing an already-signed-in user's profile: field updates and avatar upload/removal.
-// Account creation/login/password lives in SupabaseAuthRepository — kept separate so each
-// class has one job (Edit Profile vs. Authentication) instead of one repository doing both.
 class ProfileRepository {
     private val client = SupabaseClientProvider.client
 
@@ -62,7 +59,7 @@ class ProfileRepository {
             // If the email is changing, update the Supabase Auth login credential FIRST.
             // Supabase sends a confirmation link and the login email won't actually switch
             // until the user clicks it, but this keeps the two in sync going forward instead
-            // of the profiles table silently drifting away from what the user logs in with.
+            // of the profiles table silently drifting away from what the user logs in with
             if (email != currentEmail) {
                 try {
                     client.auth.updateUser { this.email = email }

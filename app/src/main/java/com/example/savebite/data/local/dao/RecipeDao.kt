@@ -1,10 +1,12 @@
 package com.example.savebite.data.local.dao
 
-import androidx.room.*
-import com.example.savebite.data.ai.Recipe
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 // id holds the owning user's id (not a fixed constant) so each account gets its own
 // cached recipe list - see RecipeRepositoryImpl. Kept as plain Int (no rename, no type

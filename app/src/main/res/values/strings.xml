@@ -66,10 +66,15 @@
     <string name="dashboard_shopping_label">Shopping List</string>
     <string name="dashboard_waste_title">Waste Report</string>
     <string name="dashboard_waste_empty">No waste recorded for this period</string>
-    <string name="dashboard_saved_month">Saved This Month</string>
-    <string name="dashboard_waste_caption_weekly">Items wasted, last 4 weeks</string>
-    <string name="dashboard_waste_caption_monthly">Items wasted, last 6 months</string>
-    <string name="dashboard_waste_caption_yearly">Items wasted, last 3 years</string>
+    <string name="dashboard_saved_weekly">Saved This Week</string>
+    <string name="dashboard_saved_monthly">Saved This Month</string>
+    <string name="dashboard_saved_yearly">Saved This Year</string>
+    <string name="dashboard_waste_caption_weekly">Waste summary, last 4 weeks</string>
+    <string name="dashboard_waste_caption_monthly">Waste summary, last 6 months</string>
+    <string name="dashboard_waste_caption_yearly">Waste summary, last 3 years</string>
+    <string name="dashboard_waste_items_label">Items Wasted</string>
+    <string name="dashboard_waste_value_label">Value Lost</string>
+    <string name="dashboard_waste_top_category">Most wasted: %1$s (%2$d)</string>
     <string name="dashboard_recipes_title">Recipe Suggestions</string>
     <string name="dashboard_recipes_empty">No recipe suggestions right now</string>
     <string name="dashboard_recipe_uses_singular">Uses %1$d expiring item</string>
@@ -310,6 +315,21 @@
     <string name="content_desc_avatar">Avatar</string>
     <string name="content_desc_selected">Selected</string>
 
+    <!-- Profile & Settings error messages (ProfileViewModel) -->
+    <string name="profile_error_user_not_loaded">User not loaded. Please try again.</string>
+    <string name="profile_error_avatar_upload_failed">Failed to upload picture. Please try again.</string>
+    <string name="profile_error_avatar_remove_failed">Failed to remove picture. Please try again.</string>
+    <string name="profile_error_username_taken">Username is already taken</string>
+    <string name="profile_error_email_taken">Email is already taken</string>
+    <string name="profile_error_phone_taken">Phone number is already taken</string>
+    <string name="profile_error_auth_email_update_failed">Couldn\'t update login email. Please try again.</string>
+    <string name="profile_error_update_failed">Failed to update profile. Please try again.</string>
+    <string name="change_password_error_same_as_current">New password must be different from current password</string>
+    <string name="change_password_error_mismatch">Passwords do not match</string>
+    <string name="change_password_error_incorrect_current">Current password is incorrect</string>
+    <string name="deactivate_account_error_incorrect_password">Incorrect password</string>
+    <string name="deactivate_account_error_failed">Failed to deactivate account. Please try again.</string>
+
     <!-- Edit Profile screen -->
     <string name="edit_profile_title">Edit Profile</string>
     <string name="edit_profile_replace_picture">Replace Picture</string>
@@ -349,7 +369,14 @@
     <string name="deactivate_account_warning_body">You\'ll be signed out immediately and won\'t receive expiry reminders. Your data (inventory, shopping lists, reports) is kept safe — log back in anytime with your email and password to reactivate your account.</string>
     <string name="deactivate_account_password_label">Confirm Your Password</string>
     <string name="deactivate_account_password_placeholder">Enter your password to confirm</string>
+    <string name="deactivate_account_type_delete_label">Type \"DELETE\" to confirm</string>
+    <string name="deactivate_account_type_delete_placeholder">DELETE</string>
+    <string name="deactivate_account_type_delete_mismatch">Please type DELETE exactly to confirm</string>
+    <string name="deactivate_account_type_delete_keyword">DELETE</string>
     <string name="deactivate_account_button">Deactivate Account</string>
+    <string name="deactivate_account_confirm_dialog_title">Deactivate account?</string>
+    <string name="deactivate_account_confirm_dialog_message">This will sign you out immediately and stop expiry reminders. Are you sure you want to deactivate your account?</string>
+    <string name="deactivate_account_confirm_dialog_confirm">Yes, Deactivate</string>
     <string name="content_desc_toggle_deactivate_password">Toggle password visibility</string>
 
     <!-- Edit Recipe Preferences screen -->
@@ -397,9 +424,9 @@
     <string name="recipe_allergy_eggs">Eggs</string>
     <string name="recipe_allergy_soy">Soy / Soybeans</string>
     <string name="recipe_allergy_gluten">Gluten</string>
-    <string name="recipe_household_student">Student — cooking for myself</string>
-    <string name="recipe_household_adult">Adult / Couple</string>
-    <string name="recipe_household_family">Family with kids</string>
+    <string name="recipe_household_student">Single/Student - cooking for myself</string>
+    <string name="recipe_household_adult">Adult/Couple</string>
+    <string name="recipe_household_family">Family</string>
 
     <!-- About Us screen -->
     <string name="about_us_title">About Us</string>
@@ -416,7 +443,12 @@
     <string name="about_us_member_jonathan_subtitle">Authentication, Dashboard, Expiry, Settings</string>
     <string name="about_us_member_xinyi_name">Xin Yi</string>
     <string name="about_us_member_xinyi_subtitle">Inventory, Shopping, Recipe, Reports</string>
+    <string name="about_us_contact_heading">Contact Us</string>
+    <string name="about_us_contact_email_label">Email</string>
+    <string name="about_us_contact_email_value">support@savebite.com</string>
+    <string name="about_us_contact_phone_label">Phone</string>
+    <string name="about_us_contact_phone_value">04-24537698</string>
     <string name="about_us_tagline">Track it. Use it. Waste less.</string>
-    <string name="about_us_version">Version 1.3.3</string>
+    <string name="about_us_version">Version 1.5.4</string>
     <string name="content_desc_savebite_logo">SaveBite logo</string>
 </resources>

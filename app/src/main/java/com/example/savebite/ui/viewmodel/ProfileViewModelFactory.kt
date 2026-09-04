@@ -1,5 +1,6 @@
 package com.example.savebite.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.savebite.data.repo.ProfileRepository
@@ -9,6 +10,7 @@ import com.example.savebite.utils.NotificationPreferenceManager
 import com.example.savebite.utils.SessionManager
 
 class ProfileViewModelFactory(
+    private val context: Context,
     private val userRepository: UserRepository,
     private val supabaseAuthRepository: SupabaseAuthRepository,
     private val profileRepository: ProfileRepository,
@@ -18,6 +20,7 @@ class ProfileViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
         return ProfileViewModel(
+            context,
             userRepository,
             supabaseAuthRepository,
             profileRepository,

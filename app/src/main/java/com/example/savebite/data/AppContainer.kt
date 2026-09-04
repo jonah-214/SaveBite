@@ -107,7 +107,7 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     }
 
     override val profileViewModelFactory: ProfileViewModelFactory by lazy {
-        ProfileViewModelFactory(userRepository, supabaseAuthRepository, profileRepository, sessionManager, notificationPreferenceManager)
+        ProfileViewModelFactory(context, userRepository, supabaseAuthRepository, profileRepository, sessionManager, notificationPreferenceManager)
     }
 
     override val themeViewModelFactory: ThemeViewModelFactory by lazy {

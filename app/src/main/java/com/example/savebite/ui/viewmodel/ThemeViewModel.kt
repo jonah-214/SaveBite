@@ -23,7 +23,7 @@ class ThemeViewModelFactory(
     private val themePreferenceManager: ThemePreferenceManager
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        @Suppress("UNCHECKED CAST")
+        @Suppress("UNCHECKED_CAST")
         return ThemeViewModel(themePreferenceManager) as T
     }
 }

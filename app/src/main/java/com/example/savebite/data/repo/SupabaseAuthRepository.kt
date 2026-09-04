@@ -148,6 +148,7 @@ class SupabaseAuthRepository(
                     username = remoteProfile.username,
                     email = remoteProfile.email,
                     phone = remoteProfile.phone,
+                    avatarUrl = remoteProfile.avatar_url
                 )
                 val localId = userRepository.insertUser(newUser)
                 localUser = newUser.copy(id = localId.toInt())
@@ -155,7 +156,8 @@ class SupabaseAuthRepository(
                 val updated = localUser.copy(
                     username = remoteProfile.username,
                     email = remoteProfile.email,
-                    phone = remoteProfile.phone
+                    phone = remoteProfile.phone,
+                    avatarUrl = remoteProfile.avatar_url
                 )
                 userRepository.updateUser(updated)
                 localUser = updated

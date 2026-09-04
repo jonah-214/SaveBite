@@ -61,7 +61,6 @@ data class SupabaseReportItem(
     val timestamp: Long
 )
 
-// --- Mapper（Room <-> Supabase） ---
 // Mapper function ( Room & Supabase)
 
 // Converts a local Room Inventory entity into a Supabase DTO, injecting the active user's ID

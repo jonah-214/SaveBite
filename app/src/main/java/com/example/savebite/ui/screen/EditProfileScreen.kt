@@ -27,9 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -51,6 +48,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
@@ -195,6 +193,7 @@ fun EditProfileScreen(
                             AsyncImage(
                                 model = displayImage,
                                 contentDescription = stringResource(R.string.content_desc_profile_picture),
+                                contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .size(120.dp)
                                     .clip(CircleShape)
@@ -219,7 +218,7 @@ fun EditProfileScreen(
                         elevation = FloatingActionButtonDefaults.elevation(0.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Edit,
+                            painter = painterResource(id = R.drawable.edit),
                             contentDescription = stringResource(R.string.content_desc_edit_profile_picture),
                             tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(18.dp)

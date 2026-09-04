@@ -44,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -249,6 +250,7 @@ fun ProfileHeaderCard(
                     AsyncImage(
                         model = avatarUrl,
                         contentDescription = stringResource(R.string.content_desc_profile_picture),
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(64.dp)
                             .clip(CircleShape)
@@ -549,7 +551,10 @@ fun SettingsRow(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            // Reserves space for trailing() first, instead of letting a long subtitle grow
+            // past the screen edge and push the trailing icon/switch off-screen.
+            modifier = Modifier.weight(1f)
         ) {
             Icon(
                 painter = painterResource(id = icon),
@@ -561,7 +566,7 @@ fun SettingsRow(
             Spacer(modifier = Modifier.width(12.dp))
 
             // Settings Row Labels & Subtitles
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyLarge,
@@ -574,6 +579,9 @@ fun SettingsRow(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
         trailing()
     }
 }

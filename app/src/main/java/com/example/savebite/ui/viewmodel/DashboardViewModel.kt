@@ -12,6 +12,7 @@ import com.example.savebite.model.RecipeSuggestion
 import com.example.savebite.model.ReportStatus
 import com.example.savebite.model.SyncStatus
 import com.example.savebite.model.WastePeriod
+import com.example.savebite.model.WasteSummary
 import com.example.savebite.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,8 +45,7 @@ class DashboardViewModel(
         private const val WEEK_COUNT = 4
         private const val MONTH_COUNT = 6
         private const val YEAR_COUNT = 3
-        private const val MILLIS_PER_WEEK = 1000L * 60 * 60 * 24 * 7
-        
+
         private const val DEFAULT_USERNAME = "User"
     }
 
@@ -123,58 +123,42 @@ class DashboardViewModel(
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), 0)
 
-    // Total value of food consumed during the current calendar month
-    val savedThisMonth = reportRepository.getReportItemsInRange(getCurrentMonthStart(), Long.MAX_VALUE)
-        .map { items ->
-            items.filter { it.status == ReportStatus.CONSUMED }
-                .sumOf { it.price * it.quantity }
+    private val _wastePeriod = MutableStateFlow(WastePeriod.WEEKLY)
+    // The currently selected time period for the waste report section
+    val wastePeriod = _wastePeriod.asStateFlow()
+
+    // Total value of food consumed within the currently selected [wastePeriod].
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val savedAmount = _wastePeriod
+        .flatMapLatest { period ->
+            reportRepository.getReportItemsSince(getStartTimestampFor(period)).map { items ->
+                items.filter { it.status == ReportStatus.CONSUMED }
+                    .sumOf { it.price * it.quantity }
+            }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, 0.0)
 
-    private val _wastePeriod = MutableStateFlow(WastePeriod.WEEKLY)
-    // The currently selected time period for the waste report chart
-    val wastePeriod = _wastePeriod.asStateFlow()
-
-
-    // Binned waste data based on the selected [wastePeriod].
-    // Provides a list of quantities representing waste per time bucket.
+    // Simple waste analytics (total items, total value lost, top category) for the
+    // currently selected [wastePeriod]. Replaces the old per-bucket bar chart data.
     @OptIn(ExperimentalCoroutinesApi::class)
-    val wasteTrackerData = _wastePeriod
+    val wasteSummary = _wastePeriod
         .flatMapLatest { period ->
-            val bucketCount = when (period) {
-                WastePeriod.WEEKLY -> WEEK_COUNT
-                WastePeriod.MONTHLY -> MONTH_COUNT
-                WastePeriod.YEARLY -> YEAR_COUNT
-            }
-            val sinceTimestamp = getStartTimestampFor(period)
-
-            reportRepository.getReportItemsSince(sinceTimestamp).map { items ->
+            reportRepository.getReportItemsSince(getStartTimestampFor(period)).map { items ->
                 val wasted = items.filter { it.status == ReportStatus.WASTED }
-                val buckets = MutableList(bucketCount) { 0 }
-                val now = Calendar.getInstance()
+                val topEntry = wasted.groupBy { it.category }
+                    .maxByOrNull { (_, itemsInCategory) -> itemsInCategory.sumOf { it.quantity } }
 
-                wasted.forEach { item ->
-                    val itemCal = Calendar.getInstance().apply { timeInMillis = item.timestamp }
-                    val index = getBucketIndexFor(period, now, itemCal)
-                    if (index in 0 until bucketCount) {
-                        buckets[bucketCount - 1 - index] += item.quantity
-                    }
-                }
-                buckets
+                WasteSummary(
+                    totalItemsWasted = wasted.sumOf { it.quantity },
+                    totalValueWasted = wasted.sumOf { it.price * it.quantity },
+                    topCategory = topEntry?.key,
+                    topCategoryCount = topEntry?.value?.sumOf { it.quantity } ?: 0
+                )
             }
         }
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        .stateIn(viewModelScope, SharingStarted.Lazily, WasteSummary())
 
-    private fun getCurrentMonthStart(): Long {
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.DAY_OF_MONTH, 1)
-        cal.set(Calendar.HOUR_OF_DAY, 0)
-        cal.set(Calendar.MINUTE, 0)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
-        return cal.timeInMillis
-    }
-
+    // Returns how far back the selected period should look, e.g. WEEKLY -> 4 weeks ago.
     private fun getStartTimestampFor(period: WastePeriod): Long {
         val cal = Calendar.getInstance()
         when (period) {
@@ -185,32 +169,7 @@ class DashboardViewModel(
         return cal.timeInMillis
     }
 
-    private fun startOfWeek(source: Calendar): Calendar {
-        val cal = source.clone() as Calendar
-        cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
-        cal.set(Calendar.HOUR_OF_DAY, 0)
-        cal.set(Calendar.MINUTE, 0)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
-        return cal
-    }
-
-    private fun getBucketIndexFor(period: WastePeriod, now: Calendar, itemCal: Calendar): Int {
-        return when (period) {
-            WastePeriod.WEEKLY -> {
-                val diffMillis = startOfWeek(now).timeInMillis - startOfWeek(itemCal).timeInMillis
-                (diffMillis / MILLIS_PER_WEEK).toInt()
-            }
-            WastePeriod.MONTHLY -> {
-                val nowMonths = now.get(Calendar.YEAR) * 12 + now.get(Calendar.MONTH)
-                val itemMonths = itemCal.get(Calendar.YEAR) * 12 + itemCal.get(Calendar.MONTH)
-                nowMonths - itemMonths
-            }
-            WastePeriod.YEARLY -> now.get(Calendar.YEAR) - itemCal.get(Calendar.YEAR)
-        }
-    }
-
-    // Updates the waste report period and recalculates the tracker data
+    // Updates the waste report period and recalculates the saved amount and summary
     fun onWastePeriodSelected(period: WastePeriod) {
         _wastePeriod.value = period
     }

@@ -34,7 +34,7 @@ object PdfReportGenerator {
         val consumedCardHeight = 36f + (consumedCount * 24f).coerceAtLeast(28f)
         val breakdownCardHeight = 150f
 
-        val contentCalculatedHeight = 32f + 32f + 14f + 55f + 14f + breakdownCardHeight + 14f +
+        val contentCalculatedHeight = 32f + 46f + 14f + 55f + 14f + breakdownCardHeight + 14f +
                 wastedItemsCardHeight + 14f + reasonsCardHeight + 14f + consumedCardHeight + 40f
 
         val pageHeight = contentCalculatedHeight.toInt().coerceAtLeast(842)
@@ -84,12 +84,16 @@ object PdfReportGenerator {
         val startX = 36f
         val contentWidth = pageWidth - (startX * 2)
 
-        // Title
+        // Title (on its own line)
         paint.color = primaryGreen
         paint.textSize = 20f
         paint.isFakeBoldText = true
         canvas.drawText("Food Waste & Consumption Report", startX, currentY + 16f, paint)
 
+        currentY += 26f
+
+        // Report period subtitle, directly under the title (left-aligned, same start
+        // position) so it reads as one header block instead of being spread across the page.
         val dateDisplay = when (state.selectedTimeFrame) {
             TimeFrame.WEEKLY -> "Weekly Report: ${state.dateDisplay}"
             TimeFrame.MONTHLY -> "Monthly Report: ${state.dateDisplay}"
@@ -99,10 +103,9 @@ object PdfReportGenerator {
         paint.color = textMuted
         paint.textSize = 11f
         paint.isFakeBoldText = false
-        val dateWidth = paint.measureText(dateDisplay)
-        canvas.drawText(dateDisplay, pageWidth - startX - dateWidth, currentY + 14f, paint)
+        canvas.drawText(dateDisplay, startX, currentY, paint)
 
-        currentY += 32f
+        currentY += 20f
 
         paint.color = borderCard
         paint.strokeWidth = 1f

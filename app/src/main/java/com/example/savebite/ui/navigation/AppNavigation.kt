@@ -24,7 +24,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.savebite.SaveBiteApp
 import com.example.savebite.data.local.RecipeUserPreferences
-import com.example.savebite.data.local.db.AppDatabase
 import com.example.savebite.model.ReportStatus
 import com.example.savebite.ui.screen.AboutUsScreen
 import com.example.savebite.ui.screen.AddInventoryScreen
@@ -90,9 +89,6 @@ fun AppNavigation(
     val currentRoute = backStackEntry?.destination?.route
 
     // Define which screens should show the Bottom Navigation Bar
-    // Note: RECIPE_PATTERN (not RECIPE) is used here because that's the actual route string
-    // the Recipe screen is registered under (it carries an optional ?searchQuery= argument),
-    // and currentRoute reports the registered pattern, not the plain "recipe" path.
     val routesWithBottomBar = listOf(
         AppRoutes.DASHBOARD,
         AppRoutes.INVENTORY,
