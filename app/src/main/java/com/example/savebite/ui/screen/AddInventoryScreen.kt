@@ -37,6 +37,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
+// Custom SelectableDates implementation to restrict date picker selections to today or future dates.
 @OptIn(ExperimentalMaterial3Api::class)
 object PastDateSelectableDates : SelectableDates {
     override fun isSelectableDate(utcTimeMillis: Long): Boolean {
@@ -73,7 +74,9 @@ fun AddInventoryScreen(
     var currentIndex by remember { mutableIntStateOf(0) }
     val accumulatedBatchList = remember { mutableStateListOf<Inventory>() }
     val scrollState = rememberScrollState()
-    
+
+
+    // Resets scroll position to top whenever navigating between items in batch mode.
     LaunchedEffect(currentIndex) {
         scrollState.animateScrollTo(0)
     }
@@ -92,8 +95,10 @@ fun AddInventoryScreen(
     var purchaseDate by remember { mutableStateOf(getTodayFormatted()) }
     var expiryDate by remember { mutableStateOf(getFutureDateFormatted(7)) }
     var notes by remember { mutableStateOf("") }
+    // Preserves existing "consumed" state when updating an existing inventory item.
     var isConsumed by remember { mutableStateOf(false) }
 
+    // Bundles current reactive UI fields into a FormDraft for domain validation.
     fun currentFormDraft() = InventoryFormLogic.FormDraft(
         name = name,
         description = description,
@@ -108,6 +113,7 @@ fun AddInventoryScreen(
         isConsumed = isConsumed
     )
 
+    // Handles previous button navigation logic: steps back in batch mode or triggers back callback.
     val handlePreviousStep = {
         if (isBatchMode && currentIndex > 0) {
             val currentDraft = InventoryFormLogic.buildDraft(currentFormDraft(), itemId)
@@ -123,14 +129,16 @@ fun AddInventoryScreen(
             onBackClick()
         }
     }
-    
+
     val isPriceValid = remember(price) { InventoryFormLogic.isPriceValid(price) }
     var attemptedSave by remember { mutableStateOf(false) }
 
     // Batch initialization
+    // Synchronizes form input fields when stepping through batch items.
     LaunchedEffect(currentIndex, batchItems) {
         if (isBatchMode && batchItems != null && currentIndex < batchItems.size) {
             if (currentIndex < accumulatedBatchList.size) {
+                // Restores previously filled batch draft data if navigating back.
                 val savedItem = accumulatedBatchList[currentIndex]
                 name = savedItem.name
                 description = savedItem.description
@@ -144,6 +152,7 @@ fun AddInventoryScreen(
                 notes = savedItem.notes
                 isConsumed = savedItem.isConsumed
             } else {
+                // Pre-fills defaults from the incoming shopping list item for new entries.
                 val item = batchItems[currentIndex]
                 name = item.name
                 quantity = item.quantity
@@ -159,6 +168,7 @@ fun AddInventoryScreen(
     }
 
     // Edit initialization
+    // Loads existing item data when operating in single-item Edit mode.
     if (!isBatchMode && itemId != null && viewModel != null) {
         val existingItem by viewModel.getItemById(itemId).collectAsState(initial = null)
         LaunchedEffect(existingItem) {
@@ -178,6 +188,7 @@ fun AddInventoryScreen(
         }
     }
 
+    // Dropdown and Date Picker Visibility Controls
     var categoryExpanded by remember { mutableStateOf(false) }
     var storageExpanded by remember { mutableStateOf(false) }
     var unitExpanded by remember { mutableStateOf(false) }
@@ -226,6 +237,7 @@ fun AddInventoryScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
+            // Renders step indicator bar during multi-item batch import.
             if (isBatchMode && batchItems != null) {
                 StepProgressBar(
                     totalSteps = batchItems.size,
@@ -235,6 +247,7 @@ fun AddInventoryScreen(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             }
 
+            // Single scrollable column container to avoid nested scroll conflicts.
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -242,6 +255,7 @@ fun AddInventoryScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // 1.Item Name & Description
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -366,6 +380,7 @@ fun AddInventoryScreen(
                     }
                 }
 
+                // 3. Quantity Counter & Unit Picker
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -444,6 +459,7 @@ fun AddInventoryScreen(
                     }
                 }
 
+                // 4. Purchase & Expiry Dates Picker Triggers
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -499,6 +515,7 @@ fun AddInventoryScreen(
                     }
                 }
 
+                // 5.Additional Notes Input
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
@@ -529,6 +546,7 @@ fun AddInventoryScreen(
                             val newFood = InventoryFormLogic.buildInventoryOrNull(currentFormDraft(), itemId)
                             if (newFood != null) {
                                 if (isBatchMode && batchItems != null) {
+                                    // Overwrites previous entry on back-navigation or appends new draft
                                     if (currentIndex < accumulatedBatchList.size) {
                                         accumulatedBatchList[currentIndex] = newFood
                                     } else {
@@ -622,6 +640,7 @@ fun AddInventoryScreen(
 /**
  * Visual indicator showing progress through a multi-step batch add process.
  */
+// Visual step wizard progress indicator used during batch items creation.
 @Composable
 fun StepProgressBar(
     totalSteps: Int,
@@ -690,6 +709,7 @@ fun StepProgressBar(
     }
 }
 
+// Formats timestamp in UTC midnight to avoid day shift bugs caused by timezone offsets in Compose DatePicker.
 private fun formatDate(millis: Long): String {
     val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     formatter.timeZone = TimeZone.getTimeZone("UTC")

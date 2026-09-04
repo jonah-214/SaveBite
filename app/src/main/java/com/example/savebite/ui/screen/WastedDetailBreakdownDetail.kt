@@ -192,6 +192,18 @@ fun WasteBreakdownDetailScreen(
     }
 }
 
+/**
+ * Card component illustrating waste statistics for a single food category.
+ * Features animated progress loading, custom category color accents, and selection state toggling.
+ *
+ * category Name of the food waste category.
+ * count Number of items wasted in this category.
+ * percentage Calculated proportion of overall waste (0-100).
+ * Color theme assigned to the category.
+ * isSelected Whether this category card is currently highlighted by the user.
+ * onClick Triggered when the card is pressed to toggle selection state.
+ */
+
 @Composable
 private fun CategoryDetailCard(
     category: String,
@@ -201,6 +213,7 @@ private fun CategoryDetailCard(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    // Animates progress bar fill smoothly upon component display or state updates
     val animatedProgress by animateFloatAsState(
         targetValue = (percentage / 100f).coerceIn(0f, 1f),
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),

@@ -13,12 +13,12 @@ class SupabaseDataRepository {
 
     private val client = SupabaseClientProvider.client
 
-    // 获取当前登录用户的 Supabase UID
+    //Retrieving the active authenticated session
     private fun getCurrentUserId(): String? {
         return client.auth.currentUserOrNull()?.id
     }
 
-    // ==================== Inventory (库存) ====================
+    // Inventory Part
     suspend fun fetchInventoryItems(): Result<List<SupabaseInventory>> = runCatching {
         val uid = getCurrentUserId() ?: throw Exception("User not logged in")
         client.postgrest.from("inventory_table")
@@ -41,7 +41,7 @@ class SupabaseDataRepository {
         }
     }
 
-    // ==================== Shopping (购物清单) ====================
+    // Shopping Part
     suspend fun fetchShoppingItems(): Result<List<SupabaseShoppingItem>> = runCatching {
         val uid = getCurrentUserId() ?: throw Exception("User not logged in")
         client.postgrest.from("shopping_items")
@@ -64,7 +64,7 @@ class SupabaseDataRepository {
         }
     }
 
-    // ==================== Report (报表/历史) ====================
+    // Report Part
     suspend fun fetchReportItems(): Result<List<SupabaseReportItem>> = runCatching {
         val uid = getCurrentUserId() ?: throw Exception("User not logged in")
         client.postgrest.from("report_items")
@@ -77,7 +77,7 @@ class SupabaseDataRepository {
         client.postgrest.from("report_items").insert(item.copy(userId = uid))
     }
 
-    // ==================== Storage (存储空间类型) ====================
+    // Storage Part
     suspend fun fetchStorageList(): Result<List<SupabaseStorage>> = runCatching {
         val uid = getCurrentUserId() ?: throw Exception("User not logged in")
         client.postgrest.from("storage_table")
@@ -90,7 +90,6 @@ class SupabaseDataRepository {
         client.postgrest.from("storage_table").upsert(storage.copy(userId = uid))
     }
 
-    // 删除 Storage 记录
     suspend fun deleteStorage(name: String): Result<Unit> = runCatching {
         val uid = getCurrentUserId() ?: throw Exception("User not logged in")
         client.postgrest.from("storage_table").delete {

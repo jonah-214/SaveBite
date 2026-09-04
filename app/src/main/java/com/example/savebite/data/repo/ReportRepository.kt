@@ -36,11 +36,13 @@ class ReportRepositoryImpl(
         return reportDao.getReportItemsSince(startTimestamp)
     }
 
+    // Persists a report item locally to Room first for immediate offline availability, then pushes it to Supabase.
     override suspend fun insertReportItem(item: ReportItem) {
         reportDao.insertReportItem(item)
         supabaseDataRepository.insertReportItem(item.toSupabase())
     }
 
+    // Fetches historical report records from Supabase and performs an upsert into local Room storage.
     override suspend fun syncFromCloud(): Result<Unit> {
         val remoteResult = supabaseDataRepository.fetchReportItems()
         return if (remoteResult.isSuccess) {

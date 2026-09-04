@@ -79,7 +79,7 @@ fun ShoppingItemToInventoryScreen(
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(max = 200.dp) // Set a maximum height to enable scrolling for long lists
+                                .heightIn(max = 200.dp)
                                 .padding(12.dp),
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
@@ -150,7 +150,6 @@ fun ShoppingItemToInventoryScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Start Batch Add Button
             Button(
                 onClick = {
                     if (purchasedItems.isNotEmpty()) {

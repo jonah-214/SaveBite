@@ -54,7 +54,7 @@ fun InventoryDetailScreen(
     var selectedReason by remember(expiredLabel) { mutableStateOf(expiredLabel) }
     var customReason by remember { mutableStateOf("") }
 
-    // 1. Delete Confirm Dialog
+    // Confirmation dialog before permanent item removal.
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -172,6 +172,7 @@ fun InventoryDetailScreen(
     }
 
     // 3. Mark as Waste Dialog
+    // Dialog with quantity selection and reason categorization for food waste reporting.
     if (showWasteDialog) {
         AlertDialog(
             onDismissRequest = {
@@ -242,6 +243,7 @@ fun InventoryDetailScreen(
                         fontWeight = FontWeight.SemiBold
                     )
 
+                    // Waste classification quick-select chip group
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -257,6 +259,8 @@ fun InventoryDetailScreen(
                     }
 
                     if (selectedReason == otherReasonLabel) {
+                    // Free-form input field when "Other" option is selected
+                    if (selectedReason == "Other") {
                         OutlinedTextField(
                             value = customReason,
                             onValueChange = { customReason = it },

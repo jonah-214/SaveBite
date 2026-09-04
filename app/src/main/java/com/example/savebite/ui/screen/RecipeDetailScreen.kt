@@ -111,7 +111,7 @@ private fun RecipeDetailContent(recipe: Recipe, modifier: Modifier = Modifier) {
             }
         }
 
-        // --- Ingredients: from your expiring items ---
+        // Ingredients from your expiring items
         if (recipe.usedExpiringIngredients.isNotEmpty()) {
             item {
                 SectionTitle("⏰ From Your Expiring Items")
@@ -121,7 +121,7 @@ private fun RecipeDetailContent(recipe: Recipe, modifier: Modifier = Modifier) {
             }
         }
 
-        // --- Ingredients: everything else needed ---
+        // Ingredients (everything else needed)
         if (recipe.otherIngredients.isNotEmpty()) {
             item {
                 SectionTitle("🛒 You'll Also Need")
@@ -131,7 +131,7 @@ private fun RecipeDetailContent(recipe: Recipe, modifier: Modifier = Modifier) {
             }
         }
 
-        // --- Steps ---
+        // Step
         if (recipe.steps.isNotEmpty()) {
             item {
                 SectionTitle("👨‍🍳 Steps")

@@ -91,6 +91,7 @@ fun <T> AppSearchBar(
             )
         )
 
+        // Conditional rendering for the filter/sort icon button and menu anchor.
         if (sortOptions.isNotEmpty() && onSortOptionSelected != null) {
             Box {
                 IconButton(
@@ -105,6 +106,7 @@ fun <T> AppSearchBar(
                     )
                 }
 
+                //Dropdown menu displaying sort options with active item highlighting.
                 DropdownMenu(
                     expanded = sortMenuExpanded,
                     onDismissRequest = { sortMenuExpanded = false }

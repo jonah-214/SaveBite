@@ -75,6 +75,7 @@ class InventoryRepository(
     }
 
     // Deletes a storage location and reassigns all items within it to a fallback location
+    // Safely removes a storage location by reassigning affected inventory items
     suspend fun deleteStorageAndReassign(name: String, defaultStorage: String = DefaultStorages.FALLBACK) {
         inventoryDao.reassignStorage(name, defaultStorage)
         storageDao.deleteStorage(Storage(name))
@@ -87,6 +88,7 @@ class InventoryRepository(
     }
 
     // Marks an item as wasted, removes it from inventory, and logs it in the report
+    // Converts an inventory item into a waste report record
     suspend fun markAsWaste(item: Inventory, reason: String) {
         val reportItem = ReportItem(
             name = item.name,
@@ -113,6 +115,7 @@ class InventoryRepository(
     }
 
     // Transfers all items currently marked as "consumed" to the report table
+    // Batch converts all items marked as consumed into report items
     suspend fun moveConsumedToReport() {
         val consumedList = inventoryDao.getConsumedItems()
         if (consumedList.isNotEmpty()) {

@@ -121,7 +121,7 @@ fun RecipeGetStartedContent(
                 )
             }
 
-            // --- Section 1: Dietary Preference (Single Select) ---
+            //1. Dietary Preference (Single Select)
             item {
                 Text(
                     text = "Dietary Preferences",
@@ -156,7 +156,7 @@ fun RecipeGetStartedContent(
                 Spacer(modifier = Modifier.height(28.dp))
             }
 
-            // --- Section 2: Allergies & Intolerances (Multi-Select) ---
+            //2. Allergies & Intolerances (Multi-Select)
             item {
                 Text(
                     text = "Allergies & Dietary Restrictions",
@@ -197,7 +197,7 @@ fun RecipeGetStartedContent(
                 Spacer(modifier = Modifier.height(28.dp))
             }
 
-            // --- Section 3: Household Type (Single Select) ---
+            //3.Household Type (Single Select)
             item {
                 Text(
                     text = "Household Type",

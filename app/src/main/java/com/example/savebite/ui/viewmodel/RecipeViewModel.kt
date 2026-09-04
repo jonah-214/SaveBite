@@ -66,6 +66,7 @@ class RecipeViewModel(
         allergies: Set<String> = emptySet(),
         householdType: String = "Student"
     ) {
+        // Filter active inventory for items expiring in 3 days or fewer
         val urgentItems = allInventoryItems.filter { !it.isConsumed && it.daysLeft <= 3 }
 
         val itemsChanged = urgentItems != _uiState.value.expiringItems
@@ -80,6 +81,7 @@ class RecipeViewModel(
 
         _uiState.update { it.copy(expiringItems = urgentItems) }
 
+        // Skip remote API call if state is unchanged and recipes already exist
         if (!itemsChanged && !preferencesChanged && _uiState.value.recipes.isNotEmpty()) {
             return
         }
@@ -99,6 +101,7 @@ class RecipeViewModel(
                 it.copy(expiringItems = urgentItems, isLoading = true, errorMessage = null)
             }
 
+            // Handle empty expiring inventory case
             if (urgentItems.isEmpty()) {
                 _uiState.update {
                     it.copy(
@@ -135,6 +138,7 @@ class RecipeViewModel(
                     )
                 }
             } catch (e: Exception) {
+                // Map common internal exception messages to user-friendly messages
                 val msg = e.message ?: ""
                 val userMessage = when {
                     msg.contains("MISSING_API_KEY") -> "Gemini API Key is missing in local.properties."

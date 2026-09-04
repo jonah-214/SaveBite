@@ -41,7 +41,7 @@ class ShoppingRepository(
         // Fetch the most recent state directly from the DB inside the lock
         val currentItem = shoppingDao.getShoppingItemById(id) ?: return@withLock
         val updatedItem = currentItem.copy(isPurchased = !currentItem.isPurchased, isSynced = false)
-        
+
         // Update local DB
         shoppingDao.updateShoppingItem(updatedItem)
 
@@ -71,10 +71,13 @@ class ShoppingRepository(
     }
 
     suspend fun syncFromCloud(): Result<Unit> = syncMutex.withLock {
+    // Two-way synchronization
+    suspend fun syncFromCloud(): Result<Unit> {
         return runCatching {
             val rawLocalItems = shoppingDao.getAllShoppingItemsRaw()
             val justSyncedIds = mutableSetOf<String>()
 
+            // 1.Flush pending local deletions to cloud first to prevent remote items from re-appearing.
             val pendingDeletes = rawLocalItems.filter { it.isDeleted && !it.isSynced }
             for (deletedItem in pendingDeletes) {
                 val delResult = supabaseDataRepository.deleteShoppingItem(deletedItem.id)
@@ -83,6 +86,7 @@ class ShoppingRepository(
                 }
             }
 
+            // 2. Push pending local inserts/updates created while offline.
             val pendingUpserts = rawLocalItems.filter { !it.isDeleted && !it.isSynced }
             for (item in pendingUpserts) {
                 val upResult = supabaseDataRepository.upsertShoppingItem(item.toSupabase())
@@ -92,6 +96,7 @@ class ShoppingRepository(
                 }
             }
 
+            // 3. Fetch latest cloud snapshot and merge remote changes, preserving locally soft-deleted tombstones.
             val remoteResult = supabaseDataRepository.fetchShoppingItems()
             if (remoteResult.isSuccess) {
                 val remoteItems = remoteResult.getOrThrow().map { it.toRoom() }
@@ -110,7 +115,7 @@ class ShoppingRepository(
                     // as the cloud fetch might still return stale data for them.
                     if (remoteItem.id !in deletedIds && remoteItem.id !in justSyncedIds) {
                         val localItem = localMap[remoteItem.id]
-                        
+
                         // Only overwrite if the local item is already synced or doesn't exist.
                         // This prevents cloud data from overwriting newer, unsynced local changes.
                         if (localItem == null || (localItem.isSynced && localItem != remoteItem.copy(isSynced = true))) {

@@ -48,7 +48,6 @@ fun ReportItemListScreen(
     val title = if (isWasted) "Wasted Items History" else "Consumed Items History"
     val items = if (isWasted) state.topWastedItems else state.topConsumedItems
 
-    // 动态计算该列表的总价值与总数量
     val totalCount = items.sumOf { it.count }
     val totalCost = items.sumOf { it.totalPrice }
 
@@ -74,7 +73,6 @@ fun ReportItemListScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 顶部汇总 Header 卡片
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = headerBgColor),
@@ -120,7 +118,6 @@ fun ReportItemListScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 列表部分
             if (items.isEmpty()) {
                 Box(
                     modifier = Modifier
@@ -192,7 +189,6 @@ fun ReportItemRowCard(
                     )
                 }
 
-                // 金额计算显示
                 Text(
                     text = Currency.format(totalPrice),
                     fontWeight = FontWeight.Bold,
@@ -203,7 +199,6 @@ fun ReportItemRowCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 进度条
             LinearProgressIndicator(
                 progress = { (percentage / 100f).coerceIn(0f, 1f) },
                 modifier = Modifier

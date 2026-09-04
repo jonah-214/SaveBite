@@ -31,15 +31,17 @@ fun RecipeScreen(
     initialSearchQuery: String = "",
     onRecipeClick: (Int) -> Unit = {}
 ) {
+    // Collect UI state asynchronously from the ViewModel
     val uiState by viewModel.uiState.collectAsState()
 
+    // Sync initial external search query parameter with the ViewModel state
     LaunchedEffect(initialSearchQuery) {
         if (initialSearchQuery.isNotBlank()) {
             viewModel.onSearchQueryChanged(initialSearchQuery)
         }
     }
 
-    // 过滤算法：按标题或食材匹配
+    // Filtered recipes based on title or ingredient query matches
     val filteredRecipes = remember(uiState.recipes, uiState.searchQuery) {
         if (uiState.searchQuery.isBlank()) {
             uiState.recipes
@@ -64,7 +66,6 @@ fun RecipeScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp),
             contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)
         ) {
-            // Search Bar
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -125,6 +126,7 @@ fun RecipeScreen(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                             )
                         }
+                        // Triggers an AI recipe refetch operation based on current inventory
                         Button(
                             onClick = { viewModel.retryFetch() },
                             shape = RoundedCornerShape(20.dp),
@@ -136,14 +138,16 @@ fun RecipeScreen(
                 }
             }
 
-            // Loading / Error / Content
+            // Conditional Layout: Handles Loading state, Error state, or Main Content rendering
             if (uiState.isLoading) {
+                // Loading Spinner Display
                 item {
                     Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
             } else if (uiState.errorMessage != null) {
+                // Error Message Display
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
                         Text(
@@ -154,7 +158,7 @@ fun RecipeScreen(
                     }
                 }
             } else {
-                // Section 1: Recommended
+                // 1. Horizontal Recommended Recipes Section
                 item {
                     Column {
                         Text(
@@ -185,7 +189,7 @@ fun RecipeScreen(
                     }
                 }
 
-                // Section 2: Popular
+                // 2. Vertical Popular Recipes Section
                 if (filteredRecipes.isNotEmpty()) {
                     item {
                         Text(
@@ -196,6 +200,7 @@ fun RecipeScreen(
                         )
                     }
 
+                    // Render popular items in reversed list order for visual variety
                     items(filteredRecipes.reversed()) { recipe ->
                         PopularRecipeRowCard(
                             recipe = recipe,
@@ -219,14 +224,12 @@ fun RecommendedCard(recipe: Recipe, onClick: () -> Unit = {}) {
             .wrapContentHeight()
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
-            // 图片/占位图区域
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(110.dp)
                     .clip(RoundedCornerShape(14.dp))
                     .background(
-                        // 使用柔和的渐变色替代单调背景
                         brush = androidx.compose.ui.graphics.Brush.linearGradient(
                             colors = listOf(
                                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
@@ -236,9 +239,8 @@ fun RecommendedCard(recipe: Recipe, onClick: () -> Unit = {}) {
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                // 如果没有真实菜品图片，用精致的矢量图标替代单纯的 Emoji 字符
                 Icon(
-                    painter = painterResource(R.drawable.chef_hat), // 或使用你项目现有的 R.drawable 图标
+                    painter = painterResource(R.drawable.chef_hat),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(36.dp)
@@ -320,6 +322,7 @@ fun PopularRecipeRowCard(recipe: Recipe, onClick: () -> Unit = {}) {
 
             Spacer(modifier = Modifier.width(12.dp))
 
+            // Metadata Info Column
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     recipe.title,
