@@ -40,7 +40,7 @@ class RecipeGetStartedViewModel(application: Application) : AndroidViewModel(app
         selectedHousehold.value = household
     }
 
-    // 提交偏好并结束引导
+    // Persists the selected preferences to DataStore and marks onboarding as complete.
     fun completeOnboarding(onFinished: () -> Unit) {
         viewModelScope.launch {
             userPreferences.saveUserPreferences(

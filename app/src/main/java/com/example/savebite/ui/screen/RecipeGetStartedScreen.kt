@@ -6,6 +6,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -13,31 +14,43 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.savebite.R
 import com.example.savebite.ui.viewmodel.RecipeGetStartedViewModel
 
-// Shared option lists — reused by RecipeGetStartedScreen (first-run onboarding) and
+// Shared option keys — reused by RecipeGetStartedScreen (first-run onboarding) and
 // EditRecipePreferencesScreen (Profile & Settings, for changing preferences later).
-val DIET_OPTIONS = listOf(
-    "None" to "No Preference",
-    "Vegetarian" to "Vegetarian",
-    "Vegan" to "Vegan",
-    "Halal" to "Halal"
-)
+// These keys are also the values stored in DataStore and sent to the Gemini prompt, so
+// they stay in English regardless of locale — only the displayed label is localized,
+// via dietOptionLabel()/allergyOptionLabel()/householdOptionLabel() below.
+val DIET_OPTION_KEYS = listOf("None", "Vegetarian", "Vegan", "Halal")
 
-val ALLERGY_OPTIONS = listOf(
-    "Peanuts" to "Peanuts",
-    "Seafood" to "Seafood / Shellfish",
-    "Milk" to "Dairy & Lactose",
-    "Eggs" to "Eggs",
-    "Soy" to "Soy / Soybeans",
-    "Gluten" to "Gluten"
-)
+val ALLERGY_OPTION_KEYS = listOf("Peanuts", "Seafood", "Milk", "Eggs", "Soy", "Gluten")
 
 // Mirrors SaveBite's own target audience (students, adults, families) so the option the
 // user picks here reads as a direct answer to "who are you" rather than an arbitrary scale.
-val HOUSEHOLD_OPTIONS = listOf(
-    "Student" to "Student — cooking for myself",
-    "Adult" to "Adult / Couple",
-    "Family" to "Family with kids"
-)
+val HOUSEHOLD_OPTION_KEYS = listOf("Student", "Adult", "Family")
+
+@Composable
+private fun dietOptionLabel(key: String): String = when (key) {
+    "Vegetarian" -> stringResource(R.string.recipe_diet_vegetarian)
+    "Vegan" -> stringResource(R.string.recipe_diet_vegan)
+    "Halal" -> stringResource(R.string.recipe_diet_halal)
+    else -> stringResource(R.string.recipe_diet_none)
+}
+
+@Composable
+private fun allergyOptionLabel(key: String): String = when (key) {
+    "Seafood" -> stringResource(R.string.recipe_allergy_seafood)
+    "Milk" -> stringResource(R.string.recipe_allergy_milk)
+    "Eggs" -> stringResource(R.string.recipe_allergy_eggs)
+    "Soy" -> stringResource(R.string.recipe_allergy_soy)
+    "Gluten" -> stringResource(R.string.recipe_allergy_gluten)
+    else -> stringResource(R.string.recipe_allergy_peanuts)
+}
+
+@Composable
+private fun householdOptionLabel(key: String): String = when (key) {
+    "Adult" -> stringResource(R.string.recipe_household_adult)
+    "Family" -> stringResource(R.string.recipe_household_family)
+    else -> stringResource(R.string.recipe_household_student)
+}
 
 @Composable
 fun RecipeGetStartedScreen(
@@ -71,9 +84,9 @@ fun RecipeGetStartedContent(
     onAllergyToggled: (String) -> Unit,
     onHouseholdSelected: (String) -> Unit,
     onSubmit: () -> Unit,
-    buttonLabel: String = "Get Started",
-    headerTitle: String = "Welcome Recipe Suggestion! ",
-    headerSubtitle: String = "Tailor your AI recipe recommendations by setting up your dietary preferences."
+    buttonLabel: String = stringResource(R.string.recipe_get_started_button),
+    headerTitle: String = stringResource(R.string.recipe_get_started_header_title),
+    headerSubtitle: String = stringResource(R.string.recipe_get_started_header_subtitle)
 ) {
     Scaffold(
         bottomBar = {
@@ -121,10 +134,10 @@ fun RecipeGetStartedContent(
                 )
             }
 
-            //1. Dietary Preference (Single Select)
+            // 1. Dietary Preference (Single Select)
             item {
                 Text(
-                    text = "Dietary Preferences",
+                    text = stringResource(R.string.recipe_pref_diet_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 12.dp)
@@ -135,17 +148,17 @@ fun RecipeGetStartedContent(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    DIET_OPTIONS.forEach { (key, label) ->
+                    DIET_OPTION_KEYS.forEach { key ->
                         val isSelected = (selectedDiet == key)
                         FilterChip(
                             selected = isSelected,
                             onClick = { onDietSelected(key) },
-                            label = { Text(text = label, fontSize = 14.sp) },
+                            label = { Text(text = dietOptionLabel(key), fontSize = 14.sp) },
                             leadingIcon = if (isSelected) {
                                 {
                                     Icon(
                                         painter = painterResource(R.drawable.check),
-                                        contentDescription = "Selected",
+                                        contentDescription = stringResource(R.string.content_desc_selected),
                                         modifier = Modifier.size(FilterChipDefaults.IconSize)
                                     )
                                 }
@@ -156,16 +169,16 @@ fun RecipeGetStartedContent(
                 Spacer(modifier = Modifier.height(28.dp))
             }
 
-            //2. Allergies & Intolerances (Multi-Select)
+            // 2. Allergies & Intolerances (Multi-Select)
             item {
                 Text(
-                    text = "Allergies & Dietary Restrictions",
+                    text = stringResource(R.string.recipe_pref_allergies_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
-                    text = "Select all that apply:",
+                    text = stringResource(R.string.recipe_pref_allergies_subtitle),
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp)
@@ -176,17 +189,17 @@ fun RecipeGetStartedContent(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    ALLERGY_OPTIONS.forEach { (key, label) ->
+                    ALLERGY_OPTION_KEYS.forEach { key ->
                         val isChecked = selectedAllergies.contains(key)
                         FilterChip(
                             selected = isChecked,
                             onClick = { onAllergyToggled(key) },
-                            label = { Text(text = label, fontSize = 14.sp) },
+                            label = { Text(text = allergyOptionLabel(key), fontSize = 14.sp) },
                             leadingIcon = if (isChecked) {
                                 {
                                     Icon(
                                         painter = painterResource(R.drawable.check),
-                                        contentDescription = "Selected",
+                                        contentDescription = stringResource(R.string.content_desc_selected),
                                         modifier = Modifier.size(FilterChipDefaults.IconSize)
                                     )
                                 }
@@ -197,16 +210,16 @@ fun RecipeGetStartedContent(
                 Spacer(modifier = Modifier.height(28.dp))
             }
 
-            //3.Household Type (Single Select)
+            // 3. Household Type (Single Select)
             item {
                 Text(
-                    text = "Household Type",
+                    text = stringResource(R.string.recipe_pref_household_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
-                    text = "Helps us suggest the right serving size:",
+                    text = stringResource(R.string.recipe_pref_household_subtitle),
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp)
@@ -217,17 +230,17 @@ fun RecipeGetStartedContent(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    HOUSEHOLD_OPTIONS.forEach { (key, label) ->
+                    HOUSEHOLD_OPTION_KEYS.forEach { key ->
                         val isSelected = (selectedHousehold == key)
                         FilterChip(
                             selected = isSelected,
                             onClick = { onHouseholdSelected(key) },
-                            label = { Text(text = label, fontSize = 14.sp) },
+                            label = { Text(text = householdOptionLabel(key), fontSize = 14.sp) },
                             leadingIcon = if (isSelected) {
                                 {
                                     Icon(
                                         painter = painterResource(R.drawable.check),
-                                        contentDescription = "Selected",
+                                        contentDescription = stringResource(R.string.content_desc_selected),
                                         modifier = Modifier.size(FilterChipDefaults.IconSize)
                                     )
                                 }

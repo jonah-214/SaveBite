@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,7 +41,7 @@ fun RecipeDetailScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = recipe?.title ?: "Recipe",
+                title = recipe?.title ?: stringResource(R.string.recipe_detail_default_title),
                 showBackButton = true,
                 onBackClick = onBackClick
             )
@@ -56,7 +57,7 @@ fun RecipeDetailScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    "This recipe is no longer available. Please go back and try again.",
+                    stringResource(R.string.recipe_detail_unavailable),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 32.dp)
@@ -101,7 +102,7 @@ private fun RecipeDetailContent(recipe: Recipe, modifier: Modifier = Modifier) {
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        "Easy",
+                        stringResource(R.string.recipe_difficulty_easy),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
@@ -114,7 +115,7 @@ private fun RecipeDetailContent(recipe: Recipe, modifier: Modifier = Modifier) {
         // Ingredients from your expiring items
         if (recipe.usedExpiringIngredients.isNotEmpty()) {
             item {
-                SectionTitle("⏰ From Your Expiring Items")
+                SectionTitle(stringResource(R.string.recipe_detail_section_expiring))
             }
             items(recipe.usedExpiringIngredients) { ingredient ->
                 IngredientRow(ingredient, highlighted = true)
@@ -124,7 +125,7 @@ private fun RecipeDetailContent(recipe: Recipe, modifier: Modifier = Modifier) {
         // Ingredients (everything else needed)
         if (recipe.otherIngredients.isNotEmpty()) {
             item {
-                SectionTitle("🛒 You'll Also Need")
+                SectionTitle(stringResource(R.string.recipe_detail_section_other))
             }
             items(recipe.otherIngredients) { ingredient ->
                 IngredientRow(ingredient, highlighted = false)
@@ -134,7 +135,7 @@ private fun RecipeDetailContent(recipe: Recipe, modifier: Modifier = Modifier) {
         // Step
         if (recipe.steps.isNotEmpty()) {
             item {
-                SectionTitle("👨‍🍳 Steps")
+                SectionTitle(stringResource(R.string.recipe_detail_section_steps))
             }
             itemsIndexed(recipe.steps) { index, step ->
                 StepRow(stepNumber = index + 1, text = step)

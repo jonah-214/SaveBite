@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -101,7 +102,7 @@ fun RecipeScreen(
                         value = uiState.searchQuery,
                         onValueChange = { viewModel.onSearchQueryChanged(it) },
                         placeholder = {
-                            Text("Search recipes, ingredients...", style = MaterialTheme.typography.bodyMedium)
+                            Text(stringResource(R.string.recipe_search_placeholder), style = MaterialTheme.typography.bodyMedium)
                         },
                         leadingIcon = {
                             Icon(
@@ -139,14 +140,14 @@ fun RecipeScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Use Expiring Ingredients",
+                                text = stringResource(R.string.recipe_banner_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Find recipes using ingredients that are about to expire (${uiState.expiringItems.size} items left).",
+                                text = stringResource(R.string.recipe_banner_subtitle, uiState.expiringItems.size),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                             )
@@ -157,7 +158,7 @@ fun RecipeScreen(
                             shape = RoundedCornerShape(20.dp),
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
                         ) {
-                            Text("Find Recipes >", fontSize = 12.sp)
+                            Text(stringResource(R.string.recipe_banner_action), fontSize = 12.sp)
                         }
                     }
                 }
@@ -187,7 +188,7 @@ fun RecipeScreen(
                 item {
                     Column {
                         Text(
-                            "Recommended for You",
+                            stringResource(R.string.recipe_recommended_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -195,8 +196,8 @@ fun RecipeScreen(
 
                         if (filteredRecipes.isEmpty()) {
                             Text(
-                                if (uiState.searchQuery.isBlank()) "No recipes found. Try adding expiring ingredients!"
-                                else "No recipes match \"${uiState.searchQuery}\"",
+                                if (uiState.searchQuery.isBlank()) stringResource(R.string.recipe_empty_no_query)
+                                else stringResource(R.string.recipe_empty_search, uiState.searchQuery),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(vertical = 12.dp)
@@ -218,7 +219,7 @@ fun RecipeScreen(
                 if (filteredRecipes.isNotEmpty()) {
                     item {
                         Text(
-                            "Popular Recipes",
+                            stringResource(R.string.recipe_popular_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 8.dp)
@@ -282,7 +283,7 @@ fun RecommendedCard(recipe: Recipe, onClick: () -> Unit = {}) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Uses ${recipe.usedExpiringIngredients.size} items",
+                text = stringResource(R.string.recipe_uses_items, recipe.usedExpiringIngredients.size),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
@@ -311,7 +312,7 @@ fun RecommendedCard(recipe: Recipe, onClick: () -> Unit = {}) {
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        "Easy",
+                        stringResource(R.string.recipe_difficulty_easy),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
@@ -357,7 +358,7 @@ fun PopularRecipeRowCard(recipe: Recipe, onClick: () -> Unit = {}) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "Uses ${recipe.usedExpiringIngredients.size} items",
+                    stringResource(R.string.recipe_uses_items, recipe.usedExpiringIngredients.size),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
@@ -377,7 +378,7 @@ fun PopularRecipeRowCard(recipe: Recipe, onClick: () -> Unit = {}) {
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        "• Easy",
+                        "• " + stringResource(R.string.recipe_difficulty_easy),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
@@ -392,7 +393,7 @@ fun PopularRecipeRowCard(recipe: Recipe, onClick: () -> Unit = {}) {
             ) {
                 Icon(
                     painter = painterResource(R.drawable.arrow_right),
-                    contentDescription = "View",
+                    contentDescription = stringResource(R.string.content_desc_view_recipe),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(14.dp)
                 )

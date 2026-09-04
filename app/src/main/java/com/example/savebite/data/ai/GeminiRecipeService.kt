@@ -21,6 +21,7 @@ data class Recipe(
 )
 
 // Handles calling the Google Gemini API to generate zero-waste recipe suggestions based on
+// the user's expiring inventory, dietary preferences, allergies and household size.
 class GeminiRecipeService(private val apiKey: String) {
     private val generativeModel by lazy {
         GenerativeModel(

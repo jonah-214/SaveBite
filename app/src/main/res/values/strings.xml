@@ -358,6 +358,49 @@
     <string name="edit_recipe_preferences_header_title">Update Your Preferences</string>
     <string name="edit_recipe_preferences_header_subtitle">Changes apply the next time recipe suggestions are generated.</string>
 
+    <!-- Recipe Module -->
+    <string name="recipe_search_placeholder">Search recipes, ingredients...</string>
+    <string name="recipe_banner_title">Use Expiring Ingredients</string>
+    <string name="recipe_banner_subtitle">Find recipes using ingredients that are about to expire (%1$d items left).</string>
+    <string name="recipe_banner_action">Find Recipes &gt;</string>
+    <string name="recipe_recommended_title">Recommended for You</string>
+    <string name="recipe_empty_no_query">No recipes found. Try adding expiring ingredients!</string>
+    <string name="recipe_empty_search">No recipes match \"%1$s\"</string>
+    <string name="recipe_popular_title">Popular Recipes</string>
+    <string name="recipe_uses_items">Uses %1$d items</string>
+    <string name="recipe_difficulty_easy">Easy</string>
+    <string name="content_desc_view_recipe">View recipe</string>
+
+    <!-- Recipe Detail screen -->
+    <string name="recipe_detail_default_title">Recipe</string>
+    <string name="recipe_detail_section_expiring">⏰ From Your Expiring Items</string>
+    <string name="recipe_detail_section_other">🛒 You\'ll Also Need</string>
+    <string name="recipe_detail_section_steps">👨‍🍳 Steps</string>
+    <string name="recipe_detail_unavailable">This recipe is no longer available. Please go back and try again.</string>
+
+    <!-- Recipe Get Started / Preferences (shared content) -->
+    <string name="recipe_get_started_button">Get Started</string>
+    <string name="recipe_get_started_header_title">Welcome Recipe Suggestion!</string>
+    <string name="recipe_get_started_header_subtitle">Tailor your AI recipe recommendations by setting up your dietary preferences.</string>
+    <string name="recipe_pref_diet_title">Dietary Preferences</string>
+    <string name="recipe_pref_allergies_title">Allergies &amp; Dietary Restrictions</string>
+    <string name="recipe_pref_allergies_subtitle">Select all that apply:</string>
+    <string name="recipe_pref_household_title">Household Type</string>
+    <string name="recipe_pref_household_subtitle">Helps us suggest the right serving size:</string>
+    <string name="recipe_diet_none">No Preference</string>
+    <string name="recipe_diet_vegetarian">Vegetarian</string>
+    <string name="recipe_diet_vegan">Vegan</string>
+    <string name="recipe_diet_halal">Halal</string>
+    <string name="recipe_allergy_peanuts">Peanuts</string>
+    <string name="recipe_allergy_seafood">Seafood / Shellfish</string>
+    <string name="recipe_allergy_milk">Dairy &amp; Lactose</string>
+    <string name="recipe_allergy_eggs">Eggs</string>
+    <string name="recipe_allergy_soy">Soy / Soybeans</string>
+    <string name="recipe_allergy_gluten">Gluten</string>
+    <string name="recipe_household_student">Student — cooking for myself</string>
+    <string name="recipe_household_adult">Adult / Couple</string>
+    <string name="recipe_household_family">Family with kids</string>
+
     <!-- About Us screen -->
     <string name="about_us_title">About Us</string>
     <string name="about_us_mission_heading">Our Mission</string>
