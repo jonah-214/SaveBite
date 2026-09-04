@@ -9,9 +9,10 @@ import com.example.savebite.MainActivity
 import com.example.savebite.R
 import com.example.savebite.SaveBiteApp
 
-// Notification ID to update existing notification
+// Unique ID for the expiry notification to allow updates
 private const val EXPIRY_NOTIFICATION_ID = 1001
 
+// Constructs and displays a high-priority system notification for expiring food items.
 fun showExpiryNotification(context: Context, expiringItems: List<String>) {
     if (expiringItems.isEmpty()) return
 
@@ -44,7 +45,7 @@ fun showExpiryNotification(context: Context, expiringItems: List<String>) {
         .setContentText(text)
         .setContentIntent(pendingIntent)
         .setAutoCancel(true)
-        .setPriority(NotificationCompat.PRIORITY_HIGH) // Set high priority
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
         .build()
 
     // Send notification

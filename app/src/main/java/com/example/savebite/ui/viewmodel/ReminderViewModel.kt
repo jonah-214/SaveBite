@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+// Supported sorting strategies for the Reminder screen
 enum class SortOrder(val labelRes: Int) {
     EXPIRY_ASC(R.string.sort_expiry_asc),
     EXPIRY_DESC(R.string.sort_expiry_desc),
@@ -27,15 +28,14 @@ class ReminderViewModel(
     private val inventoryRepository: InventoryRepository
 ) : ViewModel() {
 
-    // Filter state
     private val _searchQuery = MutableStateFlow("")
+    // Current text query for filtering items
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    // Sort state
     private val _sortOrder = MutableStateFlow(SortOrder.EXPIRY_ASC)
+    // Currently selected sort strategy
     val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
 
-    // Filtered items
     private val filteredItems: Flow<List<Inventory>> = combine(
         inventoryRepository.allInventory,
         _searchQuery,
@@ -57,23 +57,27 @@ class ReminderViewModel(
             }
     }
 
+    // Map of inventory items grouped by their [ExpirySection] (Soon, This Week, Later)
     val groupedItems: StateFlow<Map<ExpirySection, List<Inventory>>> = filteredItems
         .map { ExpiryGrouping.group(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    // Total count
+    // Total count of items in the inventory
     val totalItemCount: StateFlow<Int> = inventoryRepository.allInventory
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    // Updates the current search query
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
     }
 
+    // Updates the list sort order
     fun onSortOrderChange(order: SortOrder) {
         _sortOrder.value = order
     }
 
+    // Resets search and sort to default values
     fun clearFilters() {
         _searchQuery.value = ""
         _sortOrder.value = SortOrder.EXPIRY_ASC

@@ -49,7 +49,6 @@ import com.example.savebite.ui.viewmodel.SortOrder
 import com.example.savebite.utils.ExpiryGrouping
 import com.example.savebite.utils.ExpirySection
 
-
 @Composable
 fun ReminderScreen(
     navController: NavHostController,
@@ -80,7 +79,7 @@ fun ReminderScreen(
     )
 }
 
-// Main content for the Reminder screen
+// Main layout for the Reminder screen content
 @Composable
 fun ReminderScreenContent(
     grouped: Map<ExpirySection, List<Inventory>>,
@@ -168,7 +167,7 @@ fun ReminderScreenContent(
     }
 }
 
-// Summary row showing counts for each expiry section
+// Summary row displaying the number of items in each expiry category
 @Composable
 private fun SummaryRow(grouped: Map<ExpirySection, List<Inventory>>) {
     Row(
@@ -206,7 +205,7 @@ private fun SummaryRow(grouped: Map<ExpirySection, List<Inventory>>) {
     }
 }
 
-// Header text for each expiry section
+// Displays the name of an expiry category section
 @Composable
 private fun SectionHeaderText(section: ExpirySection) {
     Text(
@@ -218,7 +217,7 @@ private fun SectionHeaderText(section: ExpirySection) {
     )
 }
 
-// Card showing item details and expiry badge
+// Card representing a food item with its urgency status.
 @Composable
 private fun ReminderCard(
     item: Inventory,
@@ -306,7 +305,7 @@ private fun ReminderCard(
     }
 }
 
-// Empty state when no items match filters or are expiring
+// Placeholder view when no items match the current search or filters
 @Composable
 private fun EmptyReminderState(
     hasAnyInventory: Boolean,
