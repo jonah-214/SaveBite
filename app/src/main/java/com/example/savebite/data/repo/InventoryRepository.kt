@@ -150,7 +150,7 @@ class InventoryRepository(
     // Also normalizes date formats for backward compatibility
     suspend fun cleanupExpiredItems() {
         val allItems = inventoryDao.getAllInventorySync()
-        val today = Date()
+        val today = DateFormats.startOfDay(Date())
 
         coroutineScope {
             allItems.forEach { item ->

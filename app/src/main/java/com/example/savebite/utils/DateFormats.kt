@@ -2,6 +2,7 @@ package com.example.savebite.utils
 
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -54,4 +55,19 @@ object DateFormats {
                 null
             }
         }
+
+    /**
+     * Zeroes out the time-of-day, keeping only the calendar date.
+     * Use this before diffing two dates in whole days (e.g. "days left"), so the
+     * result depends only on the dates involved and not on what time it is right now.
+     */
+    fun startOfDay(date: Date): Date {
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        return calendar.time
+    }
 }

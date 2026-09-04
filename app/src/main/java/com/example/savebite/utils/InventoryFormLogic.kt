@@ -53,7 +53,7 @@ object InventoryFormLogic {
     /** Days remaining until [expiryDateStr], counting today as day 1. 0 if already expired or unparsable. */
     fun calculateDaysLeft(expiryDateStr: String): Int {
         val expiryDate = DateFormats.parseExpiryOrNull(expiryDateStr) ?: return 0
-        val diffInMillis = expiryDate.time - Date().time
+        val diffInMillis = expiryDate.time - DateFormats.startOfDay(Date()).time
         val days = TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS).toInt()
         return if (days < 0) 0 else days + 1
     }
