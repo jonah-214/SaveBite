@@ -9,6 +9,7 @@ data class ExpiryItem(
 )
 
 data class RecipeSuggestion(
+    val index: Int,
     val name: String,
     val expiringCount: Int,
 )

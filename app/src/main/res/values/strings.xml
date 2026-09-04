@@ -449,6 +449,6 @@
     <string name="about_us_contact_phone_label">Phone</string>
     <string name="about_us_contact_phone_value">04-24537698</string>
     <string name="about_us_tagline">Track it. Use it. Waste less.</string>
-    <string name="about_us_version">Version 1.5.4</string>
+    <string name="about_us_version">Version 1.5.5</string>
     <string name="content_desc_savebite_logo">SaveBite logo</string>
 </resources>

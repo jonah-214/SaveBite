@@ -181,8 +181,13 @@ class DashboardViewModel(
             if (userId == -1) flowOf(emptyList()) else recipeRepository.cachedRecipes(userId)
         }
         .map { recipes ->
-            recipes.take(RECIPE_SUGGESTION_LIMIT).map { recipe ->
+            // `index` here matches the recipe's position in the full cached list, which is
+            // the same list/order RecipeViewModel loads on the Recipe screen — so tapping a
+            // suggestion can navigate straight to "$RECIPE_DETAIL/$index" and land on the
+            // right recipe.
+            recipes.take(RECIPE_SUGGESTION_LIMIT).mapIndexed { index, recipe ->
                 RecipeSuggestion(
+                    index = index,
                     name = recipe.title,
                     expiringCount = recipe.usedExpiringIngredients.size
                 )

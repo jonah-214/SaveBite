@@ -489,7 +489,14 @@ fun AppNavigation(
                     val recipeViewModel: RecipeViewModel = viewModel(factory = recipeViewModelFactory)
 
                     LaunchedEffect(allInventoryItems, dietType, allergies, householdType) {
-                        recipeViewModel.fetchAIRecipes(allInventoryItems, dietType, allergies, householdType)
+                        // Skip transient empty-list emissions (e.g. right after navigating
+                        // back from a recipe detail, before Room re-emits the real inventory)
+                        // so we don't trigger a needless AI re-fetch that replaces the list
+                        // the user is currently looking at.
+                        val alreadyHasRecipes = recipeViewModel.uiState.value.recipes.isNotEmpty()
+                        if (allInventoryItems.isNotEmpty() || !alreadyHasRecipes) {
+                            recipeViewModel.fetchAIRecipes(allInventoryItems, dietType, allergies, householdType)
+                        }
                     }
 
                     RecipeScreen(
@@ -521,21 +528,6 @@ fun AppNavigation(
                 } else {
                     viewModel(factory = recipeViewModelFactory)
                 }
-
-                RecipeDetailScreen(
-                    recipeIndex = recipeIndex,
-                    viewModel = recipeViewModel,
-                    onBackClick = { navController.popBackStack() }
-                )
-            }
-
-            // Recipe Detail route
-            composable(
-                route = AppRoutes.RECIPE_DETAIL_PATTERN,
-                arguments = listOf(navArgument("recipeIndex") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val recipeIndex = backStackEntry.arguments?.getInt("recipeIndex") ?: 0
-                val recipeViewModel: RecipeViewModel = viewModel(factory = recipeViewModelFactory)
 
                 RecipeDetailScreen(
                     recipeIndex = recipeIndex,

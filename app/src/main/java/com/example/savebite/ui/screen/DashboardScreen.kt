@@ -110,6 +110,9 @@ fun DashboardScreen(
             navController.navigate(AppRoutes.RECIPE) {
                 launchSingleTop = true
             }
+        },
+        onRecipeClick = { index ->
+            navController.navigate("${AppRoutes.RECIPE_DETAIL}/$index")
         }
     )
 }
@@ -134,7 +137,8 @@ fun DashboardContent(
     onExpiryItemClick: (ExpiryItem) -> Unit,
     onInventoryClick: () -> Unit,
     onShoppingClick: () -> Unit,
-    onSeeAllRecipesClick: () -> Unit
+    onSeeAllRecipesClick: () -> Unit,
+    onRecipeClick: (Int) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -188,7 +192,8 @@ fun DashboardContent(
         // Recipe suggestions
         RecipeSuggestionsRow(
             recipes = recipeSuggestions,
-            onSeeAllClick = onSeeAllRecipesClick
+            onSeeAllClick = onSeeAllRecipesClick,
+            onRecipeClick = onRecipeClick
         )
     }
 }
@@ -681,7 +686,8 @@ fun WastePeriodToggle(
 @Composable
 fun RecipeSuggestionsRow(
     recipes: List<RecipeSuggestion>,
-    onSeeAllClick: () -> Unit
+    onSeeAllClick: () -> Unit,
+    onRecipeClick: (Int) -> Unit
 ) {
     Column {
         SectionHeader(
@@ -711,7 +717,7 @@ fun RecipeSuggestionsRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(recipes, key = { it.name }) { recipe ->
-                    RecipeCard(recipe)
+                    RecipeCard(recipe, onClick = { onRecipeClick(recipe.index) })
                 }
             }
         }
@@ -721,9 +727,11 @@ fun RecipeSuggestionsRow(
 // Individual card within the recipe suggestions row
 @Composable
 fun RecipeCard(
-    recipe: RecipeSuggestion
+    recipe: RecipeSuggestion,
+    onClick: () -> Unit = {}
 ) {
     Card(
+        onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .width(160.dp)
