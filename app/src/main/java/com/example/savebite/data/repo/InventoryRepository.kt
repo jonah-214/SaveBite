@@ -31,33 +31,41 @@ class InventoryRepository(
         private const val TAG = "InventoryRepository"
     }
 
+    // Stream of all non-deleted inventory items
     val allInventory: Flow<List<Inventory>> = inventoryDao.getAllInventory()
 
+    // Stream of all registered storage location names
     val allStorageNames: Flow<List<String>> = storageDao.getAllStorageNames()
 
+    // Inserts a new inventory item locally and syncs it to the cloud
     suspend fun insertItem(item: Inventory) {
         inventoryDao.insertItem(item)
         supabaseDataRepository.upsertInventoryItem(item.toSupabase())
             .onFailure { Log.e(TAG, "Supabase upsert failed for item ${item.id} (${item.name})", it) }
     }
 
+    // Updates an existing inventory item locally and syncs it to the cloud
     suspend fun updateItem(item: Inventory) {
         inventoryDao.updateItem(item)
         supabaseDataRepository.upsertInventoryItem(item.toSupabase())
             .onFailure { Log.e(TAG, "Supabase upsert failed for item ${item.id} (${item.name})", it) }
     }
 
+    // Deletes an inventory item locally and from the cloud
     suspend fun deleteItem(item: Inventory) {
         inventoryDao.deleteItem(item)
         supabaseDataRepository.deleteInventoryItem(item.id)
     }
 
+    // Returns a stream of a specific inventory item by its ID
     fun getItemById(id: String): Flow<Inventory?> = inventoryDao.getInventoryById(id)
 
+    // Filters inventory based on a name query and storage location
     fun searchAndFilter(query: String, storage: String): Flow<List<Inventory>> {
         return inventoryDao.searchAndFilterInventory(query, storage)
     }
 
+    // Adds a new storage location
     suspend fun insertStorage(name: String) {
         if (name.isNotBlank()) {
             val storage = Storage(name)
@@ -66,6 +74,7 @@ class InventoryRepository(
         }
     }
 
+    // Deletes a storage location and reassigns all items within it to a fallback location
     suspend fun deleteStorageAndReassign(name: String, defaultStorage: String = DefaultStorages.FALLBACK) {
         inventoryDao.reassignStorage(name, defaultStorage)
         storageDao.deleteStorage(Storage(name))
@@ -77,6 +86,7 @@ class InventoryRepository(
         }
     }
 
+    // Marks an item as wasted, removes it from inventory, and logs it in the report
     suspend fun markAsWaste(item: Inventory, reason: String) {
         val reportItem = ReportItem(
             name = item.name,
@@ -90,11 +100,11 @@ class InventoryRepository(
         reportDao.insertReportItem(reportItem)
         inventoryDao.deleteItem(item)
 
-        // Supabase 同步
         supabaseDataRepository.insertReportItem(reportItem.toSupabase())
         supabaseDataRepository.deleteInventoryItem(item.id)
     }
 
+    // Toggles the "isConsumed" flag on an item (used for batch selection)
     suspend fun toggleConsumed(item: Inventory) {
         val updated = item.copy(isConsumed = !item.isConsumed)
         inventoryDao.updateItem(updated)
@@ -102,6 +112,7 @@ class InventoryRepository(
             .onFailure { Log.e(TAG, "Supabase upsert failed for item ${item.id} (${item.name})", it) }
     }
 
+    // Transfers all items currently marked as "consumed" to the report table
     suspend fun moveConsumedToReport() {
         val consumedList = inventoryDao.getConsumedItems()
         if (consumedList.isNotEmpty()) {
@@ -119,19 +130,17 @@ class InventoryRepository(
             reportDao.insertReportItems(reportItems)
             inventoryDao.deleteConsumedItems()
 
-            // 批量同步云端
             reportItems.forEach { supabaseDataRepository.insertReportItem(it.toSupabase()) }
             consumedList.forEach { supabaseDataRepository.deleteInventoryItem(it.id) }
         }
     }
 
+    // Recalculates days left for all items and automatically marks expired items as waste
+    // Also normalizes date formats for backward compatibility
     suspend fun cleanupExpiredItems() {
         val allItems = inventoryDao.getAllInventorySync()
         val today = Date()
 
-        // Each item's local update + Supabase sync runs concurrently instead of one
-        // item at a time, so this doesn't get linearly slower as the inventory grows -
-        // most of the time here is spent waiting on the network, not the CPU.
         coroutineScope {
             allItems.forEach { item ->
                 launch {
@@ -139,9 +148,6 @@ class InventoryRepository(
                     val diffInMillis = expiryDate.time - today.time
                     val days = TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS).toInt()
 
-                    // Re-save dates in the current storage format so items created by an older
-                    // app version (or a different screen) end up sorting correctly, without
-                    // needing a manual data migration.
                     val normalizedExpiry = DateFormats.toStorageString(expiryDate)
                     val normalizedPurchaseDate = DateFormats.parseExpiryOrNull(item.purchaseDate)
                         ?.let { DateFormats.toStorageString(it) } ?: item.purchaseDate
@@ -165,10 +171,13 @@ class InventoryRepository(
         }
     }
 
+    // Returns names of items expiring within a given threshold
     suspend fun getExpiringItemNames(thresholdDays: Int): List<String> {
         return inventoryDao.getExpiringItemNames(thresholdDays)
     }
 
+    // Logic for transferring specific quantities of items to the report.
+    // Updates inventory quantity or deletes the item if fully consumed/wasted.
     suspend fun moveItemsToReport(
         itemsWithQty: List<Pair<Inventory, Int>>,
         status: ReportStatus,
@@ -206,6 +215,7 @@ class InventoryRepository(
         }
     }
 
+    // Synchronizes storage locations from Supabase to Room
     suspend fun syncStorageFromCloud(): Result<Unit> {
         return supabaseDataRepository.fetchStorageList().map { remoteStorageList ->
             val localStorageList = remoteStorageList.map { it.toRoom() }
@@ -213,17 +223,12 @@ class InventoryRepository(
         }
     }
 
+    // Synchronizes inventory items from Supabase
+    // Restores items that exist in the cloud but not locally
     suspend fun syncFromCloud(): Result<Unit> {
         syncStorageFromCloud()
 
         return supabaseDataRepository.fetchInventoryItems().map { remoteItems ->
-            // Additive only: fills in items that exist remotely but not yet locally
-            // (e.g. restoring data after a reinstall or a first login on a new device).
-            // It deliberately never overwrites an item that already exists locally -
-            // Inventory has no last-modified timestamp to compare against, so a blind
-            // overwrite here can't tell a stale remote copy from a genuine update, and
-            // would silently revert a just-made local change (e.g. toggling "consumed")
-            // the next time this sync runs, such as on the next app launch.
             val localIds = inventoryDao.getAllInventorySync().map { it.id }.toSet()
             val newItems = remoteItems.map { it.toRoom() }.filter { it.id !in localIds }
             newItems.forEach { inventoryDao.insertItem(it) }

@@ -1,7 +1,5 @@
 package com.example.savebite.ui.screen
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,14 +16,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -33,21 +28,20 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -79,13 +73,16 @@ fun InventoryList(
     onMoveConsumedToReport: (String) -> Unit = {}
 ) {
     val consumedCount = foods.count { it.isConsumed }
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AppTopBar(
-                title = "Food Inventory",
-                showBackButton = false
+                title = stringResource(R.string.inventory_list_title),
+                showBackButton = false,
+                scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {
@@ -96,7 +93,7 @@ fun InventoryList(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.add),
-                    contentDescription = "Add button",
+                    contentDescription = stringResource(R.string.content_desc_add_button),
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -118,13 +115,13 @@ fun InventoryList(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Selected Items ($consumedCount)",
+                                text = stringResource(R.string.inventory_selected_items, consumedCount),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                             Text(
-                                text = "Choose status to report",
+                                text = stringResource(R.string.inventory_report_status_hint),
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
                             )
@@ -136,7 +133,7 @@ fun InventoryList(
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                             ) {
-                                Text("Consumed", fontSize = 12.sp)
+                                Text(stringResource(R.string.inventory_status_consumed), fontSize = 12.sp)
                             }
 
                             Button(
@@ -144,7 +141,7 @@ fun InventoryList(
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                             ) {
-                                Text("Wasted", fontSize = 12.sp)
+                                Text(stringResource(R.string.inventory_status_wasted), fontSize = 12.sp)
                             }
                         }
                     }
@@ -152,74 +149,79 @@ fun InventoryList(
             }
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .padding(horizontal = 8.dp)
+        LazyColumn(
+            contentPadding = PaddingValues(
+                top = padding.calculateTopPadding() + 8.dp,
+                bottom = padding.calculateBottomPadding() + 80.dp,
+                start = 8.dp,
+                end = 8.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxSize()
         ) {
             if (isOffline) {
-                OfflineBanner()
+                item {
+                    OfflineBanner()
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+
+            item {
+                StorageTab(
+                    storages = storageList,
+                    selectedStorage = selectedStorage,
+                    onStorageSelected = onStorageSelected,
+                    onNavigateToManageStorage = onNavigateToManageStorage
+                )
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            StorageTab(
-                storages = storageList,
-                selectedStorage = selectedStorage,
-                onStorageSelected = onStorageSelected,
-                onNavigateToManageStorage = onNavigateToManageStorage
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            AppSearchBar(
-                query = searchQuery,
-                onQueryChange = onQueryChange,
-                placeholderText = "Search food...",
-                sortOptions = InventorySortOption.values().toList(),
-                selectedSortOption = selectedSortOption,
-                onSortOptionSelected = onSortOptionSelected,
-                getSortOptionLabel = { it.label }
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
+            item {
+                AppSearchBar(
+                    query = searchQuery,
+                    onQueryChange = onQueryChange,
+                    placeholderText = stringResource(R.string.inventory_search_placeholder),
+                    sortOptions = InventorySortOption.entries,
+                    selectedSortOption = selectedSortOption,
+                    onSortOptionSelected = onSortOptionSelected,
+                    getSortOptionLabel = { it.label }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+            }
 
             if (foods.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No Data Recorded",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(
-                        items = foods,
-                        key = { item -> item.id }
-                    ) { food ->
-                        InventoryCard(
-                            food = food,
-                            onToggleConsume = onToggleConsume,
-                            onEditClick = onEditClick,
-                            onDeleteClick = onDeleteClick,
-                            onCardClick = onItemClick
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.inventory_no_data),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                }
+            } else {
+                items(
+                    items = foods,
+                    key = { item -> item.id }
+                ) { food ->
+                    InventoryCard(
+                        food = food,
+                        onToggleConsume = onToggleConsume,
+                        onEditClick = onEditClick,
+                        onDeleteClick = onDeleteClick,
+                        onCardClick = onItemClick
+                    )
                 }
             }
         }
     }
 }
 
-// Shown when the last cloud sync attempt failed, so the user knows they're looking
-// at local data that may not reflect changes made on another device.
+// Banner shown when the device is offline or synchronization failed.
 @Composable
 fun OfflineBanner() {
     Surface(
@@ -239,7 +241,7 @@ fun OfflineBanner() {
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Offline - showing local data. Changes will sync once you're back online.",
+                text = stringResource(R.string.inventory_offline_banner),
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onErrorContainer
             )
@@ -247,6 +249,7 @@ fun OfflineBanner() {
     }
 }
 
+// Horizontal scrollable tabs for selecting storage locations
 @Composable
 fun StorageTab(
     storages: List<String>,

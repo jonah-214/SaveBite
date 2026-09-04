@@ -39,20 +39,27 @@ fun InventoryDetailScreen(
     var showConsumeDialog by remember { mutableStateOf(false) }
     var showWasteDialog by remember { mutableStateOf(false) }
 
-    // 数量选择与原因状态
     var consumeQuantity by remember { mutableIntStateOf(1) }
     var wasteQuantity by remember { mutableIntStateOf(1) }
 
-    val quickReasons = listOf("Expired", "Spoiled", "Leftover", "Damaged", "Other")
-    var selectedReason by remember { mutableStateOf("Expired") }
+    val expiredLabel = stringResource(R.string.waste_reason_expired)
+    val otherReasonLabel = stringResource(R.string.waste_reason_other)
+    val quickReasons = listOf(
+        expiredLabel,
+        stringResource(R.string.waste_reason_spoiled),
+        stringResource(R.string.waste_reason_leftover),
+        stringResource(R.string.waste_reason_damaged),
+        otherReasonLabel
+    )
+    var selectedReason by remember(expiredLabel) { mutableStateOf(expiredLabel) }
     var customReason by remember { mutableStateOf("") }
 
     // 1. Delete Confirm Dialog
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(text = "Delete Item") },
-            text = { Text(text = "Are you sure you want to delete ${detail.name}?") },
+            title = { Text(text = stringResource(R.string.inventory_delete_dialog_title)) },
+            text = { Text(text = stringResource(R.string.inventory_delete_dialog_message, detail.name)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -60,12 +67,12 @@ fun InventoryDetailScreen(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.inventory_action_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
+                    Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.outline)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -73,14 +80,14 @@ fun InventoryDetailScreen(
         )
     }
 
-    // 2. Mark as Consumed Dialog (带数量选择)
+    // 2. Mark as Consumed Dialog
     if (showConsumeDialog) {
         AlertDialog(
             onDismissRequest = {
                 showConsumeDialog = false
                 consumeQuantity = 1
             },
-            title = { Text(text = "Mark as Consumed", color = MaterialTheme.colorScheme.onSurface) },
+            title = { Text(text = stringResource(R.string.inventory_consume_dialog_title), color = MaterialTheme.colorScheme.onSurface) },
             text = {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -88,12 +95,11 @@ fun InventoryDetailScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "How many ${detail.unit} of ${detail.name} did you consume?",
+                        text = stringResource(R.string.inventory_consume_dialog_message, detail.unit, detail.name),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     )
 
-                    // 数量选择加减器
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -108,7 +114,7 @@ fun InventoryDetailScreen(
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     painter = painterResource(R.drawable.remove),
-                                    contentDescription = "Decrease",
+                                    contentDescription = stringResource(R.string.content_desc_decrease),
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -130,7 +136,7 @@ fun InventoryDetailScreen(
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     painter = painterResource(R.drawable.add),
-                                    contentDescription = "Increase",
+                                    contentDescription = stringResource(R.string.content_desc_increase),
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -147,7 +153,7 @@ fun InventoryDetailScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
                 ) {
-                    Text("Confirm", color = Color.White)
+                    Text(stringResource(R.string.action_confirm), color = Color.White)
                 }
             },
             dismissButton = {
@@ -157,7 +163,7 @@ fun InventoryDetailScreen(
                         consumeQuantity = 1
                     }
                 ) {
-                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
+                    Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.outline)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -165,28 +171,27 @@ fun InventoryDetailScreen(
         )
     }
 
-    // 3. Mark as Waste Dialog (带数量选择 & 原因选择)
+    // 3. Mark as Waste Dialog
     if (showWasteDialog) {
         AlertDialog(
             onDismissRequest = {
                 showWasteDialog = false
                 wasteQuantity = 1
-                selectedReason = "Expired"
+                selectedReason = expiredLabel
                 customReason = ""
             },
-            title = { Text(text = "Mark as Waste", color = MaterialTheme.colorScheme.onSurface) },
+            title = { Text(text = stringResource(R.string.inventory_waste_dialog_title), color = MaterialTheme.colorScheme.onSurface) },
             text = {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "How many ${detail.unit} of ${detail.name} were wasted?",
+                        text = stringResource(R.string.inventory_waste_dialog_message, detail.unit, detail.name),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     )
 
-                    // 数量选择加减器
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -202,7 +207,7 @@ fun InventoryDetailScreen(
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     painter = painterResource(R.drawable.remove),
-                                    contentDescription = "Decrease"
+                                    contentDescription = stringResource(R.string.content_desc_decrease)
                                 )
                             }
                         }
@@ -223,7 +228,7 @@ fun InventoryDetailScreen(
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     painter = painterResource(R.drawable.add),
-                                    contentDescription = "Increase"
+                                    contentDescription = stringResource(R.string.content_desc_increase)
                                 )
                             }
                         }
@@ -232,12 +237,11 @@ fun InventoryDetailScreen(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = "Reason for waste:",
+                        text = stringResource(R.string.inventory_waste_reason_label),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )
 
-                    // 快捷原因 Chips
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -252,11 +256,11 @@ fun InventoryDetailScreen(
                         }
                     }
 
-                    if (selectedReason == "Other") {
+                    if (selectedReason == otherReasonLabel) {
                         OutlinedTextField(
                             value = customReason,
                             onValueChange = { customReason = it },
-                            placeholder = { Text("Enter custom reason...", fontSize = 13.sp) },
+                            placeholder = { Text(stringResource(R.string.inventory_waste_reason_placeholder), fontSize = 13.sp) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(8.dp)
@@ -267,7 +271,7 @@ fun InventoryDetailScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        val finalReason = if (selectedReason == "Other") {
+                        val finalReason = if (selectedReason == otherReasonLabel) {
                             customReason.ifBlank { "Wasted" }
                         } else {
                             selectedReason
@@ -275,12 +279,12 @@ fun InventoryDetailScreen(
                         onWasteClick(wasteQuantity, finalReason)
                         showWasteDialog = false
                         wasteQuantity = 1
-                        selectedReason = "Expired"
+                        selectedReason = expiredLabel
                         customReason = ""
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Confirm Waste", color = Color.White)
+                    Text(stringResource(R.string.inventory_action_confirm_waste), color = Color.White)
                 }
             },
             dismissButton = {
@@ -288,11 +292,11 @@ fun InventoryDetailScreen(
                     onClick = {
                         showWasteDialog = false
                         wasteQuantity = 1
-                        selectedReason = "Expired"
+                        selectedReason = expiredLabel
                         customReason = ""
                     }
                 ) {
-                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
+                    Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.outline)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -304,7 +308,7 @@ fun InventoryDetailScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AppTopBar(
-                title = "Inventory Details",
+                title = stringResource(R.string.inventory_detail_title),
                 showBackButton = true,
                 onBackClick = onBackClick
             )
@@ -317,7 +321,6 @@ fun InventoryDetailScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {
-            // 1. Header Row: Name & Category Badge
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -364,7 +367,7 @@ fun InventoryDetailScreen(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.refrigerator),
-                        contentDescription = "Storage",
+                        contentDescription = stringResource(R.string.content_desc_storage_icon),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp)
                     )
@@ -382,7 +385,6 @@ fun InventoryDetailScreen(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 2. Quantity & Status Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -401,7 +403,7 @@ fun InventoryDetailScreen(
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 painter = painterResource(R.drawable.inventory_2),
-                                contentDescription = "Quantity",
+                                contentDescription = stringResource(R.string.content_desc_quantity_icon),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -412,7 +414,7 @@ fun InventoryDetailScreen(
 
                     Column {
                         Text(
-                            text = "Quantity",
+                            text = stringResource(R.string.inventory_quantity_label),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onBackground
@@ -438,13 +440,12 @@ fun InventoryDetailScreen(
                         .weight(1f)
                         .padding(start = 16.dp)
                 ) {
-                    // Same Red/Yellow/Green urgency scheme used by the Reminder screen and the Inventory list badge
                     val (statusBg, statusFg) = expirySectionColors(detail.daysLeft)
                     Icon(
                         painter = painterResource(R.drawable.clock),
-                        contentDescription = "Status",
+                        contentDescription = stringResource(R.string.content_desc_status_icon),
                         tint = statusFg,
-                        modifier = Modifier.size(48.dp)
+                        modifier = Modifier.size(36.dp)
                     )
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -475,7 +476,6 @@ fun InventoryDetailScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 3. Details Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -489,7 +489,7 @@ fun InventoryDetailScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "Details",
+                        text = stringResource(R.string.inventory_detail_section_header),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -507,7 +507,7 @@ fun InventoryDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "Price",
+                            text = stringResource(R.string.inventory_detail_price),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
@@ -534,7 +534,7 @@ fun InventoryDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "Purchase Date",
+                            text = stringResource(R.string.inventory_detail_purchase_date),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
@@ -561,7 +561,7 @@ fun InventoryDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "Expiry Date",
+                            text = stringResource(R.string.inventory_detail_expiry_date),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
@@ -575,7 +575,7 @@ fun InventoryDetailScreen(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "(${detail.daysLeft} days left)",
+                                text = stringResource(R.string.inventory_detail_days_left, detail.daysLeft),
                                 fontSize = 14.sp,
                                 color = expirySectionColors(detail.daysLeft).second
                             )
@@ -596,7 +596,7 @@ fun InventoryDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "Notes",
+                            text = stringResource(R.string.inventory_detail_notes),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(0.4f)
@@ -613,8 +613,6 @@ fun InventoryDetailScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 4. Action Buttons Section
-            // Edit & Delete
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -629,13 +627,13 @@ fun InventoryDetailScreen(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.edit),
-                        contentDescription = "Edit",
+                        contentDescription = stringResource(R.string.inventory_action_edit),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Edit",
+                        text = stringResource(R.string.inventory_action_edit),
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium
@@ -652,13 +650,13 @@ fun InventoryDetailScreen(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.delete),
-                        contentDescription = "Delete",
+                        contentDescription = stringResource(R.string.inventory_action_delete),
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Delete",
+                        text = stringResource(R.string.inventory_action_delete),
                         color = MaterialTheme.colorScheme.error,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium
@@ -668,12 +666,10 @@ fun InventoryDetailScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Mark as Consumed & Mark as Waste 两个操作按钮
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Consumed Button
                 Button(
                     onClick = { showConsumeDialog = true },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
@@ -683,14 +679,13 @@ fun InventoryDetailScreen(
                         .height(46.dp)
                 ) {
                     Text(
-                        text = "Mark Consumed",
+                        text = stringResource(R.string.inventory_action_mark_consumed),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
 
-                // Waste Button
                 OutlinedButton(
                     onClick = { showWasteDialog = true },
                     modifier = Modifier
@@ -700,7 +695,7 @@ fun InventoryDetailScreen(
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                 ) {
                     Text(
-                        text = "Mark Waste",
+                        text = stringResource(R.string.inventory_action_mark_waste),
                         color = MaterialTheme.colorScheme.error,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold

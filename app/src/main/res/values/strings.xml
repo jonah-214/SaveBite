@@ -6,6 +6,8 @@
     <string name="discard_changes_message">You have unsaved changes. Are you sure you want to discard them and go back?</string>
     <string name="action_discard">Discard</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_ok">OK</string>
+    <string name="action_confirm">Confirm</string>
 
     <!-- Profile & Settings screen -->
     <string name="profile_settings_title">Profile &amp; Settings</string>
@@ -128,7 +130,85 @@
     <string name="notification_expiry_double">%1$s and 1 other item are expiring soon</string>
     <string name="notification_expiry_multiple">%1$s and %2$d other items are expiring soon</string>
 
+    <!-- Inventory Module -->
+    <string name="inventory_list_title">Food Inventory</string>
+    <string name="inventory_search_placeholder">Search food…</string>
+    <string name="inventory_selected_items">Selected Items (%1$d)</string>
+    <string name="inventory_report_status_hint">Choose status to report</string>
+    <string name="inventory_status_consumed">Consumed</string>
+    <string name="inventory_status_wasted">Wasted</string>
+    <string name="inventory_no_data">No Data Recorded</string>
+    <string name="inventory_offline_banner">Offline — showing local data. Changes will sync once you\'re back online.</string>
+
+    <!-- Add/Edit Inventory -->
+    <string name="inventory_add_title">Add Inventory</string>
+    <string name="inventory_edit_title">Edit Inventory</string>
+    <string name="inventory_batch_add_title">Add to Inventory (%1$d/%2$d)</string>
+    <string name="inventory_name_label">Item Name (e.g. Milk)</string>
+    <string name="inventory_name_required">Item name is required</string>
+    <string name="inventory_description_label">Subtitle / Description (e.g. Fresh Milk)</string>
+    <string name="inventory_price_label">Total Cost (%1$s)</string>
+    <string name="inventory_price_placeholder">e.g. 12.50</string>
+    <string name="inventory_price_required">Price is required</string>
+    <string name="inventory_price_invalid">Invalid price format</string>
+    <string name="inventory_category_label">Category</string>
+    <string name="inventory_storage_label">Storage</string>
+    <string name="inventory_quantity_label">Quantity</string>
+    <string name="inventory_purchase_date_label">Purchase Date</string>
+    <string name="inventory_expiry_date_label">Expiry Date</string>
+    <string name="inventory_notes_label">Notes</string>
+    <string name="inventory_notes_placeholder">e.g. Keep chilled and shake well before use.</string>
+    <string name="inventory_action_next_item">Next Item (%1$d/%2$d)</string>
+    <string name="inventory_action_finish_save">Finish &amp; Save All</string>
+    <string name="inventory_action_save_item">Save Item</string>
+    <string name="inventory_action_back_previous">Back to Previous Item</string>
+    <string name="inventory_action_cancel_back">Cancel / Back</string>
+    <string name="inventory_step_item_title">Item %1$d</string>
+
+    <!-- Inventory Details -->
+    <string name="inventory_detail_title">Inventory Details</string>
+    <string name="inventory_detail_section_header">Details</string>
+    <string name="inventory_detail_price">Price</string>
+    <string name="inventory_detail_purchase_date">Purchase Date</string>
+    <string name="inventory_detail_expiry_date">Expiry Date</string>
+    <string name="inventory_detail_days_left">(%1$d days left)</string>
+    <string name="inventory_detail_notes">Notes</string>
+    <string name="inventory_card_qty">Qty: %1$s %2$s</string>
+    <string name="inventory_card_storage">Storage: </string>
+    <string name="inventory_card_expires">Expires: </string>
+    <string name="inventory_action_edit">Edit</string>
+    <string name="inventory_action_delete">Delete</string>
+    <string name="inventory_action_mark_consumed">Mark Consumed</string>
+    <string name="inventory_action_mark_waste">Mark Waste</string>
+
+    <!-- Dialogs -->
+    <string name="inventory_delete_dialog_title">Delete Item</string>
+    <string name="inventory_delete_dialog_message">Are you sure you want to delete %1$s?</string>
+    <string name="inventory_consume_dialog_title">Mark as Consumed</string>
+    <string name="inventory_consume_dialog_message">How many %1$s of %2$s did you consume?</string>
+    <string name="inventory_waste_dialog_title">Mark as Waste</string>
+    <string name="inventory_waste_dialog_message">How many %1$s of %2$s were wasted?</string>
+    <string name="inventory_waste_reason_label">Reason for waste:</string>
+    <string name="inventory_waste_reason_placeholder">Enter custom reason…</string>
+    <string name="inventory_action_confirm_waste">Confirm Waste</string>
+
+    <!-- Waste Reasons -->
+    <string name="waste_reason_expired">Expired</string>
+    <string name="waste_reason_spoiled">Spoiled</string>
+    <string name="waste_reason_leftover">Leftover</string>
+    <string name="waste_reason_damaged">Damaged</string>
+    <string name="waste_reason_other">Other</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_desc_add_button">Add button</string>
+    <string name="content_desc_decrease">Decrease</string>
+    <string name="content_desc_increase">Increase</string>
+    <string name="content_desc_storage_icon">Storage icon</string>
+    <string name="content_desc_quantity_icon">Quantity icon</string>
+    <string name="content_desc_status_icon">Status icon</string>
+
     <!-- Expiry Sections -->
+
     <string name="expiry_soon">Expiring Soon</string>
     <string name="expiry_this_week">This Week</string>
     <string name="expiry_later">Later</string>

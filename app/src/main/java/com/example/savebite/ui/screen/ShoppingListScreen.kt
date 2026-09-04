@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -27,6 +28,7 @@ import com.example.savebite.ui.navigation.AppSearchBar
 import com.example.savebite.ui.navigation.AppTopBar
 import com.example.savebite.ui.viewmodel.ShoppingViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShoppingListScreen(
     viewModel: ShoppingViewModel,
@@ -49,6 +51,7 @@ fun ShoppingListScreen(
     )
 
     var itemToDelete by remember { mutableStateOf<ShoppingItem?>(null) }
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     itemToDelete?.let { item ->
         AlertDialog(
@@ -75,155 +78,150 @@ fun ShoppingListScreen(
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             AppTopBar(
                 title = stringResource(R.string.shopping_list_title),
-                showBackButton = false
+                showBackButton = false,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { innerPadding ->
-        Column(
+        val grouped = items.groupBy { it.category }
+
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(
-                    top = innerPadding.calculateTopPadding(),
-                    bottom = 12.dp
-                )
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(
+                top = innerPadding.calculateTopPadding() + 8.dp,
+                bottom = innerPadding.calculateBottomPadding() + 80.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // Progress Header Card
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = "🧺",
-                        fontSize = 32.sp,
-                        modifier = Modifier.semantics { contentDescription = "Shopping basket icon" }
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            text = when {
-                                totalCount == 0 -> stringResource(R.string.shopping_empty_list)
-                                purchasedCount == 0 -> stringResource(R.string.shopping_no_purchased)
-                                purchasedCount == 1 -> stringResource(R.string.shopping_purchased_count_singular, totalCount)
-                                else -> stringResource(R.string.shopping_purchased_count_plural, purchasedCount, totalCount)
-                            },
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
-                            color = MaterialTheme.colorScheme.onSurface
+                            text = "🧺",
+                            fontSize = 32.sp,
+                            modifier = Modifier.semantics { contentDescription = "Shopping basket icon" }
                         )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = when {
+                                    totalCount == 0 -> stringResource(R.string.shopping_empty_list)
+                                    purchasedCount == 0 -> stringResource(R.string.shopping_no_purchased)
+                                    purchasedCount == 1 -> stringResource(R.string.shopping_purchased_count_singular, totalCount)
+                                    else -> stringResource(R.string.shopping_purchased_count_plural, purchasedCount, totalCount)
+                                },
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
 
-                        Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
 
-                        // Smoothly animated progress bar
-                        LinearProgressIndicator(
-                            progress = { progressAnim },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp)),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
+                            // Smoothly animated progress bar
+                            LinearProgressIndicator(
+                                progress = { progressAnim },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(6.dp)
+                                    .clip(RoundedCornerShape(3.dp)),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
 
-                        Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
 
-                        // Contextual encouragement subtext
-                        Text(
-                            text = when {
-                                totalCount == 0 -> stringResource(R.string.shopping_get_started_hint)
-                                purchasedCount == 0 -> stringResource(R.string.shopping_start_checking_hint)
-                                purchasedCount == totalCount -> stringResource(R.string.shopping_all_set_hint)
-                                else -> stringResource(R.string.shopping_progress_hint)
-                            },
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                            // Contextual encouragement subtext
+                            Text(
+                                text = when {
+                                    totalCount == 0 -> stringResource(R.string.shopping_get_started_hint)
+                                    purchasedCount == 0 -> stringResource(R.string.shopping_start_checking_hint)
+                                    purchasedCount == totalCount -> stringResource(R.string.shopping_all_set_hint)
+                                    else -> stringResource(R.string.shopping_progress_hint)
+                                },
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
 
-            AppSearchBar<String>(
-                query = searchQuery,
-                onQueryChange = { viewModel.onSearchQueryChange(it) },
-                placeholderText = stringResource(R.string.shopping_search_placeholder)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
+            item {
+                AppSearchBar<String>(
+                    query = searchQuery,
+                    onQueryChange = { viewModel.onSearchQueryChange(it) },
+                    placeholderText = stringResource(R.string.shopping_search_placeholder)
+                )
+            }
 
             // Categorized List with Collapsible Logic
-            val grouped = items.groupBy { it.category }
-
             if (items.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.shopping_no_data),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.shopping_no_data),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    grouped.forEach { (category, list) ->
-                        val isExpanded = if (searchQuery.isNotEmpty()) true else categoryExpandedStates.getOrDefault(category, true)
+                grouped.forEach { (category, list) ->
+                    val isExpanded = if (searchQuery.isNotEmpty()) true else categoryExpandedStates.getOrDefault(category, true)
 
-                        item(key = "header_$category") {
-                            CategoryHeader(
-                                category = category,
-                                count = list.size,
-                                isExpanded = isExpanded,
-                                onToggleExpand = {
-                                    if (searchQuery.isEmpty()) {
-                                        categoryExpandedStates[category] = !isExpanded
-                                    }
+                    item(key = "header_$category") {
+                        CategoryHeader(
+                            category = category,
+                            count = list.size,
+                            isExpanded = isExpanded,
+                            onToggleExpand = {
+                                if (searchQuery.isEmpty()) {
+                                    categoryExpandedStates[category] = !isExpanded
                                 }
-                            )
-                        }
-
-                        if (isExpanded) {
-                            items(list, key = { it.id }) { item ->
-                                ShoppingItemRow(
-                                    item = item,
-                                    onToggle = { viewModel.togglePurchased(item) },
-                                    onEdit = { onNavigateToEditItem(item) },
-                                    onDelete = { itemToDelete = item }
-                                )
                             }
+                        )
+                    }
+
+                    if (isExpanded) {
+                        items(list, key = { it.id }) { item ->
+                            ShoppingItemRow(
+                                item = item,
+                                onToggle = { viewModel.togglePurchased(item) },
+                                onEdit = { onNavigateToEditItem(item) },
+                                onDelete = { itemToDelete = item }
+                            )
                         }
                     }
                 }
             }
 
             // Bottom Add Item Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            item {
                 Button(
                     onClick = onNavigateToAddItem,
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
-                        .weight(1f)
+                        .fillMaxWidth()
                         .height(48.dp)
                 ) {
                     Icon(
@@ -238,44 +236,45 @@ fun ShoppingListScreen(
 
             // Transfer to Inventory Banner Prompt
             if (purchasedCount > 0) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp)
-                        .clickable { onNavigateToAddToInventory() }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                item {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onNavigateToAddToInventory() }
                     ) {
-                        Column (modifier = Modifier.weight(1f)) {
-                            Text(
-                                stringResource(R.string.shopping_already_purchased),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Text(
-                                stringResource(R.string.shopping_move_to_inventory),
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                            )
-                        }
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .background(MaterialTheme.colorScheme.surface, CircleShape),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.chevron_right),
-                                contentDescription = stringResource(R.string.content_desc_proceed),
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(20.dp)
-                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    stringResource(R.string.shopping_already_purchased),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                                Text(
+                                    stringResource(R.string.shopping_move_to_inventory),
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                                )
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(MaterialTheme.colorScheme.surface, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.chevron_right),
+                                    contentDescription = stringResource(R.string.content_desc_proceed),
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
                         }
                     }
                 }

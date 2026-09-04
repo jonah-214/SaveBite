@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -36,7 +37,6 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-// Custom SelectableDates implementation to disable past dates
 @OptIn(ExperimentalMaterial3Api::class)
 object PastDateSelectableDates : SelectableDates {
     override fun isSelectableDate(utcTimeMillis: Long): Boolean {
@@ -56,6 +56,8 @@ object PastDateSelectableDates : SelectableDates {
     }
 }
 
+// Screen for adding a new item or editing an existing one in the inventory.
+// Supports batch adding from a list of shopping items
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddInventoryScreen(
@@ -65,20 +67,22 @@ fun AddInventoryScreen(
     storageLocations: List<String> = DefaultStorages.ALL,
     onBackClick: () -> Unit = {},
     onNavigateToShoppingList: () -> Unit = {},
-    onSaveClick: (List<Inventory>) -> Unit = {} // 修正：支持回调 List 应对批量新增
+    onSaveClick: (List<Inventory>) -> Unit = {}
 ) {
     val isBatchMode = !batchItems.isNullOrEmpty()
     var currentIndex by remember { mutableIntStateOf(0) }
     val accumulatedBatchList = remember { mutableStateListOf<Inventory>() }
     val scrollState = rememberScrollState()
+    
     LaunchedEffect(currentIndex) {
         scrollState.animateScrollTo(0)
     }
 
     // Form Input States
+    val dairyLabel = stringResource(R.string.category_dairy)
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("Dairy & Eggs") }
+    var category by remember(dairyLabel) { mutableStateOf(dairyLabel) }
     var storage by remember(storageLocations) {
         mutableStateOf(storageLocations.firstOrNull() ?: DefaultStorages.FALLBACK)
     }
@@ -88,10 +92,8 @@ fun AddInventoryScreen(
     var purchaseDate by remember { mutableStateOf(getTodayFormatted()) }
     var expiryDate by remember { mutableStateOf(getFutureDateFormatted(7)) }
     var notes by remember { mutableStateOf("") }
-    // Preserves the item's existing "consumed" flag so editing/re-saving doesn't silently uncheck it
     var isConsumed by remember { mutableStateOf(false) }
 
-    // Bundles the current form fields into the shape InventoryFormLogic expects.
     fun currentFormDraft() = InventoryFormLogic.FormDraft(
         name = name,
         description = description,
@@ -121,14 +123,14 @@ fun AddInventoryScreen(
             onBackClick()
         }
     }
+    
     val isPriceValid = remember(price) { InventoryFormLogic.isPriceValid(price) }
     var attemptedSave by remember { mutableStateOf(false) }
 
-    // 1. 如果是 Batch 模式，根据 currentIndex 自动更新数据
+    // Batch initialization
     LaunchedEffect(currentIndex, batchItems) {
         if (isBatchMode && batchItems != null && currentIndex < batchItems.size) {
             if (currentIndex < accumulatedBatchList.size) {
-                // 如果该位置已经有保存/暂存的数据，还原输入框
                 val savedItem = accumulatedBatchList[currentIndex]
                 name = savedItem.name
                 description = savedItem.description
@@ -142,7 +144,6 @@ fun AddInventoryScreen(
                 notes = savedItem.notes
                 isConsumed = savedItem.isConsumed
             } else {
-                // 如果是全新未填过的物品，加载初始默认值
                 val item = batchItems[currentIndex]
                 name = item.name
                 quantity = item.quantity
@@ -157,7 +158,7 @@ fun AddInventoryScreen(
         }
     }
 
-    // 2. 如果是 Edit 模式，读取已有数据
+    // Edit initialization
     if (!isBatchMode && itemId != null && viewModel != null) {
         val existingItem by viewModel.getItemById(itemId).collectAsState(initial = null)
         LaunchedEffect(existingItem) {
@@ -177,7 +178,6 @@ fun AddInventoryScreen(
         }
     }
 
-    // Dialog & Dropdown States
     var categoryExpanded by remember { mutableStateOf(false) }
     var storageExpanded by remember { mutableStateOf(false) }
     var unitExpanded by remember { mutableStateOf(false) }
@@ -185,42 +185,30 @@ fun AddInventoryScreen(
     var showExpiryPicker by remember { mutableStateOf(false) }
 
     val categoryOptions = listOf(
-        "Dairy & Eggs",
-        "Produce",
-        "Meat & Seafood",
-        "Bakery & Bread",
-        "Beverages",
-        "Pantry & Dry Goods",
-        "Frozen Foods",
-        "Snacks & Sweets",
-        "Condiments & Sauces",
-        "Canned Goods",
-        "Leftovers & Prepared",
-        "Spices & Baking"
+        stringResource(R.string.category_dairy),
+        stringResource(R.string.category_produce),
+        stringResource(R.string.category_meat),
+        stringResource(R.string.category_bakery),
+        stringResource(R.string.category_beverages),
+        stringResource(R.string.category_pantry),
+        stringResource(R.string.category_frozen),
+        stringResource(R.string.category_snacks),
+        stringResource(R.string.category_condiments),
+        stringResource(R.string.category_canned),
+        stringResource(R.string.category_prepared),
+        stringResource(R.string.category_spices)
     )
 
-    val unitOptions = listOf(
-        "pcs",
-        "pack",
-        "box",
-        "bottle",
-        "can",
-        "kg",
-        "g",
-        "L",
-        "ml",
-        "oz",
-        "lb"
-    )
+    val unitOptions = listOf("pcs", "pack", "box", "bottle", "can", "kg", "g", "L", "ml", "oz", "lb")
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AppTopBar(
                 title = when {
-                    isBatchMode && batchItems != null -> "Add to Inventory (${currentIndex + 1}/${batchItems.size})"
-                    itemId != null -> "Edit Inventory"
-                    else -> "Add Inventory"
+                    isBatchMode && batchItems != null -> stringResource(R.string.inventory_batch_add_title, currentIndex + 1, batchItems.size)
+                    itemId != null -> stringResource(R.string.inventory_edit_title)
+                    else -> stringResource(R.string.inventory_add_title)
                 },
                 showBackButton = true,
                 onBackClick = {
@@ -238,7 +226,6 @@ fun AddInventoryScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // 修正：如果为 Batch 模式，顶部加上 Step 进度条
             if (isBatchMode && batchItems != null) {
                 StepProgressBar(
                     totalSteps = batchItems.size,
@@ -248,7 +235,6 @@ fun AddInventoryScreen(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             }
 
-            // 修正：单一的可滚动容器，防止 Scroll 嵌套 Crash
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -256,13 +242,12 @@ fun AddInventoryScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 1. Food Name & Description
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { 
                         Row {
-                            Text("Item Name (e.g. Milk)")
+                            Text(stringResource(R.string.inventory_name_label))
                             Text(" *", color = MaterialTheme.colorScheme.error)
                         }
                     },
@@ -273,7 +258,7 @@ fun AddInventoryScreen(
                 )
                 if (attemptedSave && name.isBlank()) {
                     Text(
-                        text = "Item name is required",
+                        text = stringResource(R.string.inventory_name_required),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(start = 8.dp, top = 2.dp)
@@ -283,7 +268,7 @@ fun AddInventoryScreen(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Subtitle / Description (e.g. Fresh Milk)") },
+                    label = { Text(stringResource(R.string.inventory_description_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp)
@@ -294,11 +279,11 @@ fun AddInventoryScreen(
                     onValueChange = { price = it },
                     label = { 
                         Row {
-                            Text("Total Cost (${Currency.PREFIX})")
+                            Text(stringResource(R.string.inventory_price_label, Currency.PREFIX))
                             Text(" *", color = MaterialTheme.colorScheme.error)
                         }
                     },
-                    placeholder = { Text("e.g. 12.50") },
+                    placeholder = { Text(stringResource(R.string.inventory_price_placeholder)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -307,14 +292,13 @@ fun AddInventoryScreen(
                 )
                 if (attemptedSave && !isPriceValid) {
                     Text(
-                        text = if (price.isBlank()) "Price is required" else "Invalid price format",
+                        text = if (price.isBlank()) stringResource(R.string.inventory_price_required) else stringResource(R.string.inventory_price_invalid),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(start = 8.dp, top = 2.dp)
                     )
                 }
 
-                // 2. Category & Storage Dropdowns
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -328,7 +312,7 @@ fun AddInventoryScreen(
                             value = category,
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Category") },
+                            label = { Text(stringResource(R.string.inventory_category_label)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp)
@@ -359,7 +343,7 @@ fun AddInventoryScreen(
                             value = storage,
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Storage") },
+                            label = { Text(stringResource(R.string.inventory_storage_label)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = storageExpanded) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp)
@@ -382,7 +366,6 @@ fun AddInventoryScreen(
                     }
                 }
 
-                // 3. Quantity Selector
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -396,7 +379,7 @@ fun AddInventoryScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Quantity", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.inventory_quantity_label), fontSize = 16.sp, fontWeight = FontWeight.Medium)
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -461,7 +444,6 @@ fun AddInventoryScreen(
                     }
                 }
 
-                // 4. Dates Section
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -471,11 +453,11 @@ fun AddInventoryScreen(
                             value = DateFormats.toDisplayString(purchaseDate),
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Purchase Date") },
+                            label = { Text(stringResource(R.string.inventory_purchase_date_label)) },
                             trailingIcon = {
                                 Icon(
                                     painter = painterResource(R.drawable.calender),
-                                    contentDescription = "Purchase Date",
+                                    contentDescription = stringResource(R.string.inventory_purchase_date_label),
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -496,11 +478,11 @@ fun AddInventoryScreen(
                             value = DateFormats.toDisplayString(expiryDate),
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Expiry Date") },
+                            label = { Text(stringResource(R.string.inventory_expiry_date_label)) },
                             trailingIcon = {
                                 Icon(
                                     painter = painterResource(R.drawable.calender_clock),
-                                    contentDescription = "Expiry Date",
+                                    contentDescription = stringResource(R.string.inventory_expiry_date_label),
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -517,12 +499,11 @@ fun AddInventoryScreen(
                     }
                 }
 
-                // 5. Notes Field
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = { Text("Notes") },
-                    placeholder = { Text("e.g. Keep chilled and shake well before use.") },
+                    label = { Text(stringResource(R.string.inventory_notes_label)) },
+                    placeholder = { Text(stringResource(R.string.inventory_notes_placeholder)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(110.dp),
@@ -536,11 +517,10 @@ fun AddInventoryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // 主按钮： Save / Next
                     val actionButtonText = when {
-                        isBatchMode && batchItems != null && currentIndex < batchItems.size - 1 -> "Next Item (${currentIndex + 2}/${batchItems.size})"
-                        isBatchMode -> "Finish & Save All"
-                        else -> "Save Item"
+                        isBatchMode && batchItems != null && currentIndex < batchItems.size - 1 -> stringResource(R.string.inventory_action_next_item, currentIndex + 2, batchItems.size)
+                        isBatchMode -> stringResource(R.string.inventory_action_finish_save)
+                        else -> stringResource(R.string.inventory_action_save_item)
                     }
 
                     Button(
@@ -549,7 +529,6 @@ fun AddInventoryScreen(
                             val newFood = InventoryFormLogic.buildInventoryOrNull(currentFormDraft(), itemId)
                             if (newFood != null) {
                                 if (isBatchMode && batchItems != null) {
-                                    // 回退修改时覆盖，新增时添加
                                     if (currentIndex < accumulatedBatchList.size) {
                                         accumulatedBatchList[currentIndex] = newFood
                                     } else {
@@ -581,7 +560,6 @@ fun AddInventoryScreen(
                         )
                     }
 
-                    // 次按钮：Back / Previous
                     OutlinedButton(
                         onClick = { handlePreviousStep() },
                         modifier = Modifier
@@ -591,9 +569,9 @@ fun AddInventoryScreen(
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                     ) {
                         val backButtonText = if (isBatchMode && currentIndex > 0) {
-                            "Back to Previous Item"
+                            stringResource(R.string.inventory_action_back_previous)
                         } else {
-                            "Cancel / Back"
+                            stringResource(R.string.inventory_action_cancel_back)
                         }
 
                         Text(
@@ -608,7 +586,6 @@ fun AddInventoryScreen(
         }
     }
 
-    // DatePicker Dialogs ...
     if (showPurchasePicker) {
         val datePickerState = rememberDatePickerState(selectableDates = PastDateSelectableDates)
         DatePickerDialog(
@@ -617,10 +594,10 @@ fun AddInventoryScreen(
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis -> purchaseDate = formatDate(millis) }
                     showPurchasePicker = false
-                }) { Text("OK", color = MaterialTheme.colorScheme.primary) }
+                }) { Text(stringResource(R.string.action_ok), color = MaterialTheme.colorScheme.primary) }
             },
             dismissButton = {
-                TextButton(onClick = { showPurchasePicker = false }) { Text("Cancel", color = MaterialTheme.colorScheme.outline) }
+                TextButton(onClick = { showPurchasePicker = false }) { Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.outline) }
             }
         ) { DatePicker(state = datePickerState) }
     }
@@ -633,16 +610,18 @@ fun AddInventoryScreen(
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis -> expiryDate = formatDate(millis) }
                     showExpiryPicker = false
-                }) { Text("OK", color = MaterialTheme.colorScheme.primary) }
+                }) { Text(stringResource(R.string.action_ok), color = MaterialTheme.colorScheme.primary) }
             },
             dismissButton = {
-                TextButton(onClick = { showExpiryPicker = false }) { Text("Cancel", color = MaterialTheme.colorScheme.outline) }
+                TextButton(onClick = { showExpiryPicker = false }) { Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.outline) }
             }
         ) { DatePicker(state = datePickerState) }
     }
 }
 
-// 步骤进度条组件
+/**
+ * Visual indicator showing progress through a multi-step batch add process.
+ */
 @Composable
 fun StepProgressBar(
     totalSteps: Int,
@@ -688,7 +667,7 @@ fun StepProgressBar(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = stepTitles.getOrNull(i) ?: "Item ${i + 1}",
+                    text = stepTitles.getOrNull(i) ?: stringResource(R.string.inventory_step_item_title, i + 1),
                     fontSize = 10.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -711,14 +690,7 @@ fun StepProgressBar(
     }
 }
 
-// Helper Functions
-// NOTE: purchaseDate/expiryDate STATE HOLDS THE STORAGE FORMAT (see DateFormats),
-// not the text shown to the user - the OutlinedTextFields convert it to a display
-// string with DateFormats.toDisplayString(...) when rendering.
 private fun formatDate(millis: Long): String {
-    // The date picker returns UTC midnight for the selected day. Formatting with a
-    // UTC formatter (instead of the device's local timezone) avoids the classic
-    // Compose DatePicker bug where the day shifts back by one for timezones behind UTC.
     val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     formatter.timeZone = TimeZone.getTimeZone("UTC")
     return formatter.format(Date(millis))

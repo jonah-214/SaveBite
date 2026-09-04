@@ -23,7 +23,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,11 +32,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
@@ -59,8 +55,8 @@ fun InventoryCard(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(text = "Delete Item") },
-            text = { Text(text = "Are you sure you want to delete ${food.name}?") },
+            title = { Text(text = stringResource(R.string.inventory_delete_dialog_title)) },
+            text = { Text(text = stringResource(R.string.inventory_delete_dialog_message, food.name)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -68,12 +64,12 @@ fun InventoryCard(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text("Delete", color = Color.Red)
+                    Text(stringResource(R.string.inventory_action_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel", color = MaterialTheme.colorScheme.outline)
+                    Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.outline)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -108,7 +104,6 @@ fun InventoryCard(
 
                 Spacer(modifier = Modifier.width(4.dp))
 
-                // 点击食物名字进入详情
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -124,7 +119,7 @@ fun InventoryCard(
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Text(
-                        text = "Qty: ${food.quantity} ${food.unit}",
+                        text = stringResource(R.string.inventory_card_qty, food.quantity, food.unit),
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -152,7 +147,6 @@ fun InventoryCard(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
             Spacer(modifier = Modifier.height(12.dp))
 
-            // --- BOTTOM ROW ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -163,7 +157,7 @@ fun InventoryCard(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Storage: ",
+                            text = stringResource(R.string.inventory_card_storage),
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -179,7 +173,7 @@ fun InventoryCard(
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Expires: ",
+                            text = stringResource(R.string.inventory_card_expires),
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -202,12 +196,12 @@ fun InventoryCard(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.edit),
-                            contentDescription = "Edit",
+                            contentDescription = stringResource(R.string.inventory_action_edit),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Edit", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
+                        Text(stringResource(R.string.inventory_action_edit), color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
                     }
 
                     OutlinedButton(
@@ -219,12 +213,12 @@ fun InventoryCard(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.delete),
-                            contentDescription = "Delete",
+                            contentDescription = stringResource(R.string.inventory_action_delete),
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Delete", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                        Text(stringResource(R.string.inventory_action_delete), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                     }
                 }
             }

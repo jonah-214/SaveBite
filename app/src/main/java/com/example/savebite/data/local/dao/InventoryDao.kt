@@ -47,11 +47,11 @@ interface InventoryDao {
     @Query("UPDATE inventory_table SET storage = :newStorage WHERE storage = :oldStorage")
     suspend fun reassignStorage(oldStorage: String, newStorage: String)
 
-    // 1. 获取所有已勾选 (isConsumed == true) 的物品
+    // Get all the items that want to consume
     @Query("SELECT * FROM inventory_table WHERE isConsumed = 1")
     suspend fun getConsumedItems(): List<Inventory>
 
-    // 2. 批量删除已消耗的物品
+    // Delete all the items that want to consume
     @Query("DELETE FROM inventory_table WHERE isConsumed = 1")
     suspend fun deleteConsumedItems()
 }
