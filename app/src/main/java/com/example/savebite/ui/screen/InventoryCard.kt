@@ -56,6 +56,7 @@ fun InventoryCard(
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    // Confirmation dialog before removing an item from inventory.
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -108,7 +109,7 @@ fun InventoryCard(
 
                 Spacer(modifier = Modifier.width(4.dp))
 
-                // 点击食物名字进入详情
+                // Clickable to open item detail view
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -132,6 +133,7 @@ fun InventoryCard(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
+                // Dynamic Expiry Status Badge
                 val (badgeBg, badgeFg) = expirySectionColors(food.daysLeft)
                 Text(
                     text = if (food.daysLeft <= 0) {
@@ -152,7 +154,6 @@ fun InventoryCard(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
             Spacer(modifier = Modifier.height(12.dp))
 
-            // --- BOTTOM ROW ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

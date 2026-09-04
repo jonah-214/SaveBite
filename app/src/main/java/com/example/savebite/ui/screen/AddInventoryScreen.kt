@@ -36,7 +36,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-// Custom SelectableDates implementation to disable past dates
+// Custom SelectableDates implementation to restrict date picker selections to today or future dates.
 @OptIn(ExperimentalMaterial3Api::class)
 object PastDateSelectableDates : SelectableDates {
     override fun isSelectableDate(utcTimeMillis: Long): Boolean {
@@ -65,12 +65,14 @@ fun AddInventoryScreen(
     storageLocations: List<String> = DefaultStorages.ALL,
     onBackClick: () -> Unit = {},
     onNavigateToShoppingList: () -> Unit = {},
-    onSaveClick: (List<Inventory>) -> Unit = {} // 修正：支持回调 List 应对批量新增
+    onSaveClick: (List<Inventory>) -> Unit = {}
 ) {
     val isBatchMode = !batchItems.isNullOrEmpty()
     var currentIndex by remember { mutableIntStateOf(0) }
     val accumulatedBatchList = remember { mutableStateListOf<Inventory>() }
     val scrollState = rememberScrollState()
+
+    // Resets scroll position to top whenever navigating between items in batch mode.
     LaunchedEffect(currentIndex) {
         scrollState.animateScrollTo(0)
     }
@@ -88,10 +90,10 @@ fun AddInventoryScreen(
     var purchaseDate by remember { mutableStateOf(getTodayFormatted()) }
     var expiryDate by remember { mutableStateOf(getFutureDateFormatted(7)) }
     var notes by remember { mutableStateOf("") }
-    // Preserves the item's existing "consumed" flag so editing/re-saving doesn't silently uncheck it
+    // Preserves existing "consumed" state when updating an existing inventory item.
     var isConsumed by remember { mutableStateOf(false) }
 
-    // Bundles the current form fields into the shape InventoryFormLogic expects.
+    // Bundles current reactive UI fields into a FormDraft for domain validation.
     fun currentFormDraft() = InventoryFormLogic.FormDraft(
         name = name,
         description = description,
@@ -106,6 +108,7 @@ fun AddInventoryScreen(
         isConsumed = isConsumed
     )
 
+    // Handles previous button navigation logic: steps back in batch mode or triggers back callback.
     val handlePreviousStep = {
         if (isBatchMode && currentIndex > 0) {
             val currentDraft = InventoryFormLogic.buildDraft(currentFormDraft(), itemId)
@@ -124,11 +127,11 @@ fun AddInventoryScreen(
     val isPriceValid = remember(price) { InventoryFormLogic.isPriceValid(price) }
     var attemptedSave by remember { mutableStateOf(false) }
 
-    // 1. 如果是 Batch 模式，根据 currentIndex 自动更新数据
+    // Synchronizes form input fields when stepping through batch items.
     LaunchedEffect(currentIndex, batchItems) {
         if (isBatchMode && batchItems != null && currentIndex < batchItems.size) {
             if (currentIndex < accumulatedBatchList.size) {
-                // 如果该位置已经有保存/暂存的数据，还原输入框
+                // Restores previously filled batch draft data if navigating back.
                 val savedItem = accumulatedBatchList[currentIndex]
                 name = savedItem.name
                 description = savedItem.description
@@ -142,7 +145,7 @@ fun AddInventoryScreen(
                 notes = savedItem.notes
                 isConsumed = savedItem.isConsumed
             } else {
-                // 如果是全新未填过的物品，加载初始默认值
+                // Pre-fills defaults from the incoming shopping list item for new entries.
                 val item = batchItems[currentIndex]
                 name = item.name
                 quantity = item.quantity
@@ -157,7 +160,7 @@ fun AddInventoryScreen(
         }
     }
 
-    // 2. 如果是 Edit 模式，读取已有数据
+    // Loads existing item data when operating in single-item Edit mode.
     if (!isBatchMode && itemId != null && viewModel != null) {
         val existingItem by viewModel.getItemById(itemId).collectAsState(initial = null)
         LaunchedEffect(existingItem) {
@@ -177,7 +180,7 @@ fun AddInventoryScreen(
         }
     }
 
-    // Dialog & Dropdown States
+    // Dropdown and Date Picker Visibility Controls
     var categoryExpanded by remember { mutableStateOf(false) }
     var storageExpanded by remember { mutableStateOf(false) }
     var unitExpanded by remember { mutableStateOf(false) }
@@ -238,7 +241,7 @@ fun AddInventoryScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // 修正：如果为 Batch 模式，顶部加上 Step 进度条
+            // Renders step indicator bar during multi-item batch import.
             if (isBatchMode && batchItems != null) {
                 StepProgressBar(
                     totalSteps = batchItems.size,
@@ -248,7 +251,7 @@ fun AddInventoryScreen(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             }
 
-            // 修正：单一的可滚动容器，防止 Scroll 嵌套 Crash
+            // Single scrollable column container to avoid nested scroll conflicts.
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -256,7 +259,7 @@ fun AddInventoryScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 1. Food Name & Description
+                // 1.Item Name & Description
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -382,7 +385,7 @@ fun AddInventoryScreen(
                     }
                 }
 
-                // 3. Quantity Selector
+                // 3. Quantity Counter & Unit Picker
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -461,7 +464,7 @@ fun AddInventoryScreen(
                     }
                 }
 
-                // 4. Dates Section
+                // 4. Purchase & Expiry Dates Picker Triggers
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -517,7 +520,7 @@ fun AddInventoryScreen(
                     }
                 }
 
-                // 5. Notes Field
+                // 5.Additional Notes Input
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
@@ -536,7 +539,6 @@ fun AddInventoryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // 主按钮： Save / Next
                     val actionButtonText = when {
                         isBatchMode && batchItems != null && currentIndex < batchItems.size - 1 -> "Next Item (${currentIndex + 2}/${batchItems.size})"
                         isBatchMode -> "Finish & Save All"
@@ -549,7 +551,7 @@ fun AddInventoryScreen(
                             val newFood = InventoryFormLogic.buildInventoryOrNull(currentFormDraft(), itemId)
                             if (newFood != null) {
                                 if (isBatchMode && batchItems != null) {
-                                    // 回退修改时覆盖，新增时添加
+                                    // Overwrites previous entry on back-navigation or appends new draft
                                     if (currentIndex < accumulatedBatchList.size) {
                                         accumulatedBatchList[currentIndex] = newFood
                                     } else {
@@ -581,7 +583,6 @@ fun AddInventoryScreen(
                         )
                     }
 
-                    // 次按钮：Back / Previous
                     OutlinedButton(
                         onClick = { handlePreviousStep() },
                         modifier = Modifier
@@ -608,7 +609,6 @@ fun AddInventoryScreen(
         }
     }
 
-    // DatePicker Dialogs ...
     if (showPurchasePicker) {
         val datePickerState = rememberDatePickerState(selectableDates = PastDateSelectableDates)
         DatePickerDialog(
@@ -642,7 +642,7 @@ fun AddInventoryScreen(
     }
 }
 
-// 步骤进度条组件
+// Visual step wizard progress indicator used during batch items creation.
 @Composable
 fun StepProgressBar(
     totalSteps: Int,
@@ -711,14 +711,8 @@ fun StepProgressBar(
     }
 }
 
-// Helper Functions
-// NOTE: purchaseDate/expiryDate STATE HOLDS THE STORAGE FORMAT (see DateFormats),
-// not the text shown to the user - the OutlinedTextFields convert it to a display
-// string with DateFormats.toDisplayString(...) when rendering.
+// Formats timestamp in UTC midnight to avoid day shift bugs caused by timezone offsets in Compose DatePicker.
 private fun formatDate(millis: Long): String {
-    // The date picker returns UTC midnight for the selected day. Formatting with a
-    // UTC formatter (instead of the device's local timezone) avoids the classic
-    // Compose DatePicker bug where the day shifts back by one for timezones behind UTC.
     val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     formatter.timeZone = TimeZone.getTimeZone("UTC")
     return formatter.format(Date(millis))

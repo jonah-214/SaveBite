@@ -1,6 +1,5 @@
 package com.example.savebite.ui.screen
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -35,19 +34,18 @@ fun InventoryItemToReportScreen(
 
     val isConsumed = targetStatus == ReportStatus.CONSUMED
 
-    // 快捷浪费原因列表
+    // Quick waste reasons
     val quickReasons = listOf("Expired", "Spoiled", "Leftover", "Damaged", "Other")
     var selectedReason by remember { mutableStateOf("Expired") }
     var customReason by remember { mutableStateOf("") }
 
-    // 数量映射表
+    // Quantity map
     val itemQuantities = remember(selectedItems) {
         mutableStateMapOf<String, Int>().apply {
             selectedItems.forEach { this[it.id] = it.quantity }
         }
     }
 
-    // 主色调：Consumed -> 自然绿；Wasted -> 警示红/橘
     val primaryThemeColor = if (isConsumed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
     val bgHeaderColor = if (isConsumed) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer
 
@@ -67,7 +65,6 @@ fun InventoryItemToReportScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header 状态卡片
             Surface(
                 color = bgHeaderColor,
                 shape = RoundedCornerShape(16.dp),
@@ -77,9 +74,13 @@ fun InventoryItemToReportScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = if (isConsumed) "🍽️" else "🗑️",
-                        fontSize = 32.sp
+                    Icon(
+                        painter = painterResource(
+                            id = if (isConsumed) R.drawable.consumed else R.drawable.delete
+                        ),
+                        contentDescription = if (isConsumed) "Consumed" else "Wasted",
+                        modifier = Modifier.size(32.dp),
+                        tint = primaryThemeColor
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
@@ -100,7 +101,6 @@ fun InventoryItemToReportScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 物品列表微调数量
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -143,7 +143,7 @@ fun InventoryItemToReportScreen(
                                 )
                             }
 
-                            // - 数量 + 操作
+                            // Quantity adjustment stepper
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -162,8 +162,9 @@ fun InventoryItemToReportScreen(
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(
                                             painter = painterResource(R.drawable.remove),
-                                            contentDescription = "Increase",
-                                            modifier = Modifier.size(20.dp)
+                                            contentDescription = "Decrease",
+                                            modifier = Modifier.size(18.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
@@ -190,7 +191,8 @@ fun InventoryItemToReportScreen(
                                         Icon(
                                             painter = painterResource(R.drawable.add),
                                             contentDescription = "Increase",
-                                            modifier = Modifier.size(20.dp)
+                                            modifier = Modifier.size(18.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
@@ -200,7 +202,7 @@ fun InventoryItemToReportScreen(
                 }
             }
 
-            // 如果是 WASTED，提供一键快捷原因选择（不需要一个个填）
+            // Waste reason options for WASTED status
             if (!isConsumed) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -212,7 +214,6 @@ fun InventoryItemToReportScreen(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    // 快捷原因 Chips 流式排布
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -231,7 +232,6 @@ fun InventoryItemToReportScreen(
                         }
                     }
 
-                    // 如果选择了 Other，展开输入框
                     if (selectedReason == "Other") {
                         Spacer(modifier = Modifier.height(4.dp))
                         OutlinedTextField(
@@ -248,7 +248,6 @@ fun InventoryItemToReportScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 提示信息
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -271,7 +270,6 @@ fun InventoryItemToReportScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 提交确认按钮
             Button(
                 onClick = {
                     val finalReason = if (selectedReason == "Other") {

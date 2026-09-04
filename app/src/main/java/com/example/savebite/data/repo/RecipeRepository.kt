@@ -28,7 +28,7 @@ class RecipeRepositoryImpl(
     private val recipeDao: RecipeDao
 ) : RecipeRepository {
 
-    // 监听本地缓存 Flow
+    // Observes the cached recipe flow for a user
     override fun cachedRecipes(userId: Int): Flow<List<Recipe>> =
         recipeDao.getCachedRecipes(userId).map { entity ->
             if (entity != null) {
@@ -42,7 +42,8 @@ class RecipeRepositoryImpl(
             }
         }
 
-    // 从 API 获取新数据并更新本地数据库
+    // Fetches fresh recipes from the Gemini API based on expiring inventory
+    // Serializes the result into Room for offline availability.
     override suspend fun fetchAndSaveRecipes(
         userId: Int,
         expiringItems: List<Inventory>,

@@ -490,7 +490,6 @@ fun AppNavigation(
                     val allergies by userPreferences.allergies.collectAsState(initial = emptySet())
                     val householdType by userPreferences.householdType.collectAsState(initial = "Student")
 
-                    // ✅ 使用 current backStackEntry 保证 ViewModel 在 Recipe 流程中共享
                     val recipeViewModel: RecipeViewModel = viewModel(factory = recipeViewModelFactory)
 
                     LaunchedEffect(allInventoryItems, dietType, allergies, householdType) {

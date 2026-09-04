@@ -220,6 +220,7 @@ fun ManageStorageScreen(
         )
     }
 
+    // Confirmation dialog triggered before deleting a non-default storage location
     if (storageToDelete != null) {
         AlertDialog(
             onDismissRequest = { storageToDelete = null },

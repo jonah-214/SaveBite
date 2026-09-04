@@ -20,9 +20,8 @@ data class Recipe(
     val steps: List<String>
 )
 
+// Handles calling the Google Gemini API to generate zero-waste recipe suggestions based on
 class GeminiRecipeService(private val apiKey: String) {
-
-    // 使用官方 SDK 实例，配合 JSON Schema 输出配置
     private val generativeModel by lazy {
         GenerativeModel(
             modelName = "gemini-3.6-flash",
@@ -33,6 +32,7 @@ class GeminiRecipeService(private val apiKey: String) {
         )
     }
 
+    // Requests 3 distinct recipes from Gemini prioritizing items nearing expiration.
     suspend fun generateRecipes(
         expiringItems: List<Inventory>,
         dietType: String = "None",
@@ -94,7 +94,7 @@ class GeminiRecipeService(private val apiKey: String) {
         """.trimIndent()
 
         try {
-            // 调用官方 SDK 生成文本
+            // Call the official Gemini SDK to generate content asynchronously.
             val response = generativeModel.generateContent(prompt)
             val responseText = response.text
 
@@ -127,6 +127,8 @@ class GeminiRecipeService(private val apiKey: String) {
         }
     }
 
+    // Helper method to remove code block formatting
+    // around model responses despite JSON mode settings.
     private fun cleanJsonString(raw: String): String {
         var clean = raw.trim()
         if (clean.startsWith("```json")) {

@@ -90,7 +90,6 @@ object PdfReportGenerator {
         paint.isFakeBoldText = true
         canvas.drawText("Food Waste & Consumption Report", startX, currentY + 16f, paint)
 
-        // 根据 selectedTimeFrame 组装 Date 显示字符串
         val dateDisplay = when (state.selectedTimeFrame) {
             TimeFrame.WEEKLY -> "Weekly Report: ${state.dateDisplay}"
             TimeFrame.MONTHLY -> "Monthly Report: ${state.dateDisplay}"
@@ -214,7 +213,6 @@ object PdfReportGenerator {
         val cardRightPadding = 14f
         val colRightAlignX = startX + contentWidth - cardRightPadding
 
-        // 1. Most Wasted Items Card (与 UI 标题对应)
         drawRoundedRect(canvas, startX, currentY, contentWidth, wastedItemsCardHeight, 12f, Color.WHITE, borderCard)
 
         paint.color = textDark
@@ -225,24 +223,21 @@ object PdfReportGenerator {
         var itemY = currentY + 46f
         if (topWastedList.isNotEmpty()) {
             topWastedList.forEach { item ->
-                // 名称
+
                 paint.color = textDark
                 paint.textSize = 10f
                 paint.isFakeBoldText = false
                 val displayName = item.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
                 canvas.drawText(displayName, colNameX, itemY, paint)
 
-                // 统一背景进度条
                 paint.color = bgCard
                 paint.style = Paint.Style.FILL
                 canvas.drawRoundRect(RectF(colBarStartX, itemY - 6f, colBarStartX + barMaxWidth, itemY - 6f + 5f), 2.5f, 2.5f, paint)
 
-                // 统一填充进度条
                 val fillWidth = (item.percentage / 100f).coerceIn(0f, 1f) * barMaxWidth
                 paint.color = primaryGreen
                 canvas.drawRoundRect(RectF(colBarStartX, itemY - 6f, colBarStartX + fillWidth, itemY - 6f + 5f), 2.5f, 2.5f, paint)
 
-                // 右侧文本（右对齐算法）
                 paint.color = textMuted
                 paint.textSize = 9f
                 paint.isFakeBoldText = false
@@ -278,23 +273,20 @@ object PdfReportGenerator {
         var reasonY = currentY + 46f
         if (reasonList.isNotEmpty()) {
             reasonList.forEach { reason ->
-                // 名称
+
                 paint.color = textDark
                 paint.textSize = 10f
                 paint.isFakeBoldText = false
                 canvas.drawText(reason.reason, colNameX, reasonY, paint)
 
-                // 统一背景进度条
                 paint.color = bgCard
                 paint.style = Paint.Style.FILL
                 canvas.drawRoundRect(RectF(colBarStartX, reasonY - 6f, colBarStartX + barMaxWidth, reasonY - 6f + 5f), 2.5f, 2.5f, paint)
 
-                // 统一填充进度条
                 val fillWidth = (reason.percentage / 100f).coerceIn(0f, 1f) * barMaxWidth
                 paint.color = primaryGreen
                 canvas.drawRoundRect(RectF(colBarStartX, reasonY - 6f, colBarStartX + fillWidth, reasonY - 6f + 5f), 2.5f, 2.5f, paint)
 
-                // 右侧文本（右对齐算法）
                 paint.color = textMuted
                 paint.textSize = 9f
                 paint.isFakeBoldText = false
@@ -325,24 +317,21 @@ object PdfReportGenerator {
         var consumedY = currentY + 46f
         if (consumedList.isNotEmpty()) {
             consumedList.forEach { item ->
-                // 名称
+
                 paint.color = textDark
                 paint.textSize = 10f
                 paint.isFakeBoldText = false
                 val displayName = item.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
                 canvas.drawText(displayName, colNameX, consumedY, paint)
 
-                // 统一背景进度条
                 paint.color = bgCard
                 paint.style = Paint.Style.FILL
                 canvas.drawRoundRect(RectF(colBarStartX, consumedY - 6f, colBarStartX + barMaxWidth, consumedY - 6f + 5f), 2.5f, 2.5f, paint)
 
-                // 统一填充进度条
                 val fillWidth = (item.percentage / 100f).coerceIn(0f, 1f) * barMaxWidth
                 paint.color = primaryGreen
                 canvas.drawRoundRect(RectF(colBarStartX, consumedY - 6f, colBarStartX + fillWidth, consumedY - 6f + 5f), 2.5f, 2.5f, paint)
 
-                // 右侧文本（右对齐算法）
                 paint.color = textMuted
                 paint.textSize = 9f
                 paint.isFakeBoldText = false
@@ -383,12 +372,10 @@ object PdfReportGenerator {
         val rect = RectF(left, top, left + width, top + height)
         val paint = Paint().apply { isAntiAlias = true }
 
-        // Draw Fill
         paint.color = fillColor
         paint.style = Paint.Style.FILL
         canvas.drawRoundRect(rect, radius, radius, paint)
 
-        // Draw Stroke Border
         paint.color = strokeColor
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 1f

@@ -54,16 +54,18 @@ data class ReportUiState(
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReportViewModel(private val repository: ReportRepository) : ViewModel() {
 
+    // Internal state flow tracking current TimeFrame and target anchor Calendar
     private val _timeFilter = MutableStateFlow(
         Pair(TimeFrame.WEEKLY, Calendar.getInstance())
     )
 
     init {
+        // Attempt background cloud synchronization; gracefully fallback to local cache on error
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 repository.syncFromCloud()
             } catch (e: Exception) {
-                // 忽略网络异常，使用本地离线数据
+                // Ignore network exceptions and rely on local offline storage
             }
         }
     }

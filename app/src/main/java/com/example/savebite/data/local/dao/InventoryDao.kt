@@ -30,6 +30,8 @@ interface InventoryDao {
     @Query("SELECT name FROM inventory_table WHERE daysLeft <= :thresholdDays")
     suspend fun getExpiringItemNames(thresholdDays: Int): List<String>
 
+    // Performs live full-text search and storage filtering simultaneously.
+    // Matches queries against item names and descriptions, returning results ordered by expiration.
     @Query("""
         SELECT * FROM inventory_table 
         WHERE (:storage = 'All' OR storage = :storage)
@@ -44,14 +46,16 @@ interface InventoryDao {
     @Delete
     suspend fun deleteItem(item: Inventory)
 
+    // Bulk-reassigns items from one storage location to another.
+    // Used when a user renames or deletes a custom storage location (e.g., migrating "Freezer 1" items to "Refrigerator").
     @Query("UPDATE inventory_table SET storage = :newStorage WHERE storage = :oldStorage")
     suspend fun reassignStorage(oldStorage: String, newStorage: String)
 
-    // 1. 获取所有已勾选 (isConsumed == true) 的物品
+    // Retrieves all items flagged as consumed for food waste reduction metrics and analytics reporting.
     @Query("SELECT * FROM inventory_table WHERE isConsumed = 1")
     suspend fun getConsumedItems(): List<Inventory>
 
-    // 2. 批量删除已消耗的物品
+    // Bulk deletes all consumed items to clean up local table size after history sync or periodic maintenance.
     @Query("DELETE FROM inventory_table WHERE isConsumed = 1")
     suspend fun deleteConsumedItems()
 }

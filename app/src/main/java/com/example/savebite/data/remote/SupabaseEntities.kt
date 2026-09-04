@@ -8,7 +8,7 @@ import com.example.savebite.model.Storage
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// 1. Inventory DTO
+// Inventory DTO
 @Serializable
 data class SupabaseInventory(
     val id: String,
@@ -27,7 +27,7 @@ data class SupabaseInventory(
     @SerialName("is_consumed") val isConsumed: Boolean = false
 )
 
-// 2. ShoppingItem DTO
+// ShoppingItem DTO
 @Serializable
 data class SupabaseShoppingItem(
     val id: String,
@@ -39,14 +39,14 @@ data class SupabaseShoppingItem(
     @SerialName("is_purchased") val isPurchased: Boolean = false
 )
 
-// 3. Storage DTO
+// Storage DTO
 @Serializable
 data class SupabaseStorage(
     val name: String,
     @SerialName("user_id") val userId: String? = null
 )
 
-// 4. ReportItem DTO
+// ReportItem DTO
 @Serializable
 data class SupabaseReportItem(
     val id: String,
@@ -61,8 +61,9 @@ data class SupabaseReportItem(
     val timestamp: Long = System.currentTimeMillis()
 )
 
-// --- Mapper 转换函数（Room <-> Supabase） ---
+// Mapper function ( Room & Supabase)
 
+// Converts a local Room Inventory entity into a Supabase DTO, injecting the active user's ID
 fun Inventory.toSupabase(userId: String? = null) = SupabaseInventory(
     id = id,
     userId = userId,
@@ -115,6 +116,7 @@ fun SupabaseShoppingItem.toRoom() = ShoppingItem(
     isPurchased = isPurchased
 )
 
+// Converts local enum-based ReportItem to remote String status representation.
 fun ReportItem.toSupabase(userId: String? = null) = SupabaseReportItem(
     id = id,
     userId = userId,
@@ -128,6 +130,7 @@ fun ReportItem.toSupabase(userId: String? = null) = SupabaseReportItem(
     timestamp = timestamp
 )
 
+// Converts remote String status back into local ReportStatus enum with a fallback to prevent crash loops on schema changes.
 fun SupabaseReportItem.toRoom() = ReportItem(
     id = id,
     name = name,

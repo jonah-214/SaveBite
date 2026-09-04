@@ -50,10 +50,12 @@ class ShoppingRepository(
         purchased.forEach { deleteItem(it) }
     }
 
+    // Two-way synchronization
     suspend fun syncFromCloud(): Result<Unit> {
         return runCatching {
             val rawLocalItems = shoppingDao.getAllShoppingItemsRaw()
 
+            // 1.Flush pending local deletions to cloud first to prevent remote items from re-appearing.
             val pendingDeletes = rawLocalItems.filter { it.isDeleted && !it.isSynced }
             for (deletedItem in pendingDeletes) {
                 val delResult = supabaseDataRepository.deleteShoppingItem(deletedItem.id)
@@ -62,6 +64,7 @@ class ShoppingRepository(
                 }
             }
 
+            // 2. Push pending local inserts/updates created while offline.
             val pendingUpserts = rawLocalItems.filter { !it.isDeleted && !it.isSynced }
             for (item in pendingUpserts) {
                 val upResult = supabaseDataRepository.upsertShoppingItem(item.toSupabase())
@@ -70,6 +73,7 @@ class ShoppingRepository(
                 }
             }
 
+            // 3. Fetch latest cloud snapshot and merge remote changes, preserving locally soft-deleted tombstones.
             val remoteResult = supabaseDataRepository.fetchShoppingItems()
             if (remoteResult.isSuccess) {
                 val remoteItems = remoteResult.getOrThrow().map { it.toRoom() }

@@ -10,15 +10,16 @@ import kotlinx.coroutines.launch
 
 class RecipeGetStartedViewModel(application: Application) : AndroidViewModel(application) {
 
+    // Persistent storage manager for user recipe preferences
     private val userPreferences = RecipeUserPreferences(application)
 
-    // 饮食偏好选项
+    // Dietary preference selection
     val selectedDiet = MutableStateFlow("None") // "None", "Vegetarian", "Vegan", "Halal"
 
-    // 选中过敏原
+    // Set of selected allergen exclusions
     val selectedAllergies = MutableStateFlow<Set<String>>(emptySet())
 
-    // 家庭类型 - "Student", "Adult", "Family"
+    // Household type selection
     val selectedHousehold = MutableStateFlow("Student")
 
     fun selectDiet(diet: String) {

@@ -29,6 +29,7 @@ fun AddShoppingItemScreen(
     var unit by remember { mutableStateOf("pcs") }
     var category by remember { mutableStateOf("Dairy & Eggs") }
 
+    // Synchronizes form inputs when an existing item is loaded for editing.
     LaunchedEffect(existingItem) {
         existingItem?.let {
             name = it.name

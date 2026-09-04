@@ -39,7 +39,6 @@ fun InventoryDetailScreen(
     var showConsumeDialog by remember { mutableStateOf(false) }
     var showWasteDialog by remember { mutableStateOf(false) }
 
-    // 数量选择与原因状态
     var consumeQuantity by remember { mutableIntStateOf(1) }
     var wasteQuantity by remember { mutableIntStateOf(1) }
 
@@ -47,7 +46,7 @@ fun InventoryDetailScreen(
     var selectedReason by remember { mutableStateOf("Expired") }
     var customReason by remember { mutableStateOf("") }
 
-    // 1. Delete Confirm Dialog
+    // Confirmation dialog before permanent item removal.
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -73,7 +72,6 @@ fun InventoryDetailScreen(
         )
     }
 
-    // 2. Mark as Consumed Dialog (带数量选择)
     if (showConsumeDialog) {
         AlertDialog(
             onDismissRequest = {
@@ -93,7 +91,6 @@ fun InventoryDetailScreen(
                         fontSize = 14.sp
                     )
 
-                    // 数量选择加减器
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -165,7 +162,7 @@ fun InventoryDetailScreen(
         )
     }
 
-    // 3. Mark as Waste Dialog (带数量选择 & 原因选择)
+    // Dialog with quantity selection and reason categorization for food waste reporting.
     if (showWasteDialog) {
         AlertDialog(
             onDismissRequest = {
@@ -186,7 +183,6 @@ fun InventoryDetailScreen(
                         fontSize = 14.sp
                     )
 
-                    // 数量选择加减器
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -237,7 +233,7 @@ fun InventoryDetailScreen(
                         fontWeight = FontWeight.SemiBold
                     )
 
-                    // 快捷原因 Chips
+                    // Waste classification quick-select chip group
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -252,6 +248,7 @@ fun InventoryDetailScreen(
                         }
                     }
 
+                    // Free-form input field when "Other" option is selected
                     if (selectedReason == "Other") {
                         OutlinedTextField(
                             value = customReason,
@@ -317,7 +314,6 @@ fun InventoryDetailScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {
-            // 1. Header Row: Name & Category Badge
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -382,7 +378,6 @@ fun InventoryDetailScreen(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 2. Quantity & Status Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -475,7 +470,6 @@ fun InventoryDetailScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 3. Details Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -613,8 +607,6 @@ fun InventoryDetailScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 4. Action Buttons Section
-            // Edit & Delete
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -668,7 +660,6 @@ fun InventoryDetailScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Mark as Consumed & Mark as Waste 两个操作按钮
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)

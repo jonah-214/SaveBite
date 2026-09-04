@@ -66,6 +66,7 @@ class InventoryRepository(
         }
     }
 
+    // Safely removes a storage location by reassigning affected inventory items
     suspend fun deleteStorageAndReassign(name: String, defaultStorage: String = DefaultStorages.FALLBACK) {
         inventoryDao.reassignStorage(name, defaultStorage)
         storageDao.deleteStorage(Storage(name))
@@ -77,6 +78,7 @@ class InventoryRepository(
         }
     }
 
+    // Converts an inventory item into a waste report record
     suspend fun markAsWaste(item: Inventory, reason: String) {
         val reportItem = ReportItem(
             name = item.name,
@@ -90,7 +92,6 @@ class InventoryRepository(
         reportDao.insertReportItem(reportItem)
         inventoryDao.deleteItem(item)
 
-        // Supabase 同步
         supabaseDataRepository.insertReportItem(reportItem.toSupabase())
         supabaseDataRepository.deleteInventoryItem(item.id)
     }
@@ -102,6 +103,7 @@ class InventoryRepository(
             .onFailure { Log.e(TAG, "Supabase upsert failed for item ${item.id} (${item.name})", it) }
     }
 
+    // Batch converts all items marked as consumed into report items
     suspend fun moveConsumedToReport() {
         val consumedList = inventoryDao.getConsumedItems()
         if (consumedList.isNotEmpty()) {
@@ -119,7 +121,6 @@ class InventoryRepository(
             reportDao.insertReportItems(reportItems)
             inventoryDao.deleteConsumedItems()
 
-            // 批量同步云端
             reportItems.forEach { supabaseDataRepository.insertReportItem(it.toSupabase()) }
             consumedList.forEach { supabaseDataRepository.deleteInventoryItem(it.id) }
         }

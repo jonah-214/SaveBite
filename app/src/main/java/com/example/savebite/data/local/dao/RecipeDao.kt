@@ -14,7 +14,7 @@ import kotlinx.serialization.json.Json
 @Entity(tableName = "cached_recipes")
 data class RecipeEntity(
     @PrimaryKey val id: Int,
-    val jsonContent: String, // 将 List<Recipe> 序列化为 JSON 字符串保存
+    val jsonContent: String,
     val updatedAt: Long = System.currentTimeMillis()
 )
 

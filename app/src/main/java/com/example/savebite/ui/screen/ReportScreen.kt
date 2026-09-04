@@ -60,7 +60,6 @@ fun ReportScreen(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    // 控制下拉菜单显隐
     var dropdownExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -164,7 +163,6 @@ fun ReportScreen(
                         }
                     }
 
-                    // 下拉选项列表
                     DropdownMenu(
                         expanded = dropdownExpanded,
                         onDismissRequest = { dropdownExpanded = false }
