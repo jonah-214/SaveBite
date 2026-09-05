@@ -53,5 +53,5 @@ app/src/main/java/com/example/savebite/
    git clone https://github.com/<your-username>/SaveBite.git
    ```
 2. Open the project in Android Studio.
-3. Add your Supabase credentials to `local.properties` (or the appropriate config file used by the project).
+3. Add your Supabase credentials to `local.properties` (Key can be found in `local.properties.example.txt`).
 4. Sync Gradle and run the app on an emulator or physical device.
