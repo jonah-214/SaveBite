@@ -37,21 +37,3 @@ app/src/main/java/com/example/savebite/
 │   └── viewmodel/  # ViewModels
 └── utils/          # Utility/helper classes
 ```
-
-## Getting Started
-
-### Prerequisites
-
-- Android Studio (latest stable version recommended)
-- JDK 17+
-- A Supabase project (URL and API key)
-
-### Setup
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/<your-username>/SaveBite.git
-   ```
-2. Open the project in Android Studio.
-3. Add your Supabase credentials to `local.properties` (Key can be found in `local.properties.example.txt`).
-4. Sync Gradle and run the app on an emulator or physical device.
